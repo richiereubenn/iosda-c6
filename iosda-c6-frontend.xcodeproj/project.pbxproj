@@ -6,8 +6,13 @@
 	objectVersion = 77;
 	objects = {
 
+/* Begin PBXBuildFile section */
+		47E0B55C2E5FDC33004BA4E3 /* .gitignore in Resources */ = {isa = PBXBuildFile; fileRef = 47E0B55B2E5FDC33004BA4E3 /* .gitignore */; };
+/* End PBXBuildFile section */
+
 /* Begin PBXFileReference section */
 		47E0B54B2E5FDC1D004BA4E3 /* iosda-c6-frontend.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "iosda-c6-frontend.app"; sourceTree = BUILT_PRODUCTS_DIR; };
+		47E0B55B2E5FDC33004BA4E3 /* .gitignore */ = {isa = PBXFileReference; lastKnownFileType = text; path = .gitignore; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -32,6 +37,7 @@
 		47E0B5422E5FDC1D004BA4E3 = {
 			isa = PBXGroup;
 			children = (
+				47E0B55B2E5FDC33004BA4E3 /* .gitignore */,
 				47E0B54D2E5FDC1D004BA4E3 /* iosda-c6-frontend */,
 				47E0B54C2E5FDC1D004BA4E3 /* Products */,
 			);
@@ -109,6 +115,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				47E0B55C2E5FDC33004BA4E3 /* .gitignore in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

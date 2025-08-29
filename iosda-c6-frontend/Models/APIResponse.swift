@@ -5,7 +5,7 @@
 //  Created by Richie Reuben Hermanto on 29/08/25.
 //
 
-mport Foundation
+import Foundation
 
 struct APIResponse<T: Codable>: Codable {
     let data: T

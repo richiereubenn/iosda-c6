@@ -8,7 +8,7 @@ struct ResidentMyUnitView: View {
     var body: some View {
         VStack(spacing: 8) {
             // Search Bar
-            SearchBar(text: $searchText)
+            SearchBar(searchText: $searchText)
                 .padding(.horizontal, 5)
                 .padding(.top, 8)
             

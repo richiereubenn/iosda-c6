@@ -15,10 +15,10 @@ struct Unit: Identifiable, Codable {
     let renovationPermit: Bool?
     let isApproved: Bool?
     
-//    // Navigation properties
-//    var userUnits: [UserUnit]?
-//    var keyLogs: [KeyLog]?
-//    var complaints: [Complaint]?
+    // Navigation properties
+    var userUnits: [UserUnit]?
+    var keyLogs: [KeyLog]?
+    var complaints: [Complaint]?
 //    var progressLogs: [ProgressLog]?
     
     private enum CodingKeys: String, CodingKey {

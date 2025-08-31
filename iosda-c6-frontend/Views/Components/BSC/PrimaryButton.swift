@@ -35,5 +35,15 @@ struct PrimaryButton: View {
     }
 }
 
-//#Preview {
-//}
+#Preview("PrimaryButton States") {
+    VStack(spacing: 16) {
+        PrimaryButton(title: "Submit", action: {
+            print("Button tapped")
+        })
+
+        PrimaryButton(title: "Loading...", action: {}, isLoading: true)
+
+        PrimaryButton(title: "Disabled", action: {}, isDisabled: true)
+    }
+    .padding()
+}

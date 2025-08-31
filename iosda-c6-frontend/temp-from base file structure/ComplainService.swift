@@ -7,19 +7,19 @@
 
 import Foundation
 
-protocol ComplaintServiceProtocol {
-    func getAllComplaints() async throws -> [Complaint]
+protocol ComplainServiceProtocol {
+    func getAllComplaints() async throws -> [ComplaintModel]
 }
 
-class ComplaintService: ComplaintServiceProtocol {
+class ComplainService: ComplainServiceProtocol {
     private let networkManager: NetworkManager
     
     init(networkManager: NetworkManager = .shared) {
         self.networkManager = networkManager
     }
     
-    func getAllComplaints() async throws -> [Complaint] {
-        let response: APIResponse<[Complaint]> = try await networkManager.request(
+    func getAllComplaints() async throws -> [ComplaintModel] {
+        let response: APIResponse<[ComplaintModel]> = try await networkManager.request(
             endpoint: "/complaints"
         )
         

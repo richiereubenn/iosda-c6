@@ -22,8 +22,8 @@ struct ResidentUnitCard: View {
                     .font(.headline)
                 // Header with status indicator
                 
-                if let area = unit.area {
-                    Text(area)
+                if let project = unit.project {
+                    Text(project)
                         .font(.subheadline)
                         .foregroundColor(.secondary)
                 }

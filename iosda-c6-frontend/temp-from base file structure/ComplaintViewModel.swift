@@ -9,13 +9,13 @@ import Foundation
 
 @MainActor
 class ComplaintViewModel: ObservableObject {
-    @Published var complaints: [Complaint] = []
+    @Published var complaints: [ComplaintModel] = []
     @Published var isLoading = false
     @Published var errorMessage: String?
     
-    private let complaintService: ComplaintServiceProtocol
+    private let complaintService: ComplainServiceProtocol
     
-    init(complaintService: ComplaintServiceProtocol = ComplaintService()) {
+    init(complaintService: ComplainServiceProtocol = ComplainService()) {
         self.complaintService = complaintService
     }
     

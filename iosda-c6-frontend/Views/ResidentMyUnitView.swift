@@ -9,8 +9,9 @@ struct ResidentMyUnitView: View {
         VStack(spacing: 8) {
             // Search Bar
             SearchBar(searchText: $searchText)
-                .padding(.horizontal, 5)
-                .padding(.top, 8)
+//            SearchBar(text: $searchText)
+//                .padding(.horizontal, 5)
+//                .padding(.top, 8)
             
             // Segmented Control
             Picker("Unit Status", selection: $viewModel.selectedSegment) {

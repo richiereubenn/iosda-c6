@@ -8,42 +8,12 @@
 import SwiftUI
 
 struct BuildingUnitComplainList: View {
-    @State private var searchText = ""
-    @State private var sortOption: SortOption = .latest
+    @StateObject private var viewModel = BuildingListViewModel()
     
-    private let sampleUnits = [
-        UnitComplainData(unitCode: "HC-0001", latestComplaintDate: "2023-10-26", totalComplaints: 8, completedComplaints: 8),
-        UnitComplainData(unitCode: "HC-0002", latestComplaintDate: "2023-10-25", totalComplaints: 12, completedComplaints: 2),
-        UnitComplainData(unitCode: "HC-0003", latestComplaintDate: "2023-10-24", totalComplaints: 6, completedComplaints: 3),
-        UnitComplainData(unitCode: "HC-0004", latestComplaintDate: "2023-10-23", totalComplaints: 15, completedComplaints: 2)
-    ]
-
     var body: some View {
-        VStack(alignment: .leading, spacing: 16) {
-            HStack {
-                Text("Building Complain List")
-                    .font(.largeTitle)
-                    .bold()
-                
-                Spacer()
-                
-                Menu {
-                    Button(action: { sortOption = .latest }) {
-                        Label("Tanggal Terbaru", systemImage: sortOption == .latest ? "checkmark" : "")
-                    }
-                    Button(action: { sortOption = .oldest }) {
-                        Label("Tanggal Terlama", systemImage: sortOption == .oldest ? "checkmark" : "")
-                    }
-                } label: {
-                    Image(systemName: "ellipsis.circle")
-                        .foregroundColor(.primaryBlue)
-                        .font(.title)
-                }
-            }
-            .padding(.horizontal)
-
-            SearchBar(searchText: $searchText)
-
+        VStack(spacing: 16) {
+            SearchBar(searchText: $viewModel.searchText)
+            
             HStack(spacing: 16) {
                 SummaryComplaintCard(
                     title: "New Complaint",
@@ -62,52 +32,48 @@ struct BuildingUnitComplainList: View {
             
             ScrollView {
                 LazyVStack(spacing: 12) {
-                    ForEach(filteredAndSortedUnits, id: \.unitCode) { unit in
-                        UnitComplainCard(
-                            unitCode: unit.unitCode,
-                            latestComplaintDate: unit.latestComplaintDate,
-                            totalComplaints: unit.totalComplaints,
-                            completedComplaints: unit.completedComplaints
-                        )
+                    ForEach(viewModel.getFilteredAndSortedUnits(), id: \.unitCode) { unit in
+                        NavigationLink(destination: ComplainListView()) {
+                            UnitComplainCard(
+                                unitCode: unit.unitCode,
+                                latestComplaintDate: unit.latestComplaintDate,
+                                totalComplaints: unit.totalComplaints,
+                                completedComplaints: unit.completedComplaints
+                            )
+                        }
+                        .buttonStyle(PlainButtonStyle())
                     }
                 }
                 .padding(.horizontal)
             }
 
+            
             Spacer()
         }
         .padding(.top)
-    }
-    
-    private var filteredAndSortedUnits: [UnitComplainData] {
-        let filtered = searchText.isEmpty ?
-            sampleUnits :
-            sampleUnits.filter { $0.unitCode.localizedCaseInsensitiveContains(searchText) }
-        
-        return filtered.sorted {
-            let dateFormatter = DateFormatter()
-            dateFormatter.dateFormat = "yyyy-MM-dd"
-            guard let date1 = dateFormatter.date(from: $0.latestComplaintDate),
-                  let date2 = dateFormatter.date(from: $1.latestComplaintDate) else {
-                return false
+        .toolbar {
+            ToolbarItem(placement: .navigationBarTrailing) {
+                Menu {
+                    Button(action: { viewModel.sortOption = .latest }) {
+                        Label("Tanggal Terbaru", systemImage: viewModel.sortOption == .latest ? "checkmark" : "")
+                    }
+                    Button(action: { viewModel.sortOption = .oldest }) {
+                        Label("Tanggal Terlama", systemImage: viewModel.sortOption == .oldest ? "checkmark" : "")
+                    }
+                } label: {
+                    Image(systemName: "line.3.horizontal.decrease.circle")
+                        .font(.title2)
+                        .foregroundColor(Color.primaryBlue)
+                }
             }
-            return sortOption == .latest ? date1 > date2 : date1 < date2
         }
+        .navigationTitle("Building Complain List")
+        
     }
-}
-
-struct UnitComplainData {
-    let unitCode: String
-    let latestComplaintDate: String
-    let totalComplaints: Int
-    let completedComplaints: Int
-}
-
-enum SortOption {
-    case latest
-    case oldest
 }
 
 #Preview {
-    BuildingUnitComplainList()
+    NavigationStack {
+        BuildingUnitComplainList()
+    }
 }

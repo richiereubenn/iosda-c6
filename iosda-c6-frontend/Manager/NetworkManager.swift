@@ -75,6 +75,30 @@ class NetworkManager {
             throw error
         }
     }
+    
+    func requestEmpty(
+        endpoint: String,
+        method: HTTPMethod = .GET
+    ) async throws {
+        guard let url = URL(string: baseURL + endpoint) else {
+            throw NetworkError.invalidURL
+        }
+
+        var request = URLRequest(url: url)
+        request.httpMethod = method.rawValue
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+
+        let (_, response) = try await URLSession.shared.data(for: request)
+
+        guard let httpResponse = response as? HTTPURLResponse else {
+            throw NetworkError.serverError(0)
+        }
+
+        guard 200...299 ~= httpResponse.statusCode else {
+            throw NetworkError.serverError(httpResponse.statusCode)
+        }
+    }
+
 }
 
 enum HTTPMethod: String {

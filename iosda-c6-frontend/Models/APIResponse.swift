@@ -5,10 +5,10 @@
 //  Created by Richie Reuben Hermanto on 29/08/25.
 //
 
-mport Foundation
+import Foundation
 
 struct APIResponse<T: Codable>: Codable {
-    let data: T
+    let data: T?
     let message: String?
     let success: Bool
     
@@ -40,5 +40,27 @@ extension APIResponse {
 }
 
 struct EmptyData: Codable {
+}
+
+struct CreateUnitRequest: Codable {
+    let name: String
+    let project: String?
+    let area: String?
+    let block: String?
+    let unitNumber: String?
+    let handoverDate: Date?
+    let renovationPermit: Bool?
+    let ownershipType: String?
+    
+    private enum CodingKeys: String, CodingKey {
+        case name
+        case project
+        case area
+        case block
+        case unitNumber = "unit_number"
+        case handoverDate = "handover_date"
+        case renovationPermit = "renovation_permit"
+        case ownershipType = "ownership_type"
+    }
 }
 

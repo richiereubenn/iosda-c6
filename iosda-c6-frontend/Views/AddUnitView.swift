@@ -9,6 +9,7 @@ import SwiftUI
 
 struct AddUnitView: View {
     @Environment(\.dismiss) private var dismiss
+    @ObservedObject var viewModel: UnitViewModel
     
     // MARK: - State
     @State private var selectedProject: String = ""
@@ -134,12 +135,16 @@ struct AddUnitView: View {
                     
                     // Submit
                     Button(action: {
-                        print("Project: \(selectedProject)")
-                        print("Area: \(selectedArea)")
-                        print("Block: \(selectedBlock)")
-                        print("Unit: \(selectedUnit)")
-                        print("Ownership: \(ownershipStatus)")
-                        dismiss()
+                        viewModel.addUnit(
+                        name: selectedProject + " - " + selectedUnit,
+                        project: selectedProject,
+                        area: selectedArea,
+                        block: selectedBlock,
+                        unitNumber: selectedUnit,
+                        handoverDate: nil,
+                        renovationPermit: false,
+                        ownershipType: ownershipStatus
+                        )
                     }) {
                         Text("Submit a Claim")
                             .frame(maxWidth: .infinity)
@@ -148,6 +153,7 @@ struct AddUnitView: View {
                             .foregroundColor(.white)
                             .cornerRadius(8)
                     }
+                    .disabled(!isFormValid || viewModel.isLoading)
                     .padding(.top, 12)
                 }
                 .padding(.horizontal)
@@ -165,6 +171,13 @@ struct AddUnitView: View {
         }
         return []
     }
+    private var isFormValid: Bool {
+            !selectedProject.isEmpty &&
+            !selectedArea.isEmpty &&
+            !selectedBlock.isEmpty &&
+            !selectedUnit.isEmpty &&
+            !ownershipStatus.isEmpty
+        }
 }
 
 // MARK: - Custom Picker
@@ -199,5 +212,5 @@ struct CustomPicker: View {
 }
 
 #Preview {
-    AddUnitView()
+    AddUnitView(viewModel: UnitViewModel())
 }

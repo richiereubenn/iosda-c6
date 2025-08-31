@@ -9,39 +9,44 @@ import SwiftUI
 
 struct BSCContentView: View {
     @State private var selection: MenuItem?
-
+    
     var body: some View {
         NavigationSplitView {
             SidebarView(selection: $selection)
         } detail: {
-            if let selection {
-                switch selection.title {
-                case "Dashboard":
-                    Text("Dashboard")
-                case "Building":
-                    BuildingUnitComplainList()
-                case "Land":
-                    Text("Land")
-                case "Other":
-                    Text("Other")
-                case "Unit":
-                    Text("Unit")
-                case "User":
-                    Text("User")
-                default:
-                    Text("Halaman: \(selection.title)")
-                        .font(.largeTitle)
-                        .bold()
+            NavigationStack {
+                if let selection {
+                    switch selection.title {
+                    case "Dashboard":
+                       Text("Halo")
+                        
+                    case "Building":
+                        BuildingUnitComplainList() 
+                        
+                    case "Land":
+                        BSCComplainDetailView()
+                        
+                    case "Other":
+                        BuildingUnitComplainList()
+                        
+                    case "Unit":
+                        BuildingUnitComplainList()
+                        
+                    case "User":
+                        BuildingUnitComplainList()
+                        
+                    default:
+                        BuildingUnitComplainList()
+                    }
+                } else {
+                    Text("Pilih menu di sidebar")
+                        .font(.title2)
+                        .foregroundColor(.secondary)
                 }
-            } else {
-                Text("Pilih menu di sidebar")
-                    .font(.title2)
-                    .foregroundColor(.secondary)
             }
         }
     }
 }
-
 
 #Preview {
     BSCContentView()

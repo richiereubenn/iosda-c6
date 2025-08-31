@@ -24,8 +24,8 @@ struct Unit: Identifiable, Codable {
     private enum CodingKeys: String, CodingKey {
         case id = "uuid"
         case name
-        case bscUuid = "doc_ic_uuid"
-        case biUuid = "bl_ic_uuid"
+        case bscUuid = "bsc_ic_uuid"
+        case biUuid = "bi_ic_uuid"
         case contractorUuid = "contractor_uuid"
         case keyUuid = "key_uuid"
         case project

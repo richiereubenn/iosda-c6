@@ -6,7 +6,7 @@
 //
 import SwiftUI
 
-struct UnitCard: View {
+struct ResidentUnitCard: View {
     let unit: Unit
     let userUnit: UserUnit
     
@@ -46,7 +46,7 @@ struct UnitCard: View {
 }
 
 #Preview {
-    UnitCard(
+    ResidentUnitCard(
         unit: Unit(
             id: 1234,
             name: "Citraland Utara - 8/24",

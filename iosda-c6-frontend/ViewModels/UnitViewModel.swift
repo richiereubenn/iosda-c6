@@ -1,9 +1,3 @@
-//
-//  UnitViewModel.swift
-//  iosda-c6-frontend
-//
-//  Created by Gabriella Natasya Pingky Davis on 31/08/25.
-//
 import Foundation
 
 @MainActor
@@ -15,6 +9,7 @@ class UnitViewModel: ObservableObject {
     @Published var showingAddUnit = false
     @Published var selectedSegment = 0
     
+    private let useMockData = true
     private let service = UnitService()
     
     var waitingUnits: [Unit] {
@@ -32,7 +27,7 @@ class UnitViewModel: ObservableObject {
     func getUserUnit(for unit: Unit) -> UserUnit? {
         return userUnits.first(where: { $0.unitId == unit.id })
     }
-
+    
     
     func searchUnits(with searchText: String) -> [Unit] {
         if searchText.isEmpty {
@@ -48,6 +43,12 @@ class UnitViewModel: ObservableObject {
     
     
     func loadUnits() {
+        if useMockData {
+            loadMockData()
+            return
+        }
+        
+        
         Task {
             isLoading = true
             errorMessage = nil
@@ -63,6 +64,41 @@ class UnitViewModel: ObservableObject {
     }
     
     func addUnit(name: String, project: String?, area: String?, block: String?, unitNumber: String?, handoverDate: Date?, renovationPermit: Bool, ownershipType: String?) {
+        if useMockData {
+            // Mock: Add unit to waiting list
+            let newUnitId = Int.random(in: 1000...9999)
+            
+            let newUnit = Unit(
+                id: newUnitId,
+                name: name,
+                bscUuid: nil,
+                biUuid: nil,
+                contractorUuid: nil,
+                keyUuid: nil,
+                project: project,
+                area: area,
+                block: block,
+                unitNumber: unitNumber,
+                handoverDate: handoverDate,
+                renovationPermit: renovationPermit,
+                //ownershipType: ownershipType,
+                isApproved: false // Always goes to waiting first
+            )
+            
+            units.append(newUnit)
+            
+            let userUnit = UserUnit(
+                id: nil,
+                userId: nil ,
+                unitId: newUnitId,
+                ownershipType: ownershipType
+            )
+            userUnits.append(userUnit)
+            
+            showingAddUnit = false
+            return
+        }
+        
         Task {
             isLoading = true
             errorMessage = nil
@@ -91,6 +127,11 @@ class UnitViewModel: ObservableObject {
     }
     
     func deleteUnit(_ unit: Unit) {
+        if useMockData {
+            units.removeAll { $0.id == unit.id }
+            return
+        }
+        
         guard let id = unit.id else { return }
         
         Task {
@@ -101,5 +142,100 @@ class UnitViewModel: ObservableObject {
                 errorMessage = "Failed to delete unit: \(error.localizedDescription)"
             }
         }
+    }
+    private func loadMockData() {
+        units = [
+            // Claimed units (approved)
+            Unit(
+                id: 1,
+                name: "Citraland Surabaya - 1/1",
+                bscUuid: nil,
+                biUuid: nil,
+                contractorUuid: nil,
+                keyUuid: nil,
+                project: "Citraland Surabaya",
+                area: "Northwest Park",
+                block: "Block NA",
+                unitNumber: "1/1",
+                handoverDate: nil,
+                renovationPermit: false,
+                //ownershipType: "Owner",
+                isApproved: true
+            ),
+            Unit(
+                id: 2,
+                name: "Citraland Surabaya (North) - 8/23",
+                bscUuid: nil,
+                biUuid: nil,
+                contractorUuid: nil,
+                keyUuid: nil,
+                project: "Citraland Surabaya (North)",
+                area: "Northwest Lake",
+                block: "Block A",
+                unitNumber: "8/23",
+                handoverDate: nil,
+                renovationPermit: true,
+                //ownershipType: "Family",
+                isApproved: true
+            ),
+            Unit(
+                id: 3,
+                name: "Citraland Surabaya - 7/10",
+                bscUuid: nil,
+                biUuid: nil,
+                contractorUuid: nil,
+                keyUuid: nil,
+                project: "Citraland Surabaya",
+                area: "Bukit Golf",
+                block: "Block C",
+                unitNumber: "7/10",
+                handoverDate: nil,
+                renovationPermit: false,
+                //ownershipType: "Owner",
+                isApproved: true
+            ),
+            
+            // Waiting units (not approved)
+            Unit(
+                id: 4,
+                name: "Citraland Surabaya (North) - 9/33",
+                bscUuid: nil,
+                biUuid: nil,
+                contractorUuid: nil,
+                keyUuid: nil,
+                project: "Citraland Surabaya (North)",
+                area: "Northwest Park",
+                block: "Block ND",
+                unitNumber: "9/33",
+                handoverDate: nil,
+                renovationPermit: false,
+                //ownershipType: "Others",
+                isApproved: false
+            ),
+            Unit(
+                id: 5,
+                name: "Citraland Surabaya - 1/3",
+                bscUuid: nil,
+                biUuid: nil,
+                contractorUuid: nil,
+                keyUuid: nil,
+                project: "Citraland Surabaya",
+                area: "Diamond Hill",
+                block: "Block B",
+                unitNumber: "1/3",
+                handoverDate: nil,
+                renovationPermit: false,
+                //ownershipType: "Family",
+                isApproved: false
+            )
+        ]
+        userUnits = [
+            UserUnit(id: nil, userId: nil, unitId: 1, ownershipType: "Owner"),
+            UserUnit(id: nil, userId: nil, unitId: 2, ownershipType: "Family"),
+            UserUnit(id: nil, userId: nil, unitId: 3, ownershipType: "Owner"),
+            UserUnit(id: nil, userId: nil, unitId: 4, ownershipType: "Others"),
+            UserUnit(id: nil, userId: nil, unitId: 5, ownershipType: "Family")
+        ]
+        
     }
 }

@@ -1,7 +1,7 @@
 
 import SwiftUI
 
-struct MyUnitView: View {
+struct ResidentMyUnitView: View {
     @StateObject private var viewModel = UnitViewModel()
     @State private var searchText: String = ""
     
@@ -44,7 +44,7 @@ struct MyUnitView: View {
                         LazyVStack(spacing: 12) {
                             ForEach(displayUnits) { unit in
                                 if let userUnit = viewModel.getUserUnit(for: unit) {
-                                    UnitCard(unit: unit, userUnit: userUnit)
+                                    ResidentUnitCard(unit: unit, userUnit: userUnit)
                                 }
                             }
                         }
@@ -68,7 +68,7 @@ struct MyUnitView: View {
             }
         }
         .sheet(isPresented: $viewModel.showingAddUnit) {
-            AddUnitView(viewModel: viewModel)
+            ResidentAddUnitView(viewModel: viewModel)
         }
         .alert("Error", isPresented: .constant(viewModel.errorMessage != nil)) {
             Button("OK") {
@@ -86,6 +86,6 @@ struct MyUnitView: View {
 
 #Preview {
     NavigationStack {
-        MyUnitView()
+        ResidentMyUnitView()
     }
 }

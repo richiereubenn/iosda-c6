@@ -7,7 +7,7 @@
 
 import SwiftUI
 
-struct AddUnitView: View {
+struct ResidentAddUnitView: View {
     @Environment(\.dismiss) private var dismiss
     @ObservedObject var viewModel: UnitViewModel
     
@@ -212,5 +212,5 @@ struct CustomPicker: View {
 }
 
 #Preview {
-    AddUnitView(viewModel: UnitViewModel())
+    ResidentAddUnitView(viewModel: UnitViewModel())
 }

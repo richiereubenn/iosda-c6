@@ -35,11 +35,30 @@ struct SidebarView: View {
     @Binding var selection: MenuItem?
 
     var body: some View {
-        List(sidebarMenu, children: \.children, selection: $selection) { item in
-            Label(item.title, systemImage: item.systemImage)
-                .tag(item)
+        ZStack {
+            Color(red: 243/255, green: 249/255, blue: 255/255)
+                .ignoresSafeArea()
+
+            List(sidebarMenu, children: \.children, selection: $selection) { item in
+                Label(item.title, systemImage: item.systemImage)
+                    .foregroundColor(selection == item ? .white : .primary)
+                    .listRowBackground(
+                        selection == item
+                        ? Color.primaryBlue
+                        : Color.clear
+                    )
+                    .tag(item)
+            }
+            .scrollContentBackground(.hidden)
+            .listStyle(SidebarListStyle())
+            .navigationTitle("Ciputra Help")
         }
-        .listStyle(SidebarListStyle())
-        .navigationTitle("Ciputra Help")
+    }
+}
+
+
+struct SidebarView_Previews: PreviewProvider {
+    static var previews: some View {
+        SidebarView(selection: .constant(nil))
     }
 }

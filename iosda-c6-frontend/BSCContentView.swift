@@ -17,17 +17,17 @@ struct BSCContentView: View {
             if let selection {
                 switch selection.title {
                 case "Dashboard":
-                    Text("Kontol")
+                    Text("Dashboard")
                 case "Building":
-                    BuildingComplainListView()
+                    BuildingUnitComplainList()
                 case "Land":
-                    BuildingComplainListView()
+                    Text("Land")
                 case "Other":
-                    BuildingComplainListView()
+                    Text("Other")
                 case "Unit":
-                    BuildingComplainListView()
+                    Text("Unit")
                 case "User":
-                    BuildingComplainListView()
+                    Text("User")
                 default:
                     Text("Halaman: \(selection.title)")
                         .font(.largeTitle)

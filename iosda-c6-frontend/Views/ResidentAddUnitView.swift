@@ -15,7 +15,7 @@ struct ResidentAddUnitView: View {
     @State private var selectedProject: String = ""
     @State private var selectedArea: String = ""
     @State private var selectedBlock: String = ""
-    @State private var selectedUnit: String = ""
+    @State private var selectedUnitNumber: String = ""
     @State private var ownershipStatus: String = ""
     
     // MARK: - Data
@@ -37,16 +37,16 @@ struct ResidentAddUnitView: View {
     
     // Mapping area → block
     let blockMapping: [String: [String]] = [
-        "Northwest Park": ["Block NA", "Block NB", "Block NC", "Block ND"],
-        "Northwest Lake": ["Block A", "Block B"],
+        "Northwest Park": ["NA", "NB", "NC", "ND"],
+        "Northwest Lake": ["A", "B"],
     ]
     
     // Mapping block → unit
     let unitMapping: [String: [String]] = [
-        "Block NA": ["1/1", "1/2", "1/3"],
-        "Block NB": ["8/23", "8/24"],
-        "Block ND": ["9/33", "9/34"],
-        "Block NC": ["7/10", "7/11"]
+        "NA": ["01/001", "01/002", "01/003"],
+        "NB": ["08/023", "08/024"],
+        "ND": ["09/033", "09/034"],
+        "NC": ["07/010", "07/011"]
 
     ]
     
@@ -75,42 +75,45 @@ struct ResidentAddUnitView: View {
                 VStack(alignment: .leading, spacing: 16) {
                     
                     Text("Unit")
-                        .font(.headline)
+                        .font(.title)
+                        .fontWeight(.bold)
                         .padding(.top, 4)
                     
                     Text("Fill in the information of the unit to be claimed")
                         .font(.subheadline)
                         .foregroundColor(.gray)
                     
-                    // Project
-                    CustomPicker(title: "Select Project", selection: $selectedProject, options: projects)
-                    
-                    // Area (aktif kalau project != "")
-                    CustomPicker(
-                        title: "Select Area",
+                    LabeledDropdownPicker(
+                        label: "Project",
+                        placeholder: "Select Project",
+                        selection: $selectedProject,
+                        options: projects
+                    )
+
+                    LabeledDropdownPicker(
+                        label: "Area",
+                        placeholder: "Select Area",
                         selection: $selectedArea,
-                        options: areasForSelectedProject
+                        options: areasForSelectedProject,
+                        isDisabled: selectedProject.isEmpty
                     )
-                    .disabled(selectedProject.isEmpty)
-                    .opacity(selectedProject.isEmpty ? 0.5 : 1)
-                    
-                    // Block (aktif kalau area != "")
-                    CustomPicker(
-                        title: "Select Block",
+
+                    LabeledDropdownPicker(
+                        label: "Block",
+                        placeholder: "Select Block",
                         selection: $selectedBlock,
-                        options: blockMapping[selectedArea] ?? []
+                        options: blockMapping[selectedArea] ?? [],
+                        isDisabled: selectedArea.isEmpty
                     )
-                    .disabled(selectedArea.isEmpty)
-                    .opacity(selectedArea.isEmpty ? 0.5 : 1)
-                    
-                    // Unit (aktif kalau block != "")
-                    CustomPicker(
-                        title: "Select Unit",
-                        selection: $selectedUnit,
-                        options: unitMapping[selectedBlock] ?? []
+
+                    LabeledDropdownPicker(
+                        label: "Unit",
+                        placeholder: "Select Unit Number",
+                        selection: $selectedUnitNumber,
+                        options: unitMapping[selectedBlock] ?? [],
+                        isDisabled: selectedBlock.isEmpty
                     )
-                    .disabled(selectedBlock.isEmpty)
-                    .opacity(selectedBlock.isEmpty ? 0.5 : 1)
+
                     
                     // Ownership
                     VStack(alignment: .leading, spacing: 8) {
@@ -134,27 +137,25 @@ struct ResidentAddUnitView: View {
                     .padding(.top, 8)
                     
                     // Submit
-                    Button(action: {
-                        viewModel.addUnit(
-                        name: selectedProject + " - " + selectedUnit,
-                        project: selectedProject,
-                        area: selectedArea,
-                        block: selectedBlock,
-                        unitNumber: selectedUnit,
-                        handoverDate: nil,
-                        renovationPermit: false,
-                        ownershipType: ownershipStatus
-                        )
-                    }) {
-                        Text("Submit a Claim")
-                            .frame(maxWidth: .infinity)
-                            .padding()
-                            .background(Color.blue)
-                            .foregroundColor(.white)
-                            .cornerRadius(8)
-                    }
-                    .disabled(!isFormValid || viewModel.isLoading)
+                    PrimaryButton(
+                        title: "Submit a Claim",
+                        action: {
+                            viewModel.addUnit(
+                                name: selectedArea + " - " + selectedBlock + selectedUnitNumber,
+                                project: selectedProject,
+                                area: selectedArea,
+                                block: selectedBlock,
+                                unitNumber: selectedUnitNumber,
+                                handoverDate: nil,
+                                renovationPermit: false,
+                                ownershipType: ownershipStatus
+                            )
+                        },
+                        isLoading: viewModel.isLoading,
+                        isDisabled: !isFormValid
+                    )
                     .padding(.top, 12)
+
                 }
                 .padding(.horizontal)
             }
@@ -175,7 +176,7 @@ struct ResidentAddUnitView: View {
             !selectedProject.isEmpty &&
             !selectedArea.isEmpty &&
             !selectedBlock.isEmpty &&
-            !selectedUnit.isEmpty &&
+            !selectedUnitNumber.isEmpty &&
             !ownershipStatus.isEmpty
         }
 }

@@ -64,3 +64,23 @@ struct CreateUnitRequest: Codable {
     }
 }
 
+struct CreateComplaintRequest: Codable {
+    let unitId: Int
+    let title: String
+    let description: String
+    let classificationId: Int?
+    let keyHandoverDate: Date?
+    let latitude: Double?
+    let longitude: Double?
+    
+    private enum CodingKeys: String, CodingKey {
+        case unitId = "unit_uuid"
+        case title
+        case description
+        case classificationId = "classification_uuid"
+        case keyHandoverDate = "key_handover_date"
+        case latitude
+        case longitude
+    }
+}
+

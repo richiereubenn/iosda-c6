@@ -6,9 +6,9 @@ struct UserUnit: Identifiable, Codable {
     let unitId: Int?
     let ownershipType: String?
     
-//    // Navigation properties
+    // Navigation properties
 //    var user: User?
-//    var unit: Unit?
+    var unit: Unit?
     
     private enum CodingKeys: String, CodingKey {
         case id = "uuid"

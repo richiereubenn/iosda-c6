@@ -1,56 +1,40 @@
-//
-//  Complaint.swift
-//  iosda-c6-frontend
-//
-//  Created by Richie Reuben Hermanto on 29/08/25.
-//
-
 import Foundation
 
 struct Complaint: Identifiable, Codable {
     let id: Int?
+    let unitId: Int?
+    let statusId: Int?
+    let progressId: Int?
+    let classificationId: Int?
     let title: String
     let description: String
-    let category: String
-    let status: ComplaintStatus
-    let createdAt: Date?
-    let updatedAt: Date?
+    let openTimestamp: Date?
+    let closeTimestamp: Date?
+    let keyHandoverDate: Date?
+    let deadlineDate: Date?
+    let latitude: Double?
+    let longitude: Double?
     
-    enum ComplaintStatus: String, Codable, CaseIterable {
-        case pending = "pending"
-        case inProgress = "in_progress"
-        case resolved = "resolved"
-        case rejected = "rejected"
-        
-        var displayName: String {
-            switch self {
-            case .pending: return "Menunggu"
-            case .inProgress: return "Diproses"
-            case .resolved: return "Selesai"
-            case .rejected: return "Ditolak"
-            }
-        }
-    }
+    // Navigation properties
+    var unit: Unit?
+    var status: Status?
+    var classification: Classification?
+//    var progressLogs: [ProgressLog]?
     
     private enum CodingKeys: String, CodingKey {
-        case id
+        case id = "uuid"
+        case unitId = "unit_uuid"
+        case statusId = "status_uuid"
+        case progressId = "progress_uuid"
+        case classificationId = "classification_uuid"
         case title
         case description
-        case category
-        case status
-        case createdAt = "created_at"
-        case updatedAt = "updated_at"
+        case openTimestamp = "open_timestamp"
+        case closeTimestamp = "close_timestamp"
+        case keyHandoverDate = "key_handover_date"
+        case deadlineDate = "deadline_date"
+        case latitude
+        case longitude
     }
 }
 
-extension Complaint {
-    static let sampleData = Complaint(
-        id: 1,
-        title: "Jalan Rusak",
-        description: "Jalan di depan rumah berlubang besar",
-        category: "Infrastruktur",
-        status: .pending,
-        createdAt: Date(),
-        updatedAt: Date()
-    )
-}

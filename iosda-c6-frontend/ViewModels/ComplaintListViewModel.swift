@@ -1,0 +1,296 @@
+import Foundation
+
+@MainActor
+class ComplaintListViewModel: ObservableObject {
+    @Published var complaints: [Complaint] = []
+    @Published var filteredComplaints: [Complaint] = []
+    @Published var selectedFilter: ComplaintFilter = .open
+    @Published var searchText = ""
+    @Published var isLoading = false
+    @Published var errorMessage: String?
+
+    private let complaintService: ComplaintServiceProtocol
+    private let useMockData = true  // Add this flag
+    
+    enum ComplaintFilter: String, CaseIterable {
+        case open = "Open"
+        case inProgress = "In Progress"
+        case resolved = "Resolved"
+        case rejected = "Rejected"
+        
+        var matchingStatusIDs: [Int] {
+            switch self {
+            case .open: return [Status.ComplaintStatusID.open.rawValue,
+                                Status.ComplaintStatusID.underReview.rawValue,
+                                Status.ComplaintStatusID.waitingKey.rawValue].compactMap { $0 }
+            case .inProgress: return [Status.ComplaintStatusID.inProgress.rawValue].compactMap { $0 }
+            case .resolved: return [Status.ComplaintStatusID.resolved.rawValue].compactMap { $0 }
+            case .rejected: return [Status.ComplaintStatusID.rejected.rawValue].compactMap { $0 }
+            }
+        }
+    }
+
+
+    init(complaintService: ComplaintServiceProtocol = ComplaintService()) {
+        self.complaintService = complaintService
+    }
+    
+    func loadComplaints() async {
+        isLoading = true
+        errorMessage = nil
+        
+        if useMockData {
+            loadMockComplaints()
+            filterComplaints()
+            isLoading = false
+            return
+        }
+        
+        do {
+            complaints = try await complaintService.fetchComplaints()
+            filterComplaints()
+        } catch {
+            errorMessage = "Failed to load complaints: \(error.localizedDescription)"
+        }
+        
+        isLoading = false
+    }
+    
+    private func loadMockComplaints() {
+        let formatter = ISO8601DateFormatter()
+        
+        complaints = [
+            Complaint(
+                id: 1,
+                unitId: 1,
+                statusId: 1,
+                progressId: nil,
+                classificationId: nil,
+                title: "Leaky Faucet",
+                description: "Water leaking from kitchen faucet.",
+                openTimestamp: formatter.date(from: "2025-08-20T10:00:00Z"),
+                closeTimestamp: nil,
+                keyHandoverDate: nil,
+                deadlineDate: formatter.date(from: "2025-09-01T00:00:00Z"),
+                latitude: nil,
+                longitude: nil,
+                unit: Unit(
+                    id: 1,
+                    name: "Northwest Park - NA01/001",
+                    bscUuid: nil,
+                    biUuid: nil,
+                    contractorUuid: nil,
+                    keyUuid: nil,
+                    project: "Citraland Surabaya",
+                    area: "Northwest Park",
+                    block: "NA",
+                    unitNumber: "01/001",
+                    handoverDate: nil,
+                    renovationPermit: false,
+                    isApproved: true
+                ),
+                status: Status(id: 1, name: "open"),
+                classification: nil
+            ),
+            Complaint(
+                id: 4,
+                unitId: 1,
+                statusId: 3,
+                progressId: nil,
+                classificationId: nil,
+                title: "Leaky Faucet",
+                description: "Water leaking from kitchen faucet.",
+                openTimestamp: formatter.date(from: "2025-08-20T10:00:00Z"),
+                closeTimestamp: nil,
+                keyHandoverDate: nil,
+                deadlineDate: formatter.date(from: "2025-09-01T00:00:00Z"),
+                latitude: nil,
+                longitude: nil,
+                unit: Unit(
+                    id: 1,
+                    name: "Northwest Park - NA01/001",
+                    bscUuid: nil,
+                    biUuid: nil,
+                    contractorUuid: nil,
+                    keyUuid: nil,
+                    project: "Citraland Surabaya",
+                    area: "Northwest Park",
+                    block: "NA",
+                    unitNumber: "01/001",
+                    handoverDate: nil,
+                    renovationPermit: false,
+                    isApproved: true
+                ),
+                status: Status(id: 3, name: "waiting_key"),
+                classification: nil
+            ),
+            Complaint(
+                id: 5,
+                unitId: 1,
+                statusId: 2,
+                progressId: nil,
+                classificationId: nil,
+                title: "Leaky Faucet",
+                description: "Water leaking from kitchen faucet.",
+                openTimestamp: formatter.date(from: "2025-08-20T10:00:00Z"),
+                closeTimestamp: nil,
+                keyHandoverDate: nil,
+                deadlineDate: formatter.date(from: "2025-09-01T00:00:00Z"),
+                latitude: nil,
+                longitude: nil,
+                unit: Unit(
+                    id: 1,
+                    name: "Northwest Park - NA01/001",
+                    bscUuid: nil,
+                    biUuid: nil,
+                    contractorUuid: nil,
+                    keyUuid: nil,
+                    project: "Citraland Surabaya",
+                    area: "Northwest Park",
+                    block: "NA",
+                    unitNumber: "01/001",
+                    handoverDate: nil,
+                    renovationPermit: false,
+                    isApproved: true
+                ),
+                status: Status(id: 2, name: "under_review"),
+                classification: nil
+            ),
+            Complaint(
+                id: 2,
+                unitId: 2,
+                statusId: 4,
+                progressId: nil,
+                classificationId: nil,
+                title: "Broken Window",
+                description: "Window shattered after storm.",
+                openTimestamp: formatter.date(from: "2025-08-15T09:00:00Z"),
+                closeTimestamp: nil,
+                keyHandoverDate: nil,
+                deadlineDate: formatter.date(from: "2025-08-30T00:00:00Z"),
+                latitude: nil,
+                longitude: nil,
+                unit: Unit(
+                    id: 2,
+                    name: "Northwest Lake - A08/023",
+                    bscUuid: nil,
+                    biUuid: nil,
+                    contractorUuid: nil,
+                    keyUuid: nil,
+                    project: "Citraland Surabaya (North)",
+                    area: "Northwest Lake",
+                    block: "A",
+                    unitNumber: "08/023",
+                    handoverDate: nil,
+                    renovationPermit: true,
+                    isApproved: true
+                ),
+                status: Status(id: 4, name: "in_progress"),
+                classification: nil
+            ),
+            Complaint(
+                id: 3,
+                unitId: 3,
+                statusId: 5,
+                progressId: nil,
+                classificationId: nil,
+                title: "Power Outage",
+                description: "No electricity since yesterday evening.",
+                openTimestamp: formatter.date(from: "2025-07-30T08:00:00Z"),
+                closeTimestamp: formatter.date(from: "2025-08-01T18:00:00Z"),
+                keyHandoverDate: nil,
+                deadlineDate: formatter.date(from: "2025-08-10T00:00:00Z"),
+                latitude: nil,
+                longitude: nil,
+                unit: Unit(
+                    id: 3,
+                    name: "Bukit Golf - C07/010",
+                    bscUuid: nil,
+                    biUuid: nil,
+                    contractorUuid: nil,
+                    keyUuid: nil,
+                    project: "Citraland Surabaya",
+                    area: "Bukit Golf",
+                    block: "C",
+                    unitNumber: "07/010",
+                    handoverDate: nil,
+                    renovationPermit: false,
+                    isApproved: true
+                ),
+                status: Status(id: 5, name: "resolved"),
+                classification: nil
+            )
+        ]
+    }
+
+    
+    func filterComplaints() {
+        filteredComplaints = complaints.filter { complaint in
+            guard let statusId = complaint.status?.id else {
+                return false
+            }
+            return selectedFilter.matchingStatusIDs.contains(statusId)
+        }
+        
+        if !searchText.isEmpty {
+            filteredComplaints = filteredComplaints.filter { complaint in
+                complaint.title.localizedCaseInsensitiveContains(searchText) ||
+                complaint.description.localizedCaseInsensitiveContains(searchText) ||
+                (complaint.unit?.name.localizedCaseInsensitiveContains(searchText) ?? false)
+            }
+        }
+    }
+
+    
+    
+    func submitComplaint(request: CreateComplaintRequest, unitViewModel: UnitViewModel) async throws {
+        if useMockData {
+            let newId = (complaints.map { $0.id ?? 0 }.max() ?? 0) + 1
+            _ = ISO8601DateFormatter()
+
+            let newComplaint = Complaint(
+                id: newId,
+                unitId: request.unitId,
+                statusId: Status.ComplaintStatusID.open.rawValue,  // use enum raw value
+                progressId: nil,
+                classificationId: request.classificationId,
+                title: request.title,
+                description: request.description,
+                openTimestamp: Date(),
+                closeTimestamp: nil,
+                keyHandoverDate: request.keyHandoverDate,
+                deadlineDate: Calendar.current.date(byAdding: .day, value: 7, to: Date()),
+                latitude: request.latitude,
+                longitude: request.longitude,
+                unit: unitViewModel.units.first(where: { $0.id == request.unitId }),
+                status: Status(id: Status.ComplaintStatusID.open.rawValue, name: Status.ComplaintStatusID.open.apiName),
+                classification: nil
+            )
+
+
+            complaints.append(newComplaint)
+            filterComplaints()
+            return
+        }
+
+        // Real backend flow
+        _ = try await complaintService.createComplaint(request)
+        await loadComplaints()
+    }
+
+
+    
+    func deleteComplaint(at indexSet: IndexSet) async {
+        for index in indexSet {
+            let complaint = filteredComplaints[index]
+            guard let complaintId = complaint.id else { continue }
+            
+            do {
+                try await complaintService.deleteComplaint(id: complaintId)
+                await loadComplaints()
+            } catch {
+                errorMessage = "Failed to delete complaint: \(error.localizedDescription)"
+            }
+        }
+    }
+}

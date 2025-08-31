@@ -1,16 +1,17 @@
 //
-//  BuildingUnitComplainList.swift
+//  BIHomepage.swift
 //  iosda-c6-frontend
 //
-//  Created by Richie Reuben Hermanto on 29/08/25.
+//  Created by Richie Reuben Hermanto on 01/09/25.
 //
+
 import SwiftUI
 
-struct BuildingUnitComplainList: View {
+struct BIHomepage: View {
     @StateObject private var viewModel = BuildingListViewModel()
-    
     var body: some View {
         VStack(spacing: 16) {
+            
             HStack(spacing: 16) {
                 SummaryComplaintCard(
                     title: "New Complaint",
@@ -24,6 +25,22 @@ struct BuildingUnitComplainList: View {
                     complaintCount: 5,
                     backgroundColor: Color.green.opacity(0.3)
                 )
+            }
+            
+            HStack {
+                Text("Latest Complaints from Units")
+                    .font(.system(size: 20, weight: .bold))
+                    .foregroundColor(.black)
+                
+                Spacer()
+                
+                Button(action: {
+                    print("View All tapped")
+                }) {
+                    Text("View All")
+                        .font(.system(size: 14, weight: .regular))
+                        .foregroundColor(.primaryBlue)
+                }
             }
             
             ScrollView {
@@ -41,33 +58,15 @@ struct BuildingUnitComplainList: View {
                     }
                 }
             }
+            
+            Spacer()
         }
         .padding(.horizontal)
-        .padding(.top)
-        .toolbar {
-            ToolbarItem(placement: .navigationBarTrailing) {
-                Menu {
-                    Button(action: { viewModel.sortOption = .latest }) {
-                        Label("Tanggal Terbaru", systemImage: viewModel.sortOption == .latest ? "checkmark" : "")
-                    }
-                    Button(action: { viewModel.sortOption = .oldest }) {
-                        Label("Tanggal Terlama", systemImage: viewModel.sortOption == .oldest ? "checkmark" : "")
-                    }
-                } label: {
-                    Image(systemName: "line.3.horizontal.decrease.circle")
-                        .font(.title2)
-                        .foregroundColor(Color.primaryBlue)
-                }
-            }
-        }
-        .searchable(text: $viewModel.searchText)
-        .navigationTitle("Building Complain List")
-        
     }
 }
 
 #Preview {
     NavigationStack {
-        BuildingUnitComplainList()
+        BIHomepage()
     }
 }

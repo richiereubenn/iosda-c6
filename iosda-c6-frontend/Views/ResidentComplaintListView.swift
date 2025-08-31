@@ -10,9 +10,9 @@ struct ResidentComplaintListView: View {
             VStack(spacing: 8) {
                 
                 // Search Bar
-                SearchBar(searchText: $searchText)
-                    .padding(.horizontal, 5)
-                    .padding(.top, 8)
+//                SearchBar(searchText: $searchText)
+//                    .padding(.horizontal, 5)
+//                    .padding(.top, 8)
                 
                 // Picker
                 Picker("Complaint Status", selection: $viewModel.selectedFilter) {
@@ -68,6 +68,7 @@ struct ResidentComplaintListView: View {
                     }
                 }
             }
+            .searchable(text: $searchText)
             .onAppear {
                 Task {
                     await viewModel.loadComplaints()

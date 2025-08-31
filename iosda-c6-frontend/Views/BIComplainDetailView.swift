@@ -7,12 +7,184 @@
 
 import SwiftUI
 
-struct BIComplainDetailView: View {
+struct BIComplaintDetailView: View {
+    @State private var showRejectAlert = false
+    @State private var rejectionReason = ""
+    
     var body: some View {
-        Text(/*@START_MENU_TOKEN@*/"Hello, World!"/*@END_MENU_TOKEN@*/)
+        ScrollView {
+            VStack(alignment: .leading, spacing: 20) {
+                VStack(alignment: .leading, spacing: 16) {
+                    Text("Judul Komplain")
+                        .font(.system(size: 24, weight: .bold))
+                        .foregroundColor(.black)
+                    
+                    VStack(alignment: .leading, spacing: 8) {
+                        DataRowComponent(
+                            label: "Opened :",
+                            value: "25 August 2025 | 13:14:23"
+                        )
+                        
+                        DataRowComponent(
+                            label: "Deadline :",
+                            value: "01 September 2025 | 13:14:23"
+                        )
+                        
+                        HStack {
+                            Text("Status :")
+                                .foregroundColor(.gray)
+                                .font(.system(size: 14))
+                            
+                            Text("Under Review")
+                                .foregroundColor(.black)
+                                .font(.system(size: 14, weight: .medium))
+                                .padding(.horizontal, 12)
+                                .padding(.vertical, 4)
+                                .background(Color.yellow.opacity(0.3))
+                                .cornerRadius(12)
+                        }
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        
+                        VStack(alignment: .leading, spacing: 5) {
+                            Text("Description")
+                                .foregroundColor(.gray)
+                                .font(.system(size: 14))
+                            
+                            Text("Lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec sit amet eros id lectus commodo laoreet sed vitae magna. Proin scelerisque est efficitur eu imperdiet, quis auctor leo rutrum. Cras pellentesque lectus in magna lobortis dictum in sed libero. In tortor neque, viverra sed elit a, vestibulum rutrum arcu, blandit semper dolor at neque consectetur sagittis. Donec ormare laoreet sodales duis. Morbi hendrerit sit amet arcu eu auctor. Cras eu libero tincidunt, cursus mi quis, sollicitudin eros. Nam velit augue, placerat consequat lacinia vel, viverra at arcu.")
+                                .foregroundColor(.black)
+                                .font(.system(size: 14))
+                                .lineLimit(nil)
+                                .multilineTextAlignment(.leading)
+                        }
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                    }
+                }
+                
+                VStack(alignment: .leading, spacing: 12) {
+                    Text("Image")
+                        .font(.system(size: 18, weight: .semibold))
+                        .foregroundColor(.black)
+                    
+                    VStack(spacing: 8) {
+                        Text("Close-up view:")
+                            .foregroundColor(.gray)
+                            .font(.system(size: 14))
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                        
+                        VStack {
+                            Image(systemName: "camera.fill")
+                                .font(.system(size: 40))
+                                .foregroundColor(.gray)
+                            Text("Close-up of the Defect")
+                                .font(.system(size: 14, weight: .medium))
+                                .foregroundColor(.black)
+                        }
+                        .frame(height: 150)
+                        .frame(maxWidth: .infinity)
+                        .background(Color.gray.opacity(0.1))
+                        .cornerRadius(8)
+                    }
+                    
+                    VStack(spacing: 8) {
+                        Text("Overall view:")
+                            .foregroundColor(.gray)
+                            .font(.system(size: 14))
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                        
+                        VStack {
+                            Image(systemName: "camera.fill")
+                                .font(.system(size: 40))
+                                .foregroundColor(.gray)
+                            Text("Overall View of the Area")
+                                .font(.system(size: 14, weight: .medium))
+                                .foregroundColor(.black)
+                        }
+                        .frame(height: 150)
+                        .frame(maxWidth: .infinity)
+                        .background(Color.gray.opacity(0.1))
+                        .cornerRadius(8)
+                    }
+                }
+                
+                VStack(alignment: .leading, spacing: 12) {
+                    Text("Location/Unit Detail")
+                        .font(.system(size: 18, weight: .semibold))
+                        .foregroundColor(.black)
+                    
+                    VStack(alignment: .leading, spacing: 8) {
+                        DataRowComponent(
+                            label: "Project :",
+                            value: "CitraLand Surabaya"
+                        )
+                        
+                        DataRowComponent(
+                            label: "Area :",
+                            value: "Bukit Golf"
+                        )
+                        
+                        DataRowComponent(
+                            label: "Block :",
+                            value: "A03"
+                        )
+                        
+                        DataRowComponent(
+                            label: "Unit :",
+                            value: "A03/006"
+                        )
+                        
+                        DataRowComponent(
+                            label: "Coordinates :",
+                            value: "40.7127281, -74.0060152"
+                        )
+                    }
+                }
+                
+                HStack(spacing: 16) {
+                    CustomButtonComponent(
+                        text: "Reject",
+                        backgroundColor: .red,
+                        textColor: .white
+                    ) {
+                        showRejectAlert = true
+                    }
+                    
+                    CustomButtonComponent(
+                        text: "Accept",
+                        backgroundColor: .primaryBlue,
+                        textColor: .white
+                    ) {
+                        print("Accept tapped")
+                    }
+                }
+                .padding(.top, 20)
+            }
+            .padding(20)
+        }
+        .navigationBarTitleDisplayMode(.inline)
+        .navigationTitle("Detail Complain")
+        .alert("Do you want to reject this issue?", isPresented: $showRejectAlert) {
+            TextField("Explain why you reject this issue", text: $rejectionReason, axis: .vertical)
+            
+            Button("Cancel", role: .cancel) {
+                rejectionReason = ""
+            }
+            
+            Button("Reject", role: .destructive) {
+                handleReject()
+            }
+        } message: {
+            Text("Explain why you reject this issue")
+        }
+    }
+    
+    private func handleReject() {
+        print("Complaint rejected with reason: \(rejectionReason)")
+        rejectionReason = ""
     }
 }
 
 #Preview {
-    BIComplainDetailView()
+    NavigationView {
+        BIComplaintDetailView()
+    }
 }

@@ -12,10 +12,6 @@ struct ComplainListView: View {
     
     var body: some View {
         VStack(spacing: 16) {
-            SearchBar(searchText: $viewModel.searchText)
-            
-            
-            
             Spacer()
         }
         .padding(.top)
@@ -36,6 +32,7 @@ struct ComplainListView: View {
             }
         }
         .navigationTitle("Nomor Rumah")
+        .searchable(text: $viewModel.searchText)
         
     }
 }

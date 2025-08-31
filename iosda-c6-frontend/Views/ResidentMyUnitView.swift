@@ -8,7 +8,7 @@ struct ResidentMyUnitView: View {
     var body: some View {
         VStack(spacing: 8) {
             // Search Bar
-            SearchBar(searchText: $searchText)
+//            SearchBar(searchText: $searchText)
 //            SearchBar(text: $searchText)
 //                .padding(.horizontal, 5)
 //                .padding(.top, 8)
@@ -68,6 +68,7 @@ struct ResidentMyUnitView: View {
                 }
             }
         }
+        .searchable(text: $searchText)
         .sheet(isPresented: $viewModel.showingAddUnit) {
             ResidentAddUnitView(viewModel: viewModel)
         }

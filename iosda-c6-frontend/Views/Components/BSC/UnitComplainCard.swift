@@ -12,6 +12,10 @@ struct UnitComplainCard: View {
     let latestComplaintDate: String
     let totalComplaints: Int
     let completedComplaints: Int
+
+    @Environment(\.horizontalSizeClass) var horizontalSizeClass
+    
+    private var isCompact: Bool { horizontalSizeClass == .compact }
     
     private var statusColor: Color {
         guard totalComplaints > 0 else { return .gray }
@@ -28,53 +32,55 @@ struct UnitComplainCard: View {
     
     var body: some View {
         HStack {
-            VStack(alignment: .leading, spacing: 10) {
+            VStack(alignment: .leading, spacing: isCompact ? 10 : 10) {
                 Text(unitCode)
-                    .font(.title)
+                    .font(isCompact ? .title2 : .title)
                     .fontWeight(.semibold)
                     .foregroundColor(.primary)
                 
-                VStack(alignment: .leading, spacing: 2) {
+                VStack(alignment: .leading, spacing: isCompact ? 1 : 2) {
                     Text("Latest Complaint Date")
                         .foregroundColor(.secondary)
                     
                     Text(latestComplaintDate)
                         .foregroundColor(.secondary)
                 }
-                .font(.subheadline)
+                .font(isCompact ? .caption : .subheadline)
             }
             
             Spacer()
             
-            VStack(alignment: .trailing, spacing: 8) {
-                HStack(spacing: 8) {
+            VStack(alignment: .trailing, spacing: isCompact ? 10 : 8) {
+                HStack(spacing: isCompact ? 4 : 8) {
                     Text("Total :")
-                        .font(.title3)
+                        .font(isCompact ? .body : .title3)
                         .foregroundColor(.secondary)
+                    
                     Text("\(totalComplaints)")
-                        .font(.title2)
+                        .font(isCompact ? .title3 : .title2)
                         .fontWeight(.semibold)
                         .foregroundColor(.primary)
                 }
                 Text("Done: \(completedComplaints)")
-                    .font(.title3)
+                    .font(isCompact ? .callout : .title3)
                     .fontWeight(.medium)
                     .foregroundColor(.white)
-                    .padding(.horizontal, 12)
-                    .padding(.vertical, 8)
+                    .padding(.horizontal, isCompact ? 8 : 12)
+                    .padding(.vertical, isCompact ? 4 : 8)
                     .background(statusColor)
                     .cornerRadius(8)
             }
         }
-        .padding(16)
+        .padding(isCompact ? 10 : 16)
         .background(Color.white)
         .overlay(
             RoundedRectangle(cornerRadius: 12)
                 .stroke(Color.gray.opacity(0.5), lineWidth: 0.5)
         )
         .cornerRadius(12)
-        .shadow(color: .black.opacity(0.1), radius: 4, x: 3, y: 3) 
+        .shadow(color: .black.opacity(0.1), radius: 4, x: 3, y: 3)
     }
+    
 }
 
 #Preview {

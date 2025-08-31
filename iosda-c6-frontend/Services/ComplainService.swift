@@ -27,7 +27,11 @@ class ComplaintService: ComplaintServiceProtocol {
             throw NetworkError.serverError(0)
         }
         
-        return response.data
+        guard let complaints = response.data else {
+               throw NetworkError.decodingError // or custom .missingData error
+           }
+        
+        return complaints
     }
 }
 

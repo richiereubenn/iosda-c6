@@ -11,6 +11,27 @@ struct BIHomepage: View {
     @StateObject private var viewModel = BuildingListViewModel()
     var body: some View {
         VStack(spacing: 16) {
+            HStack {
+                Text("Hello, Richie")
+                    .font(.largeTitle)
+                    .fontWeight(.bold)
+                
+                Spacer()
+                
+                HStack(spacing: 15) {
+                    Button(action: {}) {
+                        Image(systemName: "bell")
+                            .foregroundColor(.black)
+                            .font(.title2)
+                    }
+                    
+                    Button(action: {}) {
+                        Image(systemName: "person.circle")
+                            .foregroundColor(.black)
+                            .font(.title2)
+                    }
+                }
+            }
             
             HStack(spacing: 16) {
                 SummaryComplaintCard(
@@ -46,7 +67,7 @@ struct BIHomepage: View {
             ScrollView {
                 LazyVStack(spacing: 12) {
                     ForEach(viewModel.getFilteredAndSortedUnits(), id: \.unitCode) { unit in
-                        NavigationLink(destination: BIComplaintDetailView()) {
+                        NavigationLink(destination: ComplaintListView(viewModel: ComplaintListViewModel())) {
                             UnitComplainCard(
                                 unitCode: unit.unitCode,
                                 latestComplaintDate: unit.latestComplaintDate,

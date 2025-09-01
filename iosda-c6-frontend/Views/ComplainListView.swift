@@ -7,37 +7,81 @@
 
 import SwiftUI
 
-struct ComplainListView: View {
-    @StateObject private var viewModel = BuildingListViewModel()
-    
+struct ComplaintListView: View {
+    @ObservedObject var viewModel: ComplaintListViewModel
+    @State private var searchText: String = ""
+    @State private var showingCreateView = false
+
     var body: some View {
-        VStack(spacing: 16) {
-            Spacer()
-        }
-        .padding(.top)
-        .toolbar {
-            ToolbarItem(placement: .navigationBarTrailing) {
-                Menu {
-                    Button(action: { viewModel.sortOption = .latest }) {
-                        Label("Tanggal Terbaru", systemImage: viewModel.sortOption == .latest ? "checkmark" : "")
+        VStack(spacing: 8) {
+            Picker("Complaint Status", selection: $viewModel.selectedFilter) {
+                ForEach(ComplaintListViewModel.ComplaintFilter.allCases, id: \.self) { filter in
+                    Text(filter.rawValue).tag(filter)
+                }
+            }
+            .pickerStyle(SegmentedPickerStyle())
+            .padding(.horizontal)
+            .onChange(of: viewModel.selectedFilter) { _ in
+                viewModel.filterComplaints()
+            }
+            
+            // Complaint List States
+            Group {
+                if viewModel.isLoading {
+                    ProgressView()
+                        .scaleEffect(1.2)
+                        .padding(.top, 40)
+                    Spacer()
+                } else if viewModel.filteredComplaints.isEmpty {
+                    VStack(spacing: 12) {
+                        Image(systemName: "doc.text")
+                            .font(.system(size: 48))
+                            .foregroundColor(.gray.opacity(0.5))
+                        Text("No complaints found")
+                            .font(.system(size: 18, weight: .medium))
+                            .foregroundColor(.gray)
                     }
-                    Button(action: { viewModel.sortOption = .oldest }) {
-                        Label("Tanggal Terlama", systemImage: viewModel.sortOption == .oldest ? "checkmark" : "")
+                    .padding(.top, 40)
+                    Spacer()
+                } else {
+                    ScrollView {
+                        LazyVStack(spacing: 12) {
+                            ForEach(viewModel.filteredComplaints) { complaint in
+                                NavigationLink(
+                                    destination: BSCComplainDetailView() // halaman tujuan
+                                ) {
+                                    ResidentComplaintCardView(complaint: complaint)
+                                }
+                                .buttonStyle(PlainButtonStyle()) 
+                            }
+                        }
+                        .padding(.horizontal, 20)
+                        .padding(.top, 20)
                     }
-                } label: {
-                    Image(systemName: "line.3.horizontal.decrease.circle")
-                        .font(.title2)
-                        .foregroundColor(Color.primaryBlue)
+
                 }
             }
         }
-        .navigationTitle("Nomor Rumah")
-        .searchable(text: $viewModel.searchText)
-        
+        .background(Color.white)
+        .navigationTitle("Kode Rumah")
+        .navigationBarTitleDisplayMode(.large)
+        .searchable(text: $searchText, prompt: "Search complaints...")
+        .onAppear {
+            Task {
+                await viewModel.loadComplaints()
+            }
+        }
+        .alert("Error", isPresented: .constant(viewModel.errorMessage != nil)) {
+            Button("OK") { viewModel.errorMessage = nil }
+        } message: {
+            Text(viewModel.errorMessage ?? "")
+        }
     }
 }
 
-
 #Preview {
-    ComplainListView()
+    NavigationStack {
+        ComplaintListView(viewModel: ComplaintListViewModel())
+    }
 }
+

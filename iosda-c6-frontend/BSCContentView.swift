@@ -21,22 +21,22 @@ struct BSCContentView: View {
                        Text("Halo")
                         
                     case "Building":
-                        BuildingUnitComplainList() 
+                        BSCBuildingUnitComplainListView()
                         
                     case "Land":
                         BSCComplainDetailView()
                         
                     case "Other":
-                        BuildingUnitComplainList()
+                        BSCBuildingUnitComplainListView()
                         
                     case "Unit":
-                        BuildingUnitComplainList()
+                        BSCBuildingUnitComplainListView()
                         
                     case "User":
-                        BuildingUnitComplainList()
+                        BSCBuildingUnitComplainListView()
                         
                     default:
-                        BuildingUnitComplainList()
+                        BSCBuildingUnitComplainListView()
                     }
                 } else {
                     Text("Pilih menu di sidebar")

@@ -1,0 +1,146 @@
+import SwiftUI
+
+struct ResidentHomeView: View {
+    
+    
+    @ObservedObject var viewModel: ComplaintListViewModel
+    @ObservedObject var unitViewModel: UnitViewModel
+    @State private var showingCreateView = false
+    
+    var body: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            HStack {
+                Text("Ciputra Help")
+                    .font(.largeTitle)
+                    .fontWeight(.bold)
+                
+                Spacer()
+                
+                HStack(spacing: 15) {
+                    Button(action: {}) {
+                        Image(systemName: "bell")
+                            .foregroundColor(.black)
+                            .font(.title2)
+                    }
+                    
+                    Button(action: {}) {
+                        Image(systemName: "person.circle")
+                            .foregroundColor(.black)
+                            .font(.title2)
+                    }
+                }
+            }
+            .padding(.horizontal, 20)
+            .padding(.top, 10)
+            VStack(alignment: .leading, spacing: 15) {
+                if let claimedUnit = unitViewModel.claimedUnits.first {
+                    HStack {
+                            Text(claimedUnit.name)
+                                .font(.body)
+                                .fontWeight(.medium)
+                        Spacer()
+
+                        NavigationLink(destination: ResidentMyUnitView()) {
+                            Image(systemName: "arrow.up.arrow.down")
+                                .foregroundColor(.blue)
+                        }
+                    }
+                    .padding()
+                    .background(Color.gray.opacity(0.1))
+                    .cornerRadius(10)
+                } else {
+                    HStack {
+                        Text("No units have been claimed yet")
+                            .foregroundColor(.gray)
+                            .font(.body)
+
+                        Spacer()
+
+                        NavigationLink(destination: ResidentMyUnitView()) {
+                            Image(systemName: "arrow.up.arrow.down")
+                                .foregroundColor(.blue)
+                        }
+                    }
+                    .padding()
+                    .background(Color.gray.opacity(0.1))
+                    .cornerRadius(10)
+                }
+
+                
+                // New Complaint Button
+                PrimaryButton(title: "New Complaint", action: {
+                    showingCreateView = true
+                })
+
+            }
+            .padding(.horizontal, 20)
+            .padding(.vertical, 20)
+            
+            // Recent Complaint Section
+            VStack(alignment: .leading, spacing: 0) {
+                HStack {
+                    Text("RECENT COMPLAINT")
+                        .font(.headline)
+                        .fontWeight(.bold)
+                    
+                    Spacer()
+                    
+                    NavigationLink(destination: ResidentComplaintListView(viewModel: viewModel)) {
+                        Text("View All")
+                            .foregroundColor(.blue)
+                            .font(.body)
+                    }
+
+                }
+                .padding(.horizontal, 20)
+                .padding(.bottom, 15)
+                
+                // Complaint List
+                
+                    
+                    ScrollView {
+                        LazyVStack(spacing: 15) {
+                            ForEach(viewModel.complaints.prefix(5)) { complaint in
+                                ResidentComplaintCardView(complaint: complaint)
+                            }
+
+                        }
+                        .padding(.horizontal, 20)
+                    }
+                
+                
+                }
+            
+            Spacer()
+        }
+        .onAppear {
+            unitViewModel.loadUnits()
+            Task {
+                await viewModel.loadComplaints()
+            }
+        }
+
+
+        .background(Color(.systemBackground))
+        .sheet(isPresented: $showingCreateView) {
+            ResidentAddComplaintView(
+                unitViewModel: UnitViewModel(),
+                complaintViewModel: viewModel
+            )
+        }
+
+    }
+}
+
+
+#Preview {
+    NavigationStack {
+        ResidentHomeView(
+            viewModel: ComplaintListViewModel(),
+            unitViewModel: UnitViewModel()
+        )
+        .navigationBarHidden(true)
+    }
+}
+
+

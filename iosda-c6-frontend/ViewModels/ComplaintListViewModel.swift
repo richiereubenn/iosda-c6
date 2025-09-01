@@ -10,7 +10,7 @@ class ComplaintListViewModel: ObservableObject {
     @Published var errorMessage: String?
 
     private let complaintService: ComplaintServiceProtocol
-    private let useMockData = true  // Add this flag
+    private let useMockData = true
     
     enum ComplaintFilter: String, CaseIterable {
         case open = "Open"
@@ -268,8 +268,9 @@ class ComplaintListViewModel: ObservableObject {
             )
 
 
-            complaints.append(newComplaint)
+            complaints.insert(newComplaint, at: 0)
             filterComplaints()
+
             return
         }
 

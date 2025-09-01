@@ -86,6 +86,7 @@ struct ResidentMyUnitView: View {
 }
 
 
+
 #Preview {
     NavigationStack {
         ResidentMyUnitView()

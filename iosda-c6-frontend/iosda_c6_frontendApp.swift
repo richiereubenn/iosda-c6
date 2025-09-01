@@ -25,7 +25,7 @@ struct iosda_c6_frontendApp: App {
 
     var body: some Scene {
         WindowGroup {
-            ResidentComplaintListView()
+            ResidentComplaintListView(viewModel: ComplaintListViewModel())
         }
         .modelContainer(sharedModelContainer)
     }

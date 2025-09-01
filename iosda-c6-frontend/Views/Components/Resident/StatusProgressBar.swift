@@ -8,7 +8,7 @@
 
 import SwiftUI
 
-struct StatusProgressView: View {
+struct StatusProgressBar: View {
     let currentStatus: Status?
 
     private let statusSteps: [(statusID: Status.ComplaintStatusID, title: String, stepNumber: Int)] = [

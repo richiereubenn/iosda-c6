@@ -8,6 +8,8 @@ class UnitViewModel: ObservableObject {
     @Published var errorMessage: String?
     @Published var showingAddUnit = false
     @Published var selectedSegment = 0
+    @Published var selectedUnit: Unit?
+
     
     private let useMockData = true
     private let service = UnitService()
@@ -44,9 +46,10 @@ class UnitViewModel: ObservableObject {
     
     func loadUnits() {
         if useMockData {
-            loadMockData()
-            return
-        }
+              loadMockData()
+             // selectedUnit = claimedUnits.first
+              return
+          }
         
         
         Task {
@@ -236,6 +239,9 @@ class UnitViewModel: ObservableObject {
             UserUnit(id: nil, userId: nil, unitId: 4, ownershipType: "Others"),
             UserUnit(id: nil, userId: nil, unitId: 5, ownershipType: "Family")
         ]
-        
+        if self.selectedUnit == nil {
+                self.selectedUnit = claimedUnits.first
+            }
+
     }
 }

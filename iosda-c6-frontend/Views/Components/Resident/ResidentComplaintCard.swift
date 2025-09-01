@@ -54,15 +54,10 @@ struct ResidentComplaintCardView: View {
                 
                 Spacer()
                 
-                Text(statusDisplayName)
-                    .font(.system(size: 12, weight: .medium))
-                    .foregroundColor(.black)
-                    .padding(.horizontal, 12)
-                    .padding(.vertical, 4)
-                    .background(
-                        RoundedRectangle(cornerRadius: 12)
-                            .fill(statusColor.opacity(0.2))
-                    )
+                if let statusID = complaint.status?.complaintStatusID {
+                    StatusBadge(statusID: statusID)
+                }
+
             }
             
             // Title
@@ -109,6 +104,7 @@ struct ResidentComplaintCardView: View {
         deadlineDate: Calendar.current.date(byAdding: .day, value: 10, to: Date()), // 10 days from now
         latitude: nil,
         longitude: nil,
+        handoverMethod: .inHouse,
         unit: Unit(
             id: 1,
             name: "Citraland Surabaya - 01/001",

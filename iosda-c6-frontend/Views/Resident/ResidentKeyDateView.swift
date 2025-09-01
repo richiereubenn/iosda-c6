@@ -120,11 +120,12 @@ struct ResidentKeyDateView: View {
         let request = CreateComplaintRequest(
             unitId: unitId,
             title: complaintTitle,
-            description: complaintDetails + "\n\nHandover Method: \(handoverMethod)\nNotes: \(additionalNotes)",
+            description: complaintDetails + "\nNotes: \(additionalNotes)",
             classificationId: nil,
             keyHandoverDate: selectedDate,
             latitude: nil,
-            longitude: nil
+            longitude: nil,
+            handoverMethod: handoverMethod
         )
 
         Task {
@@ -144,7 +145,10 @@ struct ResidentKeyDateView: View {
             }
         }
     }
+    
 }
+
+
 
 #Preview {
     ResidentKeyDateView(

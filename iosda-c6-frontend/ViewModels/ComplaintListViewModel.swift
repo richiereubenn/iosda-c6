@@ -74,6 +74,7 @@ class ComplaintListViewModel: ObservableObject {
                 deadlineDate: formatter.date(from: "2025-09-01T00:00:00Z"),
                 latitude: nil,
                 longitude: nil,
+                handoverMethod: .inHouse,
                 unit: Unit(
                     id: 1,
                     name: "Northwest Park - NA01/001",
@@ -106,6 +107,7 @@ class ComplaintListViewModel: ObservableObject {
                 deadlineDate: formatter.date(from: "2025-09-01T00:00:00Z"),
                 latitude: nil,
                 longitude: nil,
+                handoverMethod: .inHouse,
                 unit: Unit(
                     id: 1,
                     name: "Northwest Park - NA01/001",
@@ -138,6 +140,7 @@ class ComplaintListViewModel: ObservableObject {
                 deadlineDate: formatter.date(from: "2025-09-01T00:00:00Z"),
                 latitude: nil,
                 longitude: nil,
+                handoverMethod: .bringToMO,
                 unit: Unit(
                     id: 1,
                     name: "Northwest Park - NA01/001",
@@ -170,6 +173,7 @@ class ComplaintListViewModel: ObservableObject {
                 deadlineDate: formatter.date(from: "2025-08-30T00:00:00Z"),
                 latitude: nil,
                 longitude: nil,
+                handoverMethod: .bringToMO,
                 unit: Unit(
                     id: 2,
                     name: "Northwest Lake - A08/023",
@@ -202,6 +206,7 @@ class ComplaintListViewModel: ObservableObject {
                 deadlineDate: formatter.date(from: "2025-08-10T00:00:00Z"),
                 latitude: nil,
                 longitude: nil,
+                handoverMethod: .inHouse,
                 unit: Unit(
                     id: 3,
                     name: "Bukit Golf - C07/010",
@@ -246,12 +251,11 @@ class ComplaintListViewModel: ObservableObject {
     func submitComplaint(request: CreateComplaintRequest, unitViewModel: UnitViewModel) async throws {
         if useMockData {
             let newId = (complaints.map { $0.id ?? 0 }.max() ?? 0) + 1
-            _ = ISO8601DateFormatter()
 
             let newComplaint = Complaint(
                 id: newId,
                 unitId: request.unitId,
-                statusId: Status.ComplaintStatusID.open.rawValue,  // use enum raw value
+                statusId: Status.ComplaintStatusID.open.rawValue,
                 progressId: nil,
                 classificationId: request.classificationId,
                 title: request.title,
@@ -262,6 +266,7 @@ class ComplaintListViewModel: ObservableObject {
                 deadlineDate: Calendar.current.date(byAdding: .day, value: 7, to: Date()),
                 latitude: request.latitude,
                 longitude: request.longitude,
+                handoverMethod: Complaint.HandoverMethod(rawValue: request.handoverMethod ?? "") ?? .bringToMO,
                 unit: unitViewModel.units.first(where: { $0.id == request.unitId }),
                 status: Status(id: Status.ComplaintStatusID.open.rawValue, name: Status.ComplaintStatusID.open.apiName),
                 classification: nil
@@ -277,6 +282,27 @@ class ComplaintListViewModel: ObservableObject {
         // Real backend flow
         _ = try await complaintService.createComplaint(request)
         await loadComplaints()
+    }
+
+    func submitInHouseComplaint(
+        title: String,
+        description: String,
+        unitId: Int,
+        handoverMethod: Complaint.HandoverMethod,
+        unitViewModel: UnitViewModel
+    ) async throws {
+        let request = CreateComplaintRequest(
+            unitId: unitId,
+            title: title,
+            description: description,
+            classificationId: nil,
+            keyHandoverDate: nil,
+            latitude: nil,
+            longitude: nil,
+            handoverMethod: handoverMethod.rawValue
+        )
+
+        try await submitComplaint(request: request, unitViewModel: unitViewModel)
     }
 
 

@@ -1,5 +1,5 @@
+import Foundation
 
-// MARK: - Progress and File Models
 struct ProgressLog: Identifiable, Codable {
     let id: Int?
     let userId: Int?
@@ -9,7 +9,7 @@ struct ProgressLog: Identifiable, Codable {
     let timestamp: Date?
     
     // Navigation properties
-    var user: User?
+    //var user: User?
     var files: [File]?
     var progressFiles: [ProgressFile]?
     

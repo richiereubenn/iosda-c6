@@ -72,6 +72,7 @@ struct CreateComplaintRequest: Codable {
     let keyHandoverDate: Date?
     let latitude: Double?
     let longitude: Double?
+    let handoverMethod: String?
     
     private enum CodingKeys: String, CodingKey {
         case unitId = "unit_uuid"
@@ -81,6 +82,7 @@ struct CreateComplaintRequest: Codable {
         case keyHandoverDate = "key_handover_date"
         case latitude
         case longitude
+        case handoverMethod = "handover_method"
     }
 }
 

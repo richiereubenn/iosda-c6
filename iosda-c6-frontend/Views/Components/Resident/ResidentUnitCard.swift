@@ -30,9 +30,9 @@ struct ResidentUnitCard: View {
                 
             }
             Spacer()
-            
-            Image(systemName: "chevron.right")
-                .foregroundColor(.gray)
+//            
+//            Image(systemName: "chevron.right")
+//                .foregroundColor(.gray)
 
                 
         }

@@ -1,18 +1,13 @@
-
+// SOLUTION 1: Fix ResidentMyUnitView - Make sure only claimed units can be selected
 import SwiftUI
 
 struct ResidentMyUnitView: View {
-    @StateObject private var viewModel = UnitViewModel()
+    @Environment(\.dismiss) var dismiss
+    @ObservedObject var viewModel: UnitViewModel // Remove = UnitViewModel() - use injected one
     @State private var searchText: String = ""
     
     var body: some View {
         VStack(spacing: 8) {
-            // Search Bar
-//            SearchBar(searchText: $searchText)
-//            SearchBar(text: $searchText)
-//                .padding(.horizontal, 5)
-//                .padding(.top, 8)
-            
             // Segmented Control
             Picker("Unit Status", selection: $viewModel.selectedSegment) {
                 Text("Claimed").tag(0)
@@ -45,7 +40,17 @@ struct ResidentMyUnitView: View {
                         LazyVStack(spacing: 12) {
                             ForEach(displayUnits) { unit in
                                 if let userUnit = viewModel.getUserUnit(for: unit) {
-                                    ResidentUnitCard(unit: unit, userUnit: userUnit)
+                                    Button(action: {
+                                        // Only allow selection of claimed units
+                                        if unit.isApproved == true {
+                                            print("Selecting unit: \(unit.name)") // Debug log
+                                            viewModel.selectedUnit = unit
+                                            dismiss()
+                                        }
+                                    }) {
+                                        ResidentUnitCard(unit: unit, userUnit: userUnit)
+                                    }
+                                    .disabled(unit.isApproved != true) // Disable waiting units
                                 }
                             }
                         }
@@ -84,11 +89,8 @@ struct ResidentMyUnitView: View {
         }
     }
 }
-
-
-
 #Preview {
     NavigationStack {
-        ResidentMyUnitView()
+        ResidentMyUnitView(viewModel: UnitViewModel())
     }
 }

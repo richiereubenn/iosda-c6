@@ -1,3 +1,4 @@
+import Foundation
 
 struct ProgressFile: Identifiable, Codable {
     let id: Int?

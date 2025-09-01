@@ -8,7 +8,7 @@
 
 import SwiftUI
 
-struct StatusBadgeView: View {
+struct StatusBadge: View {
     let statusID: Status.ComplaintStatusID
 
     var body: some View {

@@ -1,7 +1,7 @@
 import SwiftUI
 
 struct ResidentComplaintListView: View {
-    @StateObject private var viewModel = ComplaintListViewModel()
+    @ObservedObject var viewModel: ComplaintListViewModel
     @State private var showingCreateView = false
     @State private var searchText: String = ""
 
@@ -74,6 +74,7 @@ struct ResidentComplaintListView: View {
                     await viewModel.loadComplaints()
                 }
             }
+
             .alert("Error", isPresented: .constant(viewModel.errorMessage != nil)) {
                 Button("OK") {
                     viewModel.errorMessage = nil
@@ -93,7 +94,7 @@ struct ResidentComplaintListView: View {
 }
 
 #Preview {
-    ResidentComplaintListView()
+    ResidentComplaintListView(viewModel: ComplaintListViewModel())
 }
 
 

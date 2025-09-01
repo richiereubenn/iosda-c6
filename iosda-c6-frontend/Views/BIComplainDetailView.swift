@@ -9,6 +9,7 @@ import SwiftUI
 
 struct BIComplaintDetailView: View {
     @State private var showRejectAlert = false
+    @State private var showAcceptSheet = false
     @State private var rejectionReason = ""
     
     var body: some View {
@@ -50,7 +51,7 @@ struct BIComplaintDetailView: View {
                                 .foregroundColor(.gray)
                                 .font(.system(size: 14))
                             
-                            Text("Lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec sit amet eros id lectus commodo laoreet sed vitae magna. Proin scelerisque est efficitur eu imperdiet, quis auctor leo rutrum. Cras pellentesque lectus in magna lobortis dictum in sed libero. In tortor neque, viverra sed elit a, vestibulum rutrum arcu, blandit semper dolor at neque consectetur sagittis. Donec ormare laoreet sodales duis. Morbi hendrerit sit amet arcu eu auctor. Cras eu libero tincidunt, cursus mi quis, sollicitudin eros. Nam velit augue, placerat consequat lacinia vel, viverra at arcu.")
+                            Text("Lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec sit amet eros id lectus commodo laoreet sed vitae magna...")
                                 .foregroundColor(.black)
                                 .font(.system(size: 14))
                                 .lineLimit(nil)
@@ -60,6 +61,7 @@ struct BIComplaintDetailView: View {
                     }
                 }
                 
+                // Image section
                 VStack(alignment: .leading, spacing: 12) {
                     Text("Image")
                         .font(.system(size: 18, weight: .semibold))
@@ -106,6 +108,7 @@ struct BIComplaintDetailView: View {
                     }
                 }
                 
+                // Location/Unit Detail
                 VStack(alignment: .leading, spacing: 12) {
                     Text("Location/Unit Detail")
                         .font(.system(size: 18, weight: .semibold))
@@ -153,7 +156,7 @@ struct BIComplaintDetailView: View {
                         backgroundColor: .primaryBlue,
                         textColor: .white
                     ) {
-                        print("Accept tapped")
+                        showAcceptSheet = true
                     }
                 }
                 .padding(.top, 20)
@@ -162,6 +165,7 @@ struct BIComplaintDetailView: View {
         }
         .navigationBarTitleDisplayMode(.inline)
         .navigationTitle("Detail Complain")
+        
         .alert("Do you want to reject this issue?", isPresented: $showRejectAlert) {
             TextField("Explain why you reject this issue", text: $rejectionReason, axis: .vertical)
             
@@ -170,16 +174,30 @@ struct BIComplaintDetailView: View {
             }
             
             Button("Reject", role: .destructive) {
-                handleReject()
+                // handleReject()
             }
         } message: {
             Text("Explain why you reject this issue")
         }
-    }
-    
-    private func handleReject() {
-        print("Complaint rejected with reason: \(rejectionReason)")
-        rejectionReason = ""
+        
+        // Accept sheet
+        .sheet(isPresented: $showAcceptSheet) {
+            PhotoUploadSheet(
+                title: "Start this Work?",
+                description: "This will set the work status to\n'In Progress'.",
+                detailedPhotoLabel: "A close-up photo of the specific defect.",
+                overallPhotoLabel: "A wide-angle photo showing the entire work area.",
+                onStartWork: {
+                    // handleAccept()
+                    showAcceptSheet = false
+                },
+                onCancel: {
+                    showAcceptSheet = false
+                }
+            )
+            .presentationDetents([.medium, .large])
+            .presentationDragIndicator(.visible)
+        }
     }
 }
 

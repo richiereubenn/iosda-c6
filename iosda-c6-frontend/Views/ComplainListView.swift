@@ -25,7 +25,6 @@ struct ComplaintListView: View {
                 viewModel.filterComplaints()
             }
             
-            // Complaint List States
             Group {
                 if viewModel.isLoading {
                     ProgressView()
@@ -48,7 +47,7 @@ struct ComplaintListView: View {
                         LazyVStack(spacing: 12) {
                             ForEach(viewModel.filteredComplaints) { complaint in
                                 NavigationLink(
-                                    destination: BSCComplainDetailView() // halaman tujuan
+                                    destination: BIComplaintDetailView() 
                                 ) {
                                     ResidentComplaintCardView(complaint: complaint)
                                 }

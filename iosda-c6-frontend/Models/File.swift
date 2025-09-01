@@ -19,3 +19,19 @@ struct File: Identifiable, Codable {
         case otherAttributes = "other_attributes"
     }
 }
+
+extension File {
+    var isImage: Bool {
+        guard let mimeType = mimeType?.lowercased() else { return false }
+        return mimeType.hasPrefix("image/")
+    }
+    
+    var displayName: String {
+        return name ?? "Unknown File"
+    }
+    
+    var fileExtension: String? {
+        guard let name = name else { return nil }
+        return URL(fileURLWithPath: name).pathExtension.lowercased()
+    }
+}

@@ -22,3 +22,14 @@ struct ProgressLog: Identifiable, Codable {
         case timestamp
     }
 }
+
+extension ProgressLog {
+    var isCompleted: Bool {
+        // You can customize this logic based on your business rules
+        // For example, check if description contains certain keywords
+        // or if there's a specific status field
+        return description?.contains("selesai") == true ||
+               description?.contains("diterima") == true ||
+               title?.contains("masuk") == true
+    }
+}

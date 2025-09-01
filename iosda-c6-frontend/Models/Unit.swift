@@ -6,7 +6,7 @@ struct Unit: Identifiable, Codable {
     let bscUuid: String?
     let biUuid: String?
     let contractorUuid: String?
-    let keyUuid: String?
+    let keyUuid: Int?
     let project: String?
     let area: String?
     let block: String?
@@ -19,7 +19,7 @@ struct Unit: Identifiable, Codable {
     var userUnits: [UserUnit]?
     var keyLogs: [KeyLog]?
     var complaints: [Complaint]?
-//    var progressLogs: [ProgressLog]?
+    var progressLogs: [ProgressLog]?
     
     private enum CodingKeys: String, CodingKey {
         case id = "uuid"

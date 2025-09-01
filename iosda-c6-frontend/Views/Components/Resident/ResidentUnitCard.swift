@@ -53,7 +53,7 @@ struct ResidentUnitCard: View {
             bscUuid: "2",
             biUuid: "2",
             contractorUuid: "2",
-            keyUuid: "2",
+            keyUuid: 2,
             project: "Citraland Utara",
             area: "NorthWestPark",
             block: "NA",

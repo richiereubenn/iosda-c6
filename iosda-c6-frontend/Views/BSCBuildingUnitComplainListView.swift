@@ -17,13 +17,13 @@ struct BSCBuildingUnitComplainListView: View {
                     title: "New Complaint",
                     unitCount: 13,
                     complaintCount: 20,
-                    backgroundColor: .blue
+                    backgroundColor: Color.blue
                 )
                 SummaryComplaintCard(
                     title: "On Progress",
                     unitCount: 2,
                     complaintCount: 5,
-                    backgroundColor: .green
+                    backgroundColor: Color.green
                 )
             }
             

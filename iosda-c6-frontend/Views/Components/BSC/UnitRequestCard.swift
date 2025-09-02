@@ -10,12 +10,10 @@ import SwiftUI
 struct UnitRequestCard: View {
     let unit: Unit
     let userUnit: UserUnit?
-    let onTap: (() -> Void)?
     
-    init(unit: Unit, userUnit: UserUnit? = nil, onTap: (() -> Void)? = nil) {
+    init(unit: Unit, userUnit: UserUnit? = nil) {
         self.unit = unit
         self.userUnit = userUnit
-        self.onTap = onTap
     }
     
     private var statusText: String {

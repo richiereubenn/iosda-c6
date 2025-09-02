@@ -8,9 +8,9 @@ class ComplaintDetailViewModel: ObservableObject {
     @Published var errorMessage: String?
 
     private let complaintService: ComplaintServiceProtocol
-    private let useMockData = true // ✅ Toggle this when backend is ready
+    private let useMockData = true 
     
-    // ✅ Reference to shared complaint data
+   
     private let complaintListViewModel: ComplaintListViewModel?
 
     init(
@@ -26,11 +26,11 @@ class ComplaintDetailViewModel: ObservableObject {
         errorMessage = nil
 
         if useMockData {
-            // ✅ Use shared mock data from ComplaintListViewModel
+        
             if let sharedViewModel = complaintListViewModel {
                 progressLogs = sharedViewModel.logs(for: complaintId)
             } else {
-                // ✅ Fallback to local mock data if no shared view model
+  
                 progressLogs = getMockProgressLogs(for: complaintId)
             }
             isLoading = false
@@ -47,7 +47,7 @@ class ComplaintDetailViewModel: ObservableObject {
         isLoading = false
     }
 
-    // ✅ Fallback mock data that matches ComplaintListViewModel structure
+    
     private func getMockProgressLogs(for complaintId: Int) -> [ProgressLog] {
         let formatter = ISO8601DateFormatter()
         

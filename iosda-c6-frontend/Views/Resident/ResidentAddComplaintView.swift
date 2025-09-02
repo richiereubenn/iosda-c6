@@ -9,13 +9,12 @@ struct ResidentAddComplaintView: View {
     
     @State private var complaintTitle: String = ""
     @State private var complaintDetails: String = ""
-    @State private var handoverMethod: String = ""
+    @State private var handoverMethod: Complaint.HandoverMethod? = nil
     @State private var selectedUnitId: Int? = nil
     
-    @State private var showKeyDateView = false
     @State private var navigateToKeyDate = false
     
-    let handoverOptions = ["Bring to MO", "In House"]
+    var handoverOptions: [Complaint.HandoverMethod] = [.bringToMO, .inHouse]
     
     var body: some View {
         VStack(spacing: 10) {
@@ -43,22 +42,20 @@ struct ResidentAddComplaintView: View {
                 }
                 .navigationDestination(isPresented: $navigateToKeyDate) {
                     ResidentKeyDateView(
-                        handoverMethod: handoverMethod,
+                        handoverMethod: handoverMethod?.rawValue ?? "",
                         selectedUnitId: selectedUnitId,
                         complaintTitle: complaintTitle,
                         complaintDetails: complaintDetails,
                         unitViewModel: unitViewModel,
                         complaintViewModel: complaintViewModel,
                         onComplaintSubmitted: {
-                            dismiss() // This dismisses ResidentAddComplaintView
+                            dismiss()
                         }
                     )
                 }
-                
             }
             .onAppear {
                 unitViewModel.loadUnits()
-                
                 if selectedUnitId == nil {
                     selectedUnitId = unitViewModel.claimedUnits.first?.id
                 }
@@ -134,11 +131,9 @@ struct ResidentAddComplaintView: View {
             .foregroundColor(.gray)
         
         UploadImageCard(imageType: .closeUp)
-        
         imageInstructionView(text: "Please take a close-up photo focusing directly on the issue. Ensure the defect is clear and well-lit to show the full detail.")
         
         UploadImageCard(imageType: .overall)
-        
         imageInstructionView(text: "Please take a photo from a distance to show the issue and its surrounding area. This helps us identify the exact location.")
     }
     
@@ -155,7 +150,7 @@ struct ResidentAddComplaintView: View {
                 Image(systemName: handoverMethod == option ? "largecircle.fill.circle" : "circle")
                     .foregroundColor(.blue)
                     .onTapGesture { handoverMethod = option }
-                Text(option)
+                Text(option.displayName)
                     .onTapGesture { handoverMethod = option }
             }
         }
@@ -167,28 +162,22 @@ struct ResidentAddComplaintView: View {
                 .font(.title2)
                 .fontWeight(.bold)
             Spacer()
-            if !handoverMethod.isEmpty {
-                Text(handoverMethod)
-                    .font(.subheadline)
-                    .foregroundColor(.blue)
-                    .padding(.horizontal, 8)
-                    .padding(.vertical, 4)
-                    .background(Color(.systemGray5))
-                    .cornerRadius(6)
-            }
         }
     }
     
     private var submitButton: some View {
         PrimaryButton(
-            title: "Next",
+            title: "Make a Complaint",
             action: {
-                navigateToKeyDate = true
+                if handoverMethod == .bringToMO {
+                    navigateToKeyDate = true
+                } else if handoverMethod == .inHouse {
+                    submitInHouseComplaint()
+                }
             },
             isLoading: false,
             isDisabled: !isFormValid
         )
-        
         .padding(.top, 12)
     }
     
@@ -233,7 +222,28 @@ struct ResidentAddComplaintView: View {
         !complaintTitle.isEmpty &&
         !complaintDetails.isEmpty &&
         selectedUnitId != nil &&
-        !handoverMethod.isEmpty
+        handoverMethod != nil
+    }
+    
+    private func submitInHouseComplaint() {
+        guard let unitId = selectedUnitId,
+              let method = handoverMethod else { return }
+        
+        Task {
+            do {
+                try await complaintViewModel.submitInHouseComplaint(
+                    title: complaintTitle,
+                    description: complaintDetails,
+                    unitId: unitId,
+                    handoverMethod: method,
+                    unitViewModel: unitViewModel
+                )
+                dismiss()
+            } catch {
+                print("Error submitting complaint: \(error)")
+                // Optional: Show an alert
+            }
+        }
     }
 }
 

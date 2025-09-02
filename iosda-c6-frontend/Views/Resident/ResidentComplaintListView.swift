@@ -9,11 +9,6 @@ struct ResidentComplaintListView: View {
         NavigationView {
             VStack(spacing: 8) {
                 
-                // Search Bar
-//                SearchBar(searchText: $searchText)
-//                    .padding(.horizontal, 5)
-//                    .padding(.top, 8)
-                
                 // Picker
                 Picker("Complaint Status", selection: $viewModel.selectedFilter) {
                     ForEach(ComplaintListViewModel.ComplaintFilter.allCases, id: \.self) { filter in
@@ -47,15 +42,20 @@ struct ResidentComplaintListView: View {
                     ScrollView {
                         LazyVStack(spacing: 12) {
                             ForEach(viewModel.filteredComplaints) { complaint in
-                                ResidentComplaintCardView(complaint: complaint)
+                                NavigationLink(destination: ResidentComplaintDetailView(complaint: complaint)) {
+                                    ResidentComplaintCardView(complaint: complaint)
+                                }
+                                .buttonStyle(PlainButtonStyle()) // Prevents the default button styling
                             }
                         }
                         .padding(.horizontal, 20)
                         .padding(.top, 20)
                     }
                 }
+                
             }
-            .background(Color.white)
+            
+            //.background(Color.white)
             .navigationTitle("Complaint List")
             .navigationBarTitleDisplayMode(.large)
             .toolbar {
@@ -69,12 +69,15 @@ struct ResidentComplaintListView: View {
                 }
             }
             .searchable(text: $searchText)
+            .onChange(of: searchText) { _ in
+                viewModel.searchText = searchText
+                viewModel.filterComplaints()
+            }
             .onAppear {
                 Task {
                     await viewModel.loadComplaints()
                 }
             }
-
             .alert("Error", isPresented: .constant(viewModel.errorMessage != nil)) {
                 Button("OK") {
                     viewModel.errorMessage = nil
@@ -85,16 +88,15 @@ struct ResidentComplaintListView: View {
             .sheet(isPresented: $showingCreateView) {
                 ResidentAddComplaintView(
                     unitViewModel: UnitViewModel(), // or pass the real one if you have
-                    complaintViewModel: viewModel  // <-- Pass the same ViewModel instance here!
+                    complaintViewModel: viewModel  // Pass the same ViewModel instance here!
                 )
             }
-
         }
     }
 }
 
 #Preview {
-    ResidentComplaintListView(viewModel: ComplaintListViewModel())
+    NavigationStack {
+        ResidentComplaintListView(viewModel: ComplaintListViewModel())
+    }
 }
-
-

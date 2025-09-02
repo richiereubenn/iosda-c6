@@ -14,6 +14,7 @@ struct Complaint: Identifiable, Codable {
     let deadlineDate: Date?
     let latitude: Double?
     let longitude: Double?
+    let handoverMethod: HandoverMethod?
     
     // Navigation properties
     var unit: Unit?
@@ -21,6 +22,11 @@ struct Complaint: Identifiable, Codable {
     var classification: Classification?
 //    var progressLogs: [ProgressLog]?
     
+    enum HandoverMethod: String, Codable {
+        case inHouse = "in_house"
+        case bringToMO = "bring_to_mo"
+    }
+
     private enum CodingKeys: String, CodingKey {
         case id = "uuid"
         case unitId = "unit_uuid"
@@ -35,6 +41,26 @@ struct Complaint: Identifiable, Codable {
         case deadlineDate = "deadline_date"
         case latitude
         case longitude
+        case handoverMethod = "handover_method"
     }
 }
 
+extension Complaint.HandoverMethod {
+    var displayName: String {
+        switch self {
+        case .inHouse: return "In House"
+        case .bringToMO: return "Bring to MO"
+        }
+    }
+    
+    init?(displayName: String) {
+        switch displayName {
+        case "In House":
+            self = .inHouse
+        case "Bring to MO":
+            self = .bringToMO
+        default:
+            return nil
+        }
+    }
+}

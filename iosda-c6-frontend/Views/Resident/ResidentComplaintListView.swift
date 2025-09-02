@@ -42,10 +42,13 @@ struct ResidentComplaintListView: View {
                     ScrollView {
                         LazyVStack(spacing: 12) {
                             ForEach(viewModel.filteredComplaints) { complaint in
-                                NavigationLink(destination: ResidentComplaintDetailView(complaint: complaint)) {
+                                NavigationLink(destination: ResidentComplaintDetailView(
+                                    complaint: complaint,
+                                    complaintListViewModel: viewModel
+                                )) {
                                     ResidentComplaintCardView(complaint: complaint)
                                 }
-                                .buttonStyle(PlainButtonStyle()) // Prevents the default button styling
+                                .buttonStyle(PlainButtonStyle())
                             }
                         }
                         .padding(.horizontal, 20)
@@ -55,7 +58,6 @@ struct ResidentComplaintListView: View {
                 
             }
             
-            //.background(Color.white)
             .navigationTitle("Complaint List")
             .navigationBarTitleDisplayMode(.large)
             .toolbar {
@@ -87,8 +89,8 @@ struct ResidentComplaintListView: View {
             }
             .sheet(isPresented: $showingCreateView) {
                 ResidentAddComplaintView(
-                    unitViewModel: UnitViewModel(), // or pass the real one if you have
-                    complaintViewModel: viewModel  // Pass the same ViewModel instance here!
+                    unitViewModel: UnitViewModel(),
+                    complaintViewModel: viewModel
                 )
             }
         }

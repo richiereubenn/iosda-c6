@@ -1,79 +1,123 @@
 import SwiftUI
 
 struct ProgressDetailView: View {
-    let progressLogs: [ProgressLog]
-    
+    @ObservedObject private var viewModel: ComplaintDetailViewModel
+    let complaintId: Int
+    var previewData: [ProgressLog]? = nil // Optional injected data
+
+    init(
+        complaintId: Int,
+        complaintListViewModel: ComplaintListViewModel? = nil,
+        previewData: [ProgressLog]? = nil
+    ) {
+        self.complaintId = complaintId
+        self.previewData = previewData
+        
+        self.viewModel = ComplaintDetailViewModel(
+            complaintListViewModel: complaintListViewModel
+        )
+    }
+
     var body: some View {
         NavigationView {
-            ScrollView {
-                LazyVStack(alignment: .leading, spacing: 0) {
-                    ForEach(Array(progressLogs.enumerated()), id: \.element.id) { index, progressLog in
-                        ProgressLogRow(
-                            progressLog: progressLog,
-                            isLast: index == progressLogs.count - 1
-                        )
+            Group {
+                if viewModel.isLoading {
+                    ProgressView("Loading progress logs...")
+                        .frame(maxWidth: .infinity, maxHeight: .infinity)
+                } else if let error = viewModel.errorMessage {
+                    Text(error)
+                        .foregroundColor(.red)
+                        .padding()
+                } else if viewModel.progressLogs.isEmpty {
+                    Text("No progress logs available.")
+                        .foregroundColor(.secondary)
+                        .padding()
+                } else {
+                    ScrollView {
+                        LazyVStack(alignment: .leading, spacing: 0) {
+                            let logs = Array(viewModel.progressLogs.reversed())
+                            ForEach(Array(logs.enumerated()), id: \.element.id) { index, progressLog in
+                                ProgressLogRow(
+                                    progressLog: progressLog,
+                                    isLast: index == logs.count - 1,
+                                    isCurrent: index == logs.count - 1  // mark last (bottom) item as current
+                                )
+                            }
+
+
+
+
+                        }
+                        .padding(.horizontal, 16)
+                        .padding(.top, 8)
                     }
                 }
-                .padding(.horizontal, 16)
-                .padding(.top, 8)
             }
             .navigationTitle("Progress Detail")
             .navigationBarTitleDisplayMode(.inline)
+            .task {
+                if let previewData = previewData {
+                    
+                    viewModel.progressLogs = previewData
+                    viewModel.isLoading = false
+                } else {
+                   
+                    await viewModel.fetchProgressLogs(complaintId: complaintId)
+                }
+            }
         }
     }
 }
-struct ProgressDetailView_Previews: PreviewProvider {
-    static var previews: some View {
-        ProgressDetailView(progressLogs: sampleProgressLogs)
-    }
-    
-    static let sampleProgressLogs: [ProgressLog] = [
-        ProgressLog(
-            id: 1,
-            userId: 1,
-            attachmentId: nil,
-            title: "Sedang di tangani oleh satpam",
-            description: "Paket sedang dalam proses verifikasi",
-            timestamp: Calendar.current.date(byAdding: .day, value: -1, to: Date()),
-            files: nil,
-            progressFiles: nil
-        ),
-        ProgressLog(
-            id: 2,
-            userId: 1,
-            attachmentId: 1,
-            title: "Laporan diserahkan ke satpam",
-            description: "Dokumentasi lengkap telah diserahkan",
-            timestamp: Calendar.current.date(byAdding: .day, value: -2, to: Date()),
-            files: [
-                File(id: 1, name: "photo1.jpg", path: "https://example.com/image1.jpg", mimeType: "image/jpeg", otherAttributes: nil, progressFiles: nil),
-                File(id: 2, name: "photo2.jpg", path: "https://example.com/image2.jpg", mimeType: "image/jpeg", otherAttributes: nil, progressFiles: nil)
-            ],
-            progressFiles: nil
-        ),
-        ProgressLog(
-            id: 3,
-            userId: 1,
-            attachmentId: 2,
-            title: "Laporan diterima CRO",
-            description: "Customer Relations Officer telah menerima laporan",
-            timestamp: Calendar.current.date(byAdding: .day, value: -3, to: Date()),
-            files: nil,
-            progressFiles: [
-                ProgressFile(id: 1, progressId: 3, fileId: 3, progress: nil,
-                           file: File(id: 3, name: "report.pdf", path: "/documents/report.pdf",
-                                    mimeType: "application/pdf", otherAttributes: nil, progressFiles: nil))
-            ]
-        ),
-        ProgressLog(
-            id: 4,
-            userId: 1,
-            attachmentId: nil,
-            title: "Laporan masuk",
-            description: "Laporan berhasil diterima sistem",
-            timestamp: Calendar.current.date(byAdding: .day, value: -4, to: Date()),
-            files: nil,
-            progressFiles: nil
-        )
-    ]
+
+#Preview {
+    ProgressDetailView(
+        complaintId: 1,
+        complaintListViewModel: nil,
+        previewData: [
+            ProgressLog(
+                id: 101,
+                userId: 1,
+                attachmentId: nil,
+                title: "Laporan Diterima",
+                description: "Pengaduan berhasil dikirim dan diterima oleh sistem.",
+                timestamp: ISO8601DateFormatter().date(from: "2025-08-20T10:05:00Z")!,
+                files: [
+                    File(
+                        id: 201,
+                        name: "lampiran_foto.jpg",
+                        path: "https://via.placeholder.com/300", // Replace with your mock or real URL
+                        mimeType: "image/jpeg",
+                        otherAttributes: nil,
+                        progressFiles: nil
+                    )
+                ],
+                progressFiles: [
+                    ProgressFile(
+                        id: 301,
+                        progressId: 101,
+                        fileId: 202,
+                        progress: nil,
+                        file: File(
+                            id: 202,
+                            name: "form_pengaduan.pdf",
+                            path: "https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf",
+                            mimeType: "application/pdf",
+                            otherAttributes: nil,
+                            progressFiles: nil
+                        )
+                    )
+                ]
+            ),
+            ProgressLog(
+                id: 102,
+                userId: 2,
+                attachmentId: nil,
+                title: "Teknisi Dijadwalkan",
+                description: "Teknisi akan datang pada 22 Agustus.",
+                timestamp: ISO8601DateFormatter().date(from: "2025-08-21T08:00:00Z")!,
+                files: nil,
+                progressFiles: nil
+            )
+        ]
+    )
 }

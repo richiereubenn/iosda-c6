@@ -4,6 +4,8 @@ import Foundation
 class ComplaintListViewModel: ObservableObject {
     @Published var complaints: [Complaint] = []
     @Published var filteredComplaints: [Complaint] = []
+    @Published var complaintLogs: [Int: [ProgressLog]] = [:] // complaintId -> logs
+
     @Published var selectedFilter: ComplaintFilter = .open
     @Published var searchText = ""
     @Published var isLoading = false
@@ -30,7 +32,6 @@ class ComplaintListViewModel: ObservableObject {
         }
     }
 
-
     init(complaintService: ComplaintServiceProtocol = ComplaintService()) {
         self.complaintService = complaintService
     }
@@ -54,6 +55,10 @@ class ComplaintListViewModel: ObservableObject {
         }
         
         isLoading = false
+    }
+    
+    func logs(for complaintId: Int) -> [ProgressLog] {
+        complaintLogs[complaintId] ?? []
     }
     
     private func loadMockComplaints() {
@@ -226,8 +231,110 @@ class ComplaintListViewModel: ObservableObject {
                 classification: nil
             )
         ]
+        
+        complaintLogs = [
+                1: [
+                    ProgressLog(
+                        id: 101,
+                        userId: nil,
+                        attachmentId: nil,
+                        title: "Complaint Submitted",
+                        description: "Complaint submitted, waiting for review.",
+                        timestamp: formatter.date(from: "2025-08-20T10:05:00Z"),
+                        files: nil,
+                        progressFiles: nil
+                    ),
+                    ProgressLog(
+                        id: 102,
+                        userId: nil,
+                        attachmentId: nil,
+                        title: "Teknisi Dijadwalkan",
+                        description: "Teknisi akan datang pada 22 Agustus.",
+                        timestamp: formatter.date(from: "2025-08-21T08:00:00Z"),
+                        files: nil,
+                        progressFiles: nil
+                    )
+                ],
+                4: [
+                    ProgressLog(
+                        id: 201,
+                        userId: nil,
+                        attachmentId: nil,
+                        title: "Complaint Submitted",
+                        description: "Complaint submitted, waiting for review.",
+                        timestamp: formatter.date(from: "2025-08-20T11:00:00Z"),
+                        files: nil,
+                        progressFiles: nil
+                    )
+                ],
+                5: [
+                    ProgressLog(
+                        id: 301,
+                        userId: nil,
+                        attachmentId: nil,
+                        title: "Complaint Submitted",
+                        description: "Complaint submitted, waiting for review.",
+                        timestamp: formatter.date(from: "2025-08-20T12:00:00Z"),
+                        files: nil,
+                        progressFiles: nil
+                    ),
+                    ProgressLog(
+                        id: 302,
+                        userId: nil,
+                        attachmentId: nil,
+                        title: "Pekerjaan Dimulai",
+                        description: "Teknisi sedang memperbaiki keran bocor.",
+                        timestamp: formatter.date(from: "2025-08-22T09:00:00Z"),
+                        files: nil,
+                        progressFiles: nil
+                    )
+                ],
+                2: [
+                    ProgressLog(
+                        id: 401,
+                        userId: nil,
+                        attachmentId: nil,
+                        title: "Complaint Submitted",
+                        description: "Complaint submitted, waiting for review.",
+                        timestamp: formatter.date(from: "2025-08-15T09:05:00Z"),
+                        files: nil,
+                        progressFiles: nil
+                    ),
+                    ProgressLog(
+                        id: 402,
+                        userId: nil,
+                        attachmentId: nil,
+                        title: "Material Dipesan",
+                        description: "Bahan pengganti jendela sudah dipesan.",
+                        timestamp: formatter.date(from: "2025-08-16T10:00:00Z"),
+                        files: nil,
+                        progressFiles: nil
+                    )
+                ],
+                3: [
+                    ProgressLog(
+                        id: 501,
+                        userId: nil,
+                        attachmentId: nil,
+                        title: "Complaint Submitted",
+                        description: "Complaint submitted, waiting for review.",
+                        timestamp: formatter.date(from: "2025-07-30T08:10:00Z"),
+                        files: nil,
+                        progressFiles: nil
+                    ),
+                    ProgressLog(
+                        id: 502,
+                        userId: nil,
+                        attachmentId: nil,
+                        title: "Masalah Terselesaikan",
+                        description: "Listrik sudah kembali normal.",
+                        timestamp: formatter.date(from: "2025-08-01T18:00:00Z"),
+                        files: nil,
+                        progressFiles: nil
+                    )
+                ]
+            ]
     }
-
     
     func filterComplaints() {
         filteredComplaints = complaints.filter { complaint in
@@ -245,8 +352,6 @@ class ComplaintListViewModel: ObservableObject {
             }
         }
     }
-
-    
     
     func submitComplaint(request: CreateComplaintRequest, unitViewModel: UnitViewModel) async throws {
         if useMockData {
@@ -272,10 +377,22 @@ class ComplaintListViewModel: ObservableObject {
                 classification: nil
             )
 
-
             complaints.insert(newComplaint, at: 0)
-            filterComplaints()
+            
+            // ✅ Create initial progress log with proper message
+            let newProgressLog = ProgressLog(
+                id: UUID().hashValue,
+                userId: nil,
+                attachmentId: nil,
+                title: "Complaint Submitted",
+                description: "Complaint submitted, waiting for review.",
+                timestamp: Date(),
+                files: nil,
+                progressFiles: nil
+            )
+            complaintLogs[newId] = [newProgressLog]
 
+            filterComplaints()
             return
         }
 
@@ -305,7 +422,9 @@ class ComplaintListViewModel: ObservableObject {
         try await submitComplaint(request: request, unitViewModel: unitViewModel)
     }
 
-
+    func logs(for complaint: Complaint) -> [ProgressLog] {
+        complaintLogs[complaint.id ?? 0] ?? []
+    }
     
     func deleteComplaint(at indexSet: IndexSet) async {
         for index in indexSet {

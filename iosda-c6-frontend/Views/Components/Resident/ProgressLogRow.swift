@@ -3,19 +3,21 @@ import SwiftUI
 struct ProgressLogRow: View {
     let progressLog: ProgressLog
     let isLast: Bool
+    let isCurrent: Bool
     
     var body: some View {
         HStack(alignment: .top, spacing: 12) {
             // Timeline circle and line
             VStack(spacing: 0) {
                 Circle()
-                    .fill(progressLog.isCompleted ? Color.blue : Color.gray)
+                    .fill(isCurrent ? Color.blue : Color.gray)
                     .frame(width: 20, height: 20)
                     .overlay(
-                        Image(systemName: progressLog.isCompleted ? "checkmark" : "circle")
+                        Image(systemName: isCurrent ? "checkmark" : "circle")
                             .font(.system(size: 10, weight: .bold))
                             .foregroundColor(.white)
                     )
+                
                 
                 if !isLast {
                     Rectangle()
@@ -54,13 +56,17 @@ struct ProgressLogRow: View {
                 }
                 
                 // Attached Images
-                if let files = progressLog.files, !files.isEmpty {
-                    AttachedImagesView(files: files)
+                if let progressFiles = progressLog.progressFiles, !progressFiles.isEmpty {
+                    ProgressAttachmentsView(progressFiles: progressFiles)
+                        .padding(.top, 8)
                 }
                 
-                // Progress Files (if any)
-                if let progressFiles = progressLog.progressFiles, !progressFiles.isEmpty {
-                    ProgressFilesView(progressFiles: progressFiles)
+                if let files = progressLog.files, !files.isEmpty {
+                    let wrappedFiles = files.map { file in
+                        ProgressFile(id: file.id, progressId: progressLog.id, fileId: file.id, progress: nil, file: file)
+                    }
+                    ProgressAttachmentsView(progressFiles: wrappedFiles)
+                        .padding(.top, 8)
                 }
             }
             .padding(.bottom, 16)
@@ -71,7 +77,7 @@ struct ProgressLogRow: View {
         guard let date = date else { return "Unknown Date" }
         
         let formatter = DateFormatter()
-//        formatter.locale = Locale(identifier: "id_ID") // Indonesian locale
+        //        formatter.locale = Locale(identifier: "id_ID") // Indonesian locale
         formatter.dateFormat = "EEEE, dd MMMM yyyy"
         return formatter.string(from: date)
     }
@@ -86,8 +92,8 @@ struct ProgressLogRow: View {
 }
 
 #Preview {
-    ProgressLogRow(progressLog: mockProgressLog, isLast: false)
-        .padding()
+    ProgressLogRow(progressLog: mockProgressLog, isLast: false, isCurrent: true)
+            .padding()
 }
 private let mockProgressLog = ProgressLog(
     id: 1,

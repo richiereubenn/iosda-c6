@@ -2,10 +2,18 @@ import SwiftUI
 
 struct ResidentComplaintDetailView: View {
     let complaint: Complaint
+    let complaintListViewModel: ComplaintListViewModel?
     @Environment(\.dismiss) var dismiss
     @State private var showingImageViewer = false
     @State private var selectedImageIndex = 0
+    @State private var showingProgressDetail = false
     
+    // ✅ New initializer that accepts shared view model
+    init(complaint: Complaint, complaintListViewModel: ComplaintListViewModel? = nil) {
+        self.complaint = complaint
+        self.complaintListViewModel = complaintListViewModel
+    }
+
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 20) {
@@ -32,7 +40,7 @@ struct ResidentComplaintDetailView: View {
                             }
                         }
                     }
-
+                    
                 }
                 .padding(.horizontal, 20)
                 
@@ -42,15 +50,16 @@ struct ResidentComplaintDetailView: View {
                         Text("Status")
                             .font(.title2)
                             .fontWeight(.bold)
-
+                        
                         if let statusID = complaint.status?.complaintStatusID {
                             StatusBadge(statusID: statusID)
                         }
                         Spacer()
-
+                        
                         Button("See Detail") {
-                            // Handle see detail action
+                            showingProgressDetail = true
                         }
+                        
                         .foregroundColor(.blue)
                         .font(.body)
                     }
@@ -63,10 +72,10 @@ struct ResidentComplaintDetailView: View {
                 if complaint.handoverMethod == .inHouse {
                     if let openDate = complaint.openTimestamp {
                         let estimatedVisitDate = Calendar.current.date(byAdding: .day, value: 3, to: openDate)!
-
+                        
                         HStack(alignment: .top, spacing: 8) {
                             Image(systemName: "info.circle.fill")
-                                
+                            
                             Text("BSC will come to your house soon, no later than ")
                                 .foregroundColor(.primary)
                             +
@@ -80,8 +89,8 @@ struct ResidentComplaintDetailView: View {
                         .padding(.horizontal, 20)
                     }
                 }
-
-
+                
+                
                 // Detail Section
                 VStack(alignment: .leading, spacing: 12) {
                     Text("Detail")
@@ -138,7 +147,7 @@ struct ResidentComplaintDetailView: View {
                         .cornerRadius(15)
                         .shadow(color: Color.black.opacity(0.15), radius: 5, x: 0, y: 3)
                         //.padding(.horizontal)
-        
+                        
                     }
                     // Description
                     if !complaint.description.isEmpty {
@@ -148,7 +157,7 @@ struct ResidentComplaintDetailView: View {
                             .padding(.top, 8)
                     }
                     
-                  
+                    
                 }
                 .padding(.horizontal, 20)
                 
@@ -157,6 +166,13 @@ struct ResidentComplaintDetailView: View {
         }
         .navigationTitle("")
         .navigationBarBackButtonHidden(true)
+        .navigationDestination(isPresented: $showingProgressDetail) {
+            // ✅ Pass the shared view model to ProgressDetailView
+            ProgressDetailView(
+                complaintId: complaint.id ?? 0,
+                complaintListViewModel: complaintListViewModel
+            )
+        }
         .toolbar {
             ToolbarItem(placement: .navigationBarLeading) {
                 Button(action: {
@@ -173,10 +189,11 @@ struct ResidentComplaintDetailView: View {
                 }
             }
         }
+        
         .overlay(alignment: .bottom) {
             if let statusID = complaint.status?.complaintStatusID,
                (statusID == .inProgress || statusID == .waitingKey),
-               complaint.handoverMethod == .bringToMO { // ✅ Add handover method check
+               complaint.handoverMethod == .bringToMO {
                 VStack(spacing: 0) {
                     PrimaryButton(
                         title: "Submit Key Handover Evidence",
@@ -192,6 +209,9 @@ struct ResidentComplaintDetailView: View {
         }
     }
     
+    // ✅ Remove this method since we're using shared data
+    // private func getProgressLogs(for complaint: Complaint) -> [ProgressLog] { ... }
+    
     private func formatDate(_ date: Date) -> String {
         let formatter = DateFormatter()
         formatter.dateFormat = "d MMMM yyyy"
@@ -204,9 +224,6 @@ struct ResidentComplaintDetailView: View {
         return formatter.string(from: date)
     }
 }
-
-
-
 
 struct DetailRow: View {
     let label: String
@@ -235,7 +252,7 @@ struct DetailRow: View {
                 progressId: nil,
                 classificationId: 1,
                 title: "Anjing Masuk Rumah",
-                description: "when an unknown printer took a galley of type and scrambled it to make a type specimen book. It has survived not only five centuries, but also the leap into electronic typesetting, remaining essentially unchanged. It was popularised in the 1960s with the release of Letraset sheets containing Lorem Ipsum passages, and more recently with desktop publishing software like Aldus PageMaker including versions of Lorem Ipsum.",
+                description: "when an unknown printer took a galley of type and scrambled it to make a type specimen book. It has survived not only five centuries, but also the leap into electronic typesetting, remaining essentially unchanged.",
                 openTimestamp: Date(),
                 closeTimestamp: nil,
                 keyHandoverDate: Calendar.current.date(byAdding: .day, value: 18, to: Date()),

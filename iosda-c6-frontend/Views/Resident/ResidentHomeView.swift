@@ -102,11 +102,15 @@ struct ResidentHomeView: View {
                 ScrollView {
                     LazyVStack(spacing: 15) {
                         ForEach(viewModel.complaints.prefix(5)) { complaint in
-                            ResidentComplaintCardView(complaint: complaint)
+                            NavigationLink(destination: ResidentComplaintDetailView(complaint: complaint)) {
+                                ResidentComplaintCardView(complaint: complaint)
+                            }
+                            .buttonStyle(PlainButtonStyle())
                         }
                     }
                     .padding(.horizontal, 20)
                 }
+
             }
             
             Spacer()

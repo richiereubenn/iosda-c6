@@ -5,6 +5,7 @@ protocol ComplaintServiceProtocol {
     func createComplaint(_ request: CreateComplaintRequest) async throws -> Complaint
     func updateComplaintStatus(id: Int, statusId: Int) async throws -> Complaint
     func deleteComplaint(id: Int) async throws
+    func fetchProgressLogs(complaintId: Int) async throws -> [ProgressLog]
 }
 
 class ComplaintService: ComplaintServiceProtocol {
@@ -78,4 +79,17 @@ class ComplaintService: ComplaintServiceProtocol {
     func deleteComplaint(id: Int) async throws {
         try await networkManager.requestEmpty(endpoint: "/complaints/\(id)", method: .DELETE)
     }
+    func fetchProgressLogs(complaintId: Int) async throws -> [ProgressLog] {
+            let response: APIResponse<[ProgressLog]> = try await networkManager.request(endpoint: "/complaints/\(complaintId)/progress-logs")
+
+            guard response.success else {
+                throw NetworkError.serverError(0)
+            }
+
+            guard let logs = response.data else {
+                throw NetworkError.decodingError
+            }
+
+            return logs
+        }
 }

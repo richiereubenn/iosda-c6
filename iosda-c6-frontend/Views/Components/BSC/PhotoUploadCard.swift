@@ -43,7 +43,6 @@ struct PhotoUploadCard: View {
                         .padding(6)
                     }
                 } else {
-                    // Belum ada foto - tampilkan upload interface
                     VStack(spacing: 8) {
                         ZStack {
                             Circle()
@@ -52,7 +51,7 @@ struct PhotoUploadCard: View {
                             
                             Image(systemName: "camera.fill")
                                 .font(.system(size: 24))
-                                .foregroundColor(.blue)
+                                .foregroundColor(.primaryBlue)
                         }
                         
                         Text(title)

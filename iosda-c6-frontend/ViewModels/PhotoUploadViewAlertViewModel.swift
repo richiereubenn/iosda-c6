@@ -9,20 +9,30 @@ import SwiftUI
 import PhotosUI
 
 class PhotoUploadAlertViewModel: ObservableObject {
-    @Published var detailedPhoto: UIImage?
-    @Published var overallPhoto: UIImage?
+    @Published var photo1: UIImage?
+    @Published var photo2: UIImage?
     @Published var showImagePicker = false
     @Published var showActionSheet = false
     @Published var imageSourceType: UIImagePickerController.SourceType = .photoLibrary
-    @Published var currentPhotoType: PhotoType = .detailed
+    @Published var currentPhotoType: PhotoType = .photo1
+    
+    private var uploadAmount: Int = 2
     
     enum PhotoType {
-        case detailed
-        case overall
+        case photo1
+        case photo2
     }
     
-    var canStartWork: Bool {
-        return detailedPhoto != nil && overallPhoto != nil
+    func setUploadAmount(_ amount: Int) {
+        uploadAmount = amount
+    }
+    
+    func canStartWork(uploadAmount: Int) -> Bool {
+        if uploadAmount == 1 {
+            return photo1 != nil
+        } else {
+            return photo1 != nil && photo2 != nil
+        }
     }
     
     func selectPhoto(type: PhotoType) {
@@ -35,32 +45,26 @@ class PhotoUploadAlertViewModel: ObservableObject {
         showImagePicker = true
     }
     
-//    var imageSourceType: UIImagePickerController.SourceType = .photoLibrary
-    
     func setPhoto(_ image: UIImage) {
         switch currentPhotoType {
-        case .detailed:
-            detailedPhoto = image
-        case .overall:
-            overallPhoto = image
+        case .photo1:
+            photo1 = image
+        case .photo2:
+            photo2 = image
         }
     }
     
     func removePhoto(type: PhotoType) {
         switch type {
-        case .detailed:
-            detailedPhoto = nil
-        case .overall:
-            overallPhoto = nil
+        case .photo1:
+            photo1 = nil
+        case .photo2:
+            photo2 = nil
         }
     }
     
     func reset() {
-        detailedPhoto = nil
-        overallPhoto = nil
+        photo1 = nil
+        photo2 = nil
     }
 }
-
-//#Preview {
-//    PhotoUploadViewAlertViewModel()
-//}

@@ -180,13 +180,14 @@ struct BIComplaintDetailView: View {
             Text("Explain why you reject this issue")
         }
         
-        // Accept sheet
+        // Accept sheet - Example with 2 photos
         .sheet(isPresented: $showAcceptSheet) {
             PhotoUploadSheet(
                 title: "Start this Work?",
                 description: "This will set the work status to\n'In Progress'.",
-                detailedPhotoLabel: "A close-up photo of the specific defect.",
-                overallPhotoLabel: "A wide-angle photo showing the entire work area.",
+                photoLabel1: "A close-up photo of the specific defect.",
+                photoLabel2: "A wide-angle photo showing the entire work area.",
+                uploadAmount: 1, // Change to 1 for single photo upload
                 onStartWork: {
                     // handleAccept()
                     showAcceptSheet = false

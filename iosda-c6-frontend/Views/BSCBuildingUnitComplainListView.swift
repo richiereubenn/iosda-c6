@@ -1,12 +1,13 @@
 //
-//  BuildingUnitComplainList.swift
+//  BSCBuildingUnitComplainListView.swift
 //  iosda-c6-frontend
 //
-//  Created by Richie Reuben Hermanto on 29/08/25.
+//  Created by Richie Reuben Hermanto on 01/09/25.
 //
+
 import SwiftUI
 
-struct BuildingUnitComplainList: View {
+struct BSCBuildingUnitComplainListView: View {
     @StateObject private var viewModel = BuildingListViewModel()
     
     var body: some View {
@@ -29,7 +30,7 @@ struct BuildingUnitComplainList: View {
             ScrollView {
                 LazyVStack(spacing: 12) {
                     ForEach(viewModel.getFilteredAndSortedUnits(), id: \.unitCode) { unit in
-                        NavigationLink(destination: BIComplaintDetailView()) {
+                        NavigationLink(destination: ComplaintListView(viewModel: ComplaintListViewModel())) {
                             UnitComplainCard(
                                 unitCode: unit.unitCode,
                                 latestComplaintDate: unit.latestComplaintDate,
@@ -68,6 +69,6 @@ struct BuildingUnitComplainList: View {
 
 #Preview {
     NavigationStack {
-        BuildingUnitComplainList()
+        BSCBuildingUnitComplainListView()
     }
 }

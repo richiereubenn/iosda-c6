@@ -78,7 +78,7 @@ struct UnitComplainCard: View {
                 .stroke(Color.gray.opacity(0.5), lineWidth: 0.5)
         )
         .cornerRadius(12)
-        .shadow(color: .black.opacity(0.1), radius: 4, x: 3, y: 3)
+        .shadow(color: .black.opacity(0.1), radius: 4, x: 0, y: 2)
     }
     
 }

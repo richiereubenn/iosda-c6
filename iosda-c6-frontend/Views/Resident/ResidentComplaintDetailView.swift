@@ -8,7 +8,7 @@ struct ResidentComplaintDetailView: View {
     @State private var selectedImageIndex = 0
     @State private var showingProgressDetail = false
     
-    // ✅ New initializer that accepts shared view model
+
     init(complaint: Complaint, complaintListViewModel: ComplaintListViewModel? = nil) {
         self.complaint = complaint
         self.complaintListViewModel = complaintListViewModel
@@ -167,7 +167,7 @@ struct ResidentComplaintDetailView: View {
         .navigationTitle("")
         .navigationBarBackButtonHidden(true)
         .navigationDestination(isPresented: $showingProgressDetail) {
-            // ✅ Pass the shared view model to ProgressDetailView
+       
             ProgressDetailView(
                 complaintId: complaint.id ?? 0,
                 complaintListViewModel: complaintListViewModel
@@ -209,8 +209,6 @@ struct ResidentComplaintDetailView: View {
         }
     }
     
-    // ✅ Remove this method since we're using shared data
-    // private func getProgressLogs(for complaint: Complaint) -> [ProgressLog] { ... }
     
     private func formatDate(_ date: Date) -> String {
         let formatter = DateFormatter()

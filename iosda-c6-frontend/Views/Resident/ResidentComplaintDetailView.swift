@@ -273,7 +273,7 @@ struct DetailRow: View {
                     renovationPermit: false,
                     isApproved: true
                 ),
-                status: Status(id: 3, name: ""),
+                status: Status(id: 3, name: "")
             )
         )
     }

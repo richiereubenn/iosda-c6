@@ -6,7 +6,6 @@
 //
 
 import Foundation
-import SwiftUI
 
 class BuildingListViewModel: ObservableObject {
     @Published var searchText: String = ""

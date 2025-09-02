@@ -12,39 +12,44 @@ struct CustomButtonComponent: View {
     let backgroundColor: Color
     let textColor: Color
     let action: () -> Void
+    let isDisabled: Bool
     
-    init(text: String, backgroundColor: Color = .blue, textColor: Color = .white, action: @escaping () -> Void) {
+    init(
+        text: String,
+        backgroundColor: Color = .blue,
+        textColor: Color = .white,
+        isDisabled: Bool = false,
+        action: @escaping () -> Void
+    ) {
         self.text = text
         self.backgroundColor = backgroundColor
         self.textColor = textColor
+        self.isDisabled = isDisabled
         self.action = action
     }
     
     var body: some View {
         Button(action: action) {
             Text(text)
-                .foregroundColor(textColor)
+                .foregroundColor(isDisabled ? .gray.opacity(0.7) : textColor)
                 .font(.system(size: 16, weight: .medium))
                 .frame(maxWidth: .infinity)
                 .padding(.vertical, 12)
-                .background(backgroundColor)
+                .background(isDisabled ? Color.gray.opacity(0.3) : backgroundColor)
                 .cornerRadius(8)
         }
+        .disabled(isDisabled)
     }
 }
 
 #Preview {
     VStack(spacing: 16) {
-        CustomButtonComponent(text: "Default Button") {
-            print("Default button tapped")
+        CustomButtonComponent(text: "Enabled Button") {
+            print("Enabled button tapped")
         }
         
-        CustomButtonComponent(text: "Red Button", backgroundColor: .red, textColor: .white) {
-            print("Red button tapped")
-        }
-        
-        CustomButtonComponent(text: "Green Text Button", backgroundColor: .gray, textColor: .green) {
-            print("Green text button tapped")
+        CustomButtonComponent(text: "Disabled Button", backgroundColor: .red, isDisabled: true) {
+            print("Disabled button tapped")
         }
     }
     .padding()

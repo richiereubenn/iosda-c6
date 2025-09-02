@@ -47,7 +47,7 @@ struct ComplaintListView: View {
                         LazyVStack(spacing: 12) {
                             ForEach(viewModel.filteredComplaints) { complaint in
                                 NavigationLink(
-                                    destination: BIComplaintDetailView() 
+                                    destination: BSCComplainDetailView() 
                                 ) {
                                     ResidentComplaintCardView(complaint: complaint)
                                 }

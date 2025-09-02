@@ -30,7 +30,7 @@ struct BSCContentView: View {
                         BSCBuildingUnitComplainListView()
                         
                     case "Unit":
-                        BSCBuildingUnitComplainListView()
+                        BSCUnitListView()
                         
                     case "User":
                         BSCBuildingUnitComplainListView()
@@ -39,9 +39,7 @@ struct BSCContentView: View {
                         BSCBuildingUnitComplainListView()
                     }
                 } else {
-                    Text("Pilih menu di sidebar")
-                        .font(.title2)
-                        .foregroundColor(.secondary)
+                    BSCBuildingUnitComplainListView()
                 }
             }
         }

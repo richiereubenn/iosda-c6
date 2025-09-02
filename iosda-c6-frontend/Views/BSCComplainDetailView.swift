@@ -30,7 +30,6 @@ struct BSCComplainDetailView: View {
                         }
                     }
                     
-                    // Status Complain Section
                     VStack(alignment: .leading, spacing: 12) {
                         Text("Status Complain")
                             .font(.system(size: 18, weight: .bold))

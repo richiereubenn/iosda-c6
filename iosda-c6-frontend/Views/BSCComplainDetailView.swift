@@ -44,13 +44,7 @@ struct BSCComplainDetailView: View {
                                     .foregroundColor(.gray)
                                     .font(.system(size: 14))
                                 
-                                Text("Open")
-                                    .foregroundColor(.white)
-                                    .font(.system(size: 12, weight: .medium))
-                                    .padding(.horizontal, 12)
-                                    .padding(.vertical, 4)
-                                    .background(.red)
-                                    .cornerRadius(4)
+                                StatusBadge(statusID: Status.ComplaintStatusID(rawValue: 1)!)
                                 Spacer()
                             }
                             DataRowComponent(label: "Deadline:", value: "30 Februari 2025")
@@ -97,9 +91,8 @@ struct BSCComplainDetailView: View {
                                 .frame(height: 15)
                             Text("Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book. It has survived not only five centuries, but also the leap into electronic typesetting, remaining essentially Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book. It has survived not only five centuries, but also the leap into electronic typesetting, remaining essentially uncha")
                                 .font(.system(size: 14))
-                                .foregroundColor(.gray)
+                                .foregroundColor(.primary)
                                 .fixedSize(horizontal: false, vertical: true)
-                            
                         }
                     }
                 }

@@ -52,7 +52,7 @@ struct BIComplaintDetailView: View {
                                 .font(.system(size: 14))
                             
                             Text("Lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec sit amet eros id lectus commodo laoreet sed vitae magna...")
-                                .foregroundColor(.black)
+                                .foregroundColor(.primary)
                                 .font(.system(size: 14))
                                 .lineLimit(nil)
                                 .multilineTextAlignment(.leading)
@@ -108,7 +108,6 @@ struct BIComplaintDetailView: View {
                     }
                 }
                 
-                // Location/Unit Detail
                 VStack(alignment: .leading, spacing: 12) {
                     Text("Location/Unit Detail")
                         .font(.system(size: 18, weight: .semibold))
@@ -174,22 +173,19 @@ struct BIComplaintDetailView: View {
             }
             
             Button("Reject", role: .destructive) {
-                // handleReject()
             }
         } message: {
             Text("Explain why you reject this issue")
         }
         
-        // Accept sheet - Example with 2 photos
         .sheet(isPresented: $showAcceptSheet) {
             PhotoUploadSheet(
                 title: "Start this Work?",
                 description: "This will set the work status to\n'In Progress'.",
                 photoLabel1: "A close-up photo of the specific defect.",
                 photoLabel2: "A wide-angle photo showing the entire work area.",
-                uploadAmount: 1, // Change to 1 for single photo upload
+                uploadAmount: 2,
                 onStartWork: {
-                    // handleAccept()
                     showAcceptSheet = false
                 },
                 onCancel: {

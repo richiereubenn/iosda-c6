@@ -14,7 +14,7 @@ struct StatusBadge: View {
     var body: some View {
         Text(statusID.displayName)
             .font(.system(size: 12, weight: .medium))
-            .foregroundColor(.black)
+            .foregroundColor(.primary)
             .padding(.horizontal, 12)
             .padding(.vertical, 4)
             .background(

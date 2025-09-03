@@ -9,33 +9,33 @@ import SwiftUI
 
 struct RequirementsCheckbox: View {
     let text: String
-        let isChecked: Bool
-        let onToggle: (() -> Void)?
-        
-        init(text: String, isChecked: Bool, onToggle: (() -> Void)? = nil) {
-            self.text = text
-            self.isChecked = isChecked
-            self.onToggle = onToggle
-        }
-        
-        var body: some View {
-            HStack {
-                Button(action: {
-                    onToggle?()
-                }) {
-                    Image(systemName: isChecked ? "checkmark.square.fill" : "square")
-                        .foregroundColor(isChecked ? .primaryBlue : .gray)
-                        .font(.system(size: 20))
-                }
-                .disabled(onToggle == nil)
-                
-                Text(text)
-                    .foregroundColor(.black)
-                    .font(.system(size: 14))
-                
-                Spacer()
+    let isChecked: Bool
+    let onToggle: (() -> Void)?
+    
+    init(text: String, isChecked: Bool, onToggle: (() -> Void)? = nil) {
+        self.text = text
+        self.isChecked = isChecked
+        self.onToggle = onToggle
+    }
+    
+    var body: some View {
+        HStack {
+            Button(action: {
+                onToggle?()
+            }) {
+                Image(systemName: isChecked ? "checkmark.square.fill" : "square")
+                    .foregroundColor(isChecked ? .primaryBlue : .secondary)
+                    .font(.system(size: 20))
             }
+            .disabled(onToggle == nil)
+            
+            Text(text)
+                .foregroundColor(.primary) 
+                .font(.system(size: 14))
+            
+            Spacer()
         }
+    }
 }
 
 struct RequirementsCheckbox_PreviewContainer: View {
@@ -57,9 +57,13 @@ struct RequirementsCheckbox_PreviewContainer: View {
 }
 
 #Preview {
-    RequirementsCheckbox_PreviewContainer()
-        .previewLayout(.sizeThatFits)
+    Group {
+        RequirementsCheckbox_PreviewContainer()
+            .previewLayout(.sizeThatFits)
+            .preferredColorScheme(.light)
+
+        RequirementsCheckbox_PreviewContainer()
+            .previewLayout(.sizeThatFits)
+            .preferredColorScheme(.dark)
+    }
 }
-
-
-

@@ -11,7 +11,7 @@ struct BSCComplainDetailView: View {
     @Environment(\.horizontalSizeClass) private var sizeClass
     @StateObject private var viewModel = BuildingListViewModel()
     @State private var garansiChecked = true
-    @State private var izinRenovasiChecked = false
+    @State private var izinRenovasiChecked = true
     
     @State private var statusID: Status.ComplaintStatusID = .init(rawValue: 2)!
     
@@ -104,6 +104,7 @@ struct BSCComplainDetailView: View {
                             isDisabled: isConfirmDisabled
                         ) {
                             statusID = .init(rawValue: 3)!
+                            NotificationManager.shared.sendNotification(title: "Complain Confirmed", body: "You have confirmed the complain.")
                         }
                     }
                 }

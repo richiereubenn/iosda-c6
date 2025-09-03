@@ -12,9 +12,12 @@ struct BIComplaintDetailView: View {
     @State private var showAcceptSheet = false
     @State private var rejectionReason = ""
     
+    @State private var statusID: Status.ComplaintStatusID = .init(rawValue: 4)!
+    
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 20) {
+                
                 VStack(alignment: .leading, spacing: 16) {
                     Text("Judul Komplain")
                         .font(.system(size: 24, weight: .bold))
@@ -36,13 +39,8 @@ struct BIComplaintDetailView: View {
                                 .foregroundColor(.gray)
                                 .font(.system(size: 14))
                             
-                            Text("Under Review")
-                                .foregroundColor(.black)
-                                .font(.system(size: 14, weight: .medium))
-                                .padding(.horizontal, 12)
-                                .padding(.vertical, 4)
-                                .background(Color.yellow.opacity(0.3))
-                                .cornerRadius(12)
+                            StatusBadge(statusID: statusID) // ✅ tampilkan status pakai badge
+                            Spacer()
                         }
                         .frame(maxWidth: .infinity, alignment: .leading)
                         
@@ -61,6 +59,7 @@ struct BIComplaintDetailView: View {
                     }
                 }
                 
+                                
                 // Image section
                 VStack(alignment: .leading, spacing: 12) {
                     Text("Image")
@@ -140,27 +139,28 @@ struct BIComplaintDetailView: View {
                         )
                     }
                 }
-                
-                HStack(spacing: 16) {
-                    CustomButtonComponent(
-                        text: "Reject",
-                        backgroundColor: .red,
-                        textColor: .white
-                    ) {
-                        showRejectAlert = true
-                    }
-                    
-                    CustomButtonComponent(
-                        text: "Accept",
-                        backgroundColor: .primaryBlue,
-                        textColor: .white
-                    ) {
-                        showAcceptSheet = true
-                    }
-                }
-                .padding(.top, 20)
             }
             .padding(20)
+            
+            HStack(spacing: 16) {
+                CustomButtonComponent(
+                    text: "Reject",
+                    backgroundColor: .red,
+                    textColor: .white
+                ) {
+                    showRejectAlert = true
+                }
+                
+                CustomButtonComponent(
+                    text: "Accept",
+                    backgroundColor: .primaryBlue,
+                    textColor: .white
+                ) {
+                    showAcceptSheet = true
+                }
+            }
+            .padding(20)
+
         }
         .navigationBarTitleDisplayMode(.inline)
         .navigationTitle("Detail Complain")
@@ -173,6 +173,7 @@ struct BIComplaintDetailView: View {
             }
             
             Button("Reject", role: .destructive) {
+                statusID = .init(rawValue: 6)!
             }
         } message: {
             Text("Explain why you reject this issue")
@@ -184,8 +185,9 @@ struct BIComplaintDetailView: View {
                 description: "This will set the work status to\n'In Progress'.",
                 photoLabel1: "A close-up photo of the specific defect.",
                 photoLabel2: "A wide-angle photo showing the entire work area.",
-                uploadAmount: 2,
+                uploadAmount: 1,
                 onStartWork: {
+                    statusID = .init(rawValue: 5)!
                     showAcceptSheet = false
                 },
                 onCancel: {

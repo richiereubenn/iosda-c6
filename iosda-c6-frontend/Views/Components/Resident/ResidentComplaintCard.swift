@@ -11,7 +11,7 @@ struct ResidentComplaintCardView: View {
             return .red
         case "under_review":
             return .yellow
-        case "waiting_key" :
+        case "waiting_key":
             return .orange
         case "in_progress":
             return .blue
@@ -48,8 +48,10 @@ struct ResidentComplaintCardView: View {
         VStack(alignment: .leading, spacing: 8) {
             HStack {
                 Text("ID: #\(complaint.id ?? 0)")
-                    .font(.system(size: 14))
+                    .font(.subheadline)
                     .foregroundColor(.secondary)
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.8)
                 
                 Spacer()
                 
@@ -59,20 +61,25 @@ struct ResidentComplaintCardView: View {
             }
             
             Text(complaint.title)
-                .font(.system(size: 18, weight: .semibold))
+                .font(.headline)
                 .foregroundColor(.primary)
                 .lineLimit(2)
+                .minimumScaleFactor(0.8)
             
             HStack {
                 Text("\(complaint.unit?.block ?? "") \(complaint.unit?.unitNumber ?? "")")
-                    .font(.system(size: 14))
+                    .font(.subheadline)
                     .foregroundColor(.secondary)
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.8)
                 
                 Spacer()
                 
                 Text("Created: \(formattedDate)")
-                    .font(.system(size: 14))
+                    .font(.footnote)
                     .foregroundColor(.secondary)
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.8)
             }
         }
         .padding(16)
@@ -128,5 +135,12 @@ struct ResidentComplaintCardView: View {
             .padding()
             .background(Color(.systemBackground))
             .preferredColorScheme(.light)
+            .environment(\.sizeCategory, .extraExtraExtraLarge)
+        
+        ResidentComplaintCardView(complaint: mockComplaint)
+            .padding()
+            .background(Color(.systemBackground))
+            .preferredColorScheme(.dark)
+            .environment(\.sizeCategory, .extraSmall)
     }
 }

@@ -19,21 +19,28 @@ struct RequirementsCheckbox: View {
     }
     
     var body: some View {
-        HStack {
+        HStack(alignment: .center, spacing: 8) {
             Button(action: {
                 onToggle?()
             }) {
                 Image(systemName: isChecked ? "checkmark.square.fill" : "square")
                     .foregroundColor(isChecked ? .primaryBlue : .secondary)
-                    .font(.system(size: 20))
+                    .imageScale(.large)
+                    .accessibilityLabel(isChecked ? "Checked" : "Unchecked")
             }
             .disabled(onToggle == nil)
             
             Text(text)
-                .foregroundColor(.primary) 
-                .font(.system(size: 14))
+                .foregroundColor(.primary)
+                .font(.body)
+                .lineLimit(nil)
+                .minimumScaleFactor(0.8)
             
             Spacer()
+        }
+        .contentShape(Rectangle()) 
+        .onTapGesture {
+            onToggle?()
         }
     }
 }

@@ -22,6 +22,10 @@ struct iosda_c6_frontendApp: App {
             fatalError("Could not create ModelContainer: \(error)")
         }
     }()
+    
+    init() {
+           NotificationManager.shared.requestPermission()
+    }
 
     var body: some Scene {
         WindowGroup {

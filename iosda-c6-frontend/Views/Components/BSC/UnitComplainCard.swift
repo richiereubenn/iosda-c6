@@ -72,40 +72,68 @@ struct UnitComplainCard: View {
             }
         }
         .padding(isCompact ? 10 : 16)
-        .background(Color.white)
+        .background(Color(.systemBackground))
         .overlay(
             RoundedRectangle(cornerRadius: 12)
-                .stroke(Color.gray.opacity(0.5), lineWidth: 0.5)
+                .stroke(Color(.separator), lineWidth: 0.5)
         )
         .cornerRadius(12)
-        .shadow(color: .black.opacity(0.1), radius: 4, x: 0, y: 2)
+        .shadow(color: .black.opacity(0.08), radius: 4, x: 0, y: 2)
     }
-    
 }
 
 #Preview {
-    VStack(spacing: 16) {
-        UnitComplainCard(
-            unitCode: "AXX/SDF",
-            latestComplaintDate: "2025-08-30",
-            totalComplaints: 10,
-            completedComplaints: 3
-        )
+    Group {
+        VStack(spacing: 16) {
+            UnitComplainCard(
+                unitCode: "AXX/SDF",
+                latestComplaintDate: "2025-08-30",
+                totalComplaints: 10,
+                completedComplaints: 3
+            )
+            
+            UnitComplainCard(
+                unitCode: "B-05",
+                latestComplaintDate: "2025-08-25",
+                totalComplaints: 10,
+                completedComplaints: 6
+            )
+            
+            UnitComplainCard(
+                unitCode: "C-10",
+                latestComplaintDate: "2025-08-20",
+                totalComplaints: 8,
+                completedComplaints: 8
+            )
+        }
+        .padding()
+        .previewLayout(.sizeThatFits)
+        .preferredColorScheme(.light) // ✅ Preview Light
         
-        UnitComplainCard(
-            unitCode: "B-05",
-            latestComplaintDate: "2025-08-25",
-            totalComplaints: 10,
-            completedComplaints: 6
-        )
-        
-        UnitComplainCard(
-            unitCode: "C-10",
-            latestComplaintDate: "2025-08-20",
-            totalComplaints: 8,
-            completedComplaints: 8
-        )
+        VStack(spacing: 16) {
+            UnitComplainCard(
+                unitCode: "AXX/SDF",
+                latestComplaintDate: "2025-08-30",
+                totalComplaints: 10,
+                completedComplaints: 3
+            )
+            
+            UnitComplainCard(
+                unitCode: "B-05",
+                latestComplaintDate: "2025-08-25",
+                totalComplaints: 10,
+                completedComplaints: 6
+            )
+            
+            UnitComplainCard(
+                unitCode: "C-10",
+                latestComplaintDate: "2025-08-20",
+                totalComplaints: 8,
+                completedComplaints: 8
+            )
+        }
+        .padding()
+        .previewLayout(.sizeThatFits)
+        .preferredColorScheme(.dark)
     }
-    .padding()
-    .previewLayout(.sizeThatFits)
 }

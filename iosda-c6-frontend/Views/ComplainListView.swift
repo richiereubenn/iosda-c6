@@ -16,7 +16,11 @@ struct ComplaintListView: View {
         VStack(spacing: 8) {
             Picker("Complaint Status", selection: $viewModel.selectedFilter) {
                 ForEach(ComplaintListViewModel.ComplaintFilter.allCases, id: \.self) { filter in
-                    Text(filter.rawValue).tag(filter)
+                    Text(filter.rawValue)
+                        .font(.subheadline)
+                        .minimumScaleFactor(0.8)
+                        .lineLimit(1)
+                        .tag(filter)
                 }
             }
             .pickerStyle(SegmentedPickerStyle())
@@ -34,11 +38,13 @@ struct ComplaintListView: View {
                 } else if viewModel.filteredComplaints.isEmpty {
                     VStack(spacing: 12) {
                         Image(systemName: "doc.text")
-                            .font(.system(size: 48))
-                            .foregroundColor(.gray.opacity(0.5))
+                            .font(.title)
+                            .foregroundColor(.secondary)
                         Text("No complaints found")
-                            .font(.system(size: 18, weight: .medium))
-                            .foregroundColor(.gray)
+                            .font(.body.weight(.medium))
+                            .foregroundColor(.secondary)
+                            .minimumScaleFactor(0.8)
+                            .lineLimit(2)
                     }
                     .padding(.top, 40)
                     Spacer()
@@ -47,21 +53,22 @@ struct ComplaintListView: View {
                         LazyVStack(spacing: 12) {
                             ForEach(viewModel.filteredComplaints) { complaint in
                                 NavigationLink(
-                                    destination: BSCComplainDetailView() 
+                                    destination: BSCComplainDetailView()
                                 ) {
                                     ResidentComplaintCardView(complaint: complaint)
+                                        .accessibilityElement(children: .combine)
+                                        .accessibilityLabel("\(complaint.title), \(complaint.status)")
                                 }
-                                .buttonStyle(PlainButtonStyle()) 
+                                .buttonStyle(PlainButtonStyle())
                             }
                         }
                         .padding(.horizontal, 20)
                         .padding(.top, 20)
                     }
-
                 }
             }
         }
-        .background(Color.white)
+        .background(Color(.systemBackground))
         .navigationTitle("Kode Rumah")
         .navigationBarTitleDisplayMode(.large)
         .searchable(text: $searchText, prompt: "Search complaints...")
@@ -74,13 +81,18 @@ struct ComplaintListView: View {
             Button("OK") { viewModel.errorMessage = nil }
         } message: {
             Text(viewModel.errorMessage ?? "")
+                .font(.body)
         }
     }
 }
 
 #Preview {
-    NavigationStack {
-        ComplaintListView(viewModel: ComplaintListViewModel())
+    Group {
+        NavigationStack {
+            ComplaintListView(viewModel: ComplaintListViewModel())
+        }
+        .environment(\.sizeCategory, .medium)
+        
     }
 }
 

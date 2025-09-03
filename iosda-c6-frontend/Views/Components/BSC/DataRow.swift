@@ -1,10 +1,3 @@
-//
-//  DataRow.swift
-//  iosda-c6-frontend
-//
-//  Created by Richie Reuben Hermanto on 01/09/25.
-//
-
 import SwiftUI
 
 struct DataRowComponent: View {
@@ -13,7 +6,12 @@ struct DataRowComponent: View {
     let labelColor: Color
     let valueColor: Color
     
-    init(label: String, value: String, labelColor: Color = .gray, valueColor: Color = .black) {
+    init(
+        label: String,
+        value: String,
+        labelColor: Color = .secondary,
+        valueColor: Color = .primary
+    ) {
         self.label = label
         self.value = value
         self.labelColor = labelColor
@@ -21,25 +19,47 @@ struct DataRowComponent: View {
     }
     
     var body: some View {
-        HStack {
+        HStack(alignment: .firstTextBaseline, spacing: 4) {
             Text(label)
                 .foregroundColor(labelColor)
-                .font(.system(size: 14))
+                .font(.subheadline)
+                .minimumScaleFactor(0.8)
+                .lineLimit(1)
             
             Text(value)
                 .foregroundColor(valueColor)
-                .font(.system(size: 14, weight: .medium))
-            
+                .font(.subheadline.weight(.medium))
+                .minimumScaleFactor(0.8)
+                .lineLimit(1)
         }
         .frame(maxWidth: .infinity, alignment: .leading)
     }
 }
 
 #Preview {
-    VStack(spacing: 12) {
-        DataRowComponent(label: "Nama", value: "Richie Hermanto")
+    Group {
+        VStack(spacing: 12) {
+            DataRowComponent(label: "Nama", value: "Richie Hermanto")
+            DataRowComponent(label: "Status", value: "Aktif")
+        }
+        .padding()
+        .previewLayout(.sizeThatFits)
+        .preferredColorScheme(.light)
+        
+        VStack(spacing: 12) {
+            DataRowComponent(label: "Nama", value: "Richie Hermanto")
+            DataRowComponent(label: "Status", value: "Aktif")
+        }
+        .padding()
+        .previewLayout(.sizeThatFits)
+        .preferredColorScheme(.dark)
+        
+        VStack(spacing: 12) {
+            DataRowComponent(label: "Nama", value: "Richie Hermanto")
+            DataRowComponent(label: "Status", value: "Aktif")
+        }
+        .padding()
+        .previewLayout(.sizeThatFits)
+        .environment(\.sizeCategory, .accessibilityExtraExtraExtraLarge)
     }
-    .padding()
-    .previewLayout(.sizeThatFits)
 }
-

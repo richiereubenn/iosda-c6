@@ -9,33 +9,40 @@ import SwiftUI
 
 struct RequirementsCheckbox: View {
     let text: String
-        let isChecked: Bool
-        let onToggle: (() -> Void)?
-        
-        init(text: String, isChecked: Bool, onToggle: (() -> Void)? = nil) {
-            self.text = text
-            self.isChecked = isChecked
-            self.onToggle = onToggle
-        }
-        
-        var body: some View {
-            HStack {
-                Button(action: {
-                    onToggle?()
-                }) {
-                    Image(systemName: isChecked ? "checkmark.square.fill" : "square")
-                        .foregroundColor(isChecked ? .primaryBlue : .gray)
-                        .font(.system(size: 20))
-                }
-                .disabled(onToggle == nil)
-                
-                Text(text)
-                    .foregroundColor(.black)
-                    .font(.system(size: 14))
-                
-                Spacer()
+    let isChecked: Bool
+    let onToggle: (() -> Void)?
+    
+    init(text: String, isChecked: Bool, onToggle: (() -> Void)? = nil) {
+        self.text = text
+        self.isChecked = isChecked
+        self.onToggle = onToggle
+    }
+    
+    var body: some View {
+        HStack(alignment: .center, spacing: 8) {
+            Button(action: {
+                onToggle?()
+            }) {
+                Image(systemName: isChecked ? "checkmark.square.fill" : "square")
+                    .foregroundColor(isChecked ? .primaryBlue : .secondary)
+                    .imageScale(.large)
+                    .accessibilityLabel(isChecked ? "Checked" : "Unchecked")
             }
+            .disabled(onToggle == nil)
+            
+            Text(text)
+                .foregroundColor(.primary)
+                .font(.body)
+                .lineLimit(nil)
+                .minimumScaleFactor(0.8)
+            
+            Spacer()
         }
+        .contentShape(Rectangle()) 
+        .onTapGesture {
+            onToggle?()
+        }
+    }
 }
 
 struct RequirementsCheckbox_PreviewContainer: View {
@@ -57,9 +64,13 @@ struct RequirementsCheckbox_PreviewContainer: View {
 }
 
 #Preview {
-    RequirementsCheckbox_PreviewContainer()
-        .previewLayout(.sizeThatFits)
+    Group {
+        RequirementsCheckbox_PreviewContainer()
+            .previewLayout(.sizeThatFits)
+            .preferredColorScheme(.light)
+
+        RequirementsCheckbox_PreviewContainer()
+            .previewLayout(.sizeThatFits)
+            .preferredColorScheme(.dark)
+    }
 }
-
-
-

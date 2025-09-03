@@ -15,7 +15,8 @@ struct BIHomepage: View {
                 Text("Hello, Richie")
                     .font(.largeTitle)
                     .fontWeight(.bold)
-                
+                    .accessibilityAddTraits(.isHeader)
+
                 Spacer()
                 
                 HStack(spacing: 15) {
@@ -23,12 +24,14 @@ struct BIHomepage: View {
                         Image(systemName: "bell")
                             .foregroundColor(.black)
                             .font(.title2)
+                            .accessibilityLabel("Notifications")
                     }
                     
                     Button(action: {}) {
                         Image(systemName: "person.circle")
                             .foregroundColor(.black)
                             .font(.title2)
+                            .accessibilityLabel("Profile")
                     }
                 }
             }
@@ -40,18 +43,26 @@ struct BIHomepage: View {
                     complaintCount: 20,
                     backgroundColor: .blue
                 )
+                .accessibilityElement(children: .combine)
+                .accessibilityLabel("New Complaint")
+                .accessibilityValue("13 units, 20 complaints")
+                
                 SummaryComplaintCard(
                     title: "On Progress",
                     unitCount: 2,
                     complaintCount: 5,
                     backgroundColor: .green
                 )
+                .accessibilityElement(children: .combine)
+                .accessibilityLabel("On Progress")
+                .accessibilityValue("2 units, 5 complaints")
             }
             
             HStack {
                 Text("Latest Complaints from Units")
                     .font(.system(size: 20, weight: .bold))
                     .foregroundColor(.black)
+                    .accessibilityAddTraits(.isHeader)
                 
                 Spacer()
                 
@@ -62,6 +73,7 @@ struct BIHomepage: View {
                         .font(.system(size: 14, weight: .regular))
                         .foregroundColor(.primaryBlue)
                 }
+                .accessibilityHint("Shows all complaints")
             }
             
             ScrollView {
@@ -76,6 +88,10 @@ struct BIHomepage: View {
                             )
                         }
                         .buttonStyle(PlainButtonStyle())
+                        .accessibilityElement(children: .combine)
+                        .accessibilityLabel("Unit \(unit.unitCode)")
+                        .accessibilityValue("\(unit.totalComplaints) complaints, \(unit.completedComplaints) completed. Latest complaint on \(unit.latestComplaintDate ?? "unknown date").")
+                        .accessibilityHint("Double tap to view complaints for this unit")
                     }
                 }
             }

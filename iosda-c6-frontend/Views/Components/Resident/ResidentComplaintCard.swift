@@ -11,7 +11,7 @@ struct ResidentComplaintCardView: View {
             return .red
         case "under_review":
             return .yellow
-        case "waiting_key" :
+        case "waiting_key":
             return .orange
         case "in_progress":
             return .blue
@@ -46,46 +46,52 @@ struct ResidentComplaintCardView: View {
     
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
-            // Header with ID and Status
             HStack {
                 Text("ID: #\(complaint.id ?? 0)")
-                    .font(.system(size: 14))
-                    .foregroundColor(.gray)
+                    .font(.subheadline)
+                    .foregroundColor(.secondary)
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.8)
                 
                 Spacer()
                 
                 if let statusID = complaint.status?.complaintStatusID {
                     StatusBadge(statusID: statusID)
                 }
-
             }
             
-            // Title
             Text(complaint.title)
-                .font(.system(size: 18, weight: .semibold))
-                .foregroundColor(.black)
+                .font(.headline)
+                .foregroundColor(.primary)
                 .lineLimit(2)
+                .minimumScaleFactor(0.8)
             
-            // Unit and Date
             HStack {
                 Text("\(complaint.unit?.block ?? "") \(complaint.unit?.unitNumber ?? "")")
-                    .font(.system(size: 14))
-                    .foregroundColor(.gray)
+                    .font(.subheadline)
+                    .foregroundColor(.secondary)
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.8)
                 
                 Spacer()
                 
                 Text("Created: \(formattedDate)")
-                    .font(.system(size: 14))
-                    .foregroundColor(.gray)
+                    .font(.footnote)
+                    .foregroundColor(.secondary)
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.8)
             }
-
         }
         .padding(16)
         .background(
             RoundedRectangle(cornerRadius: 12)
-                .fill(Color.white)
-                .shadow(color: .black.opacity(0.1), radius: 2, x: 0, y: 1)
+                .fill(Color(.systemBackground))
         )
+        .overlay(
+            RoundedRectangle(cornerRadius: 12)
+                .stroke(Color(.separator), lineWidth: 0.5)
+        )
+        .shadow(color: .black.opacity(0.08), radius: 2, x: 0, y: 1)
     }
 }
 
@@ -93,15 +99,15 @@ struct ResidentComplaintCardView: View {
     let mockComplaint = Complaint(
         id: 101,
         unitId: 1,
-        statusId: 3,  // let's say "waiting_key" status ID for variety
+        statusId: 3,
         progressId: nil,
         classificationId: nil,
         title: "Water Leakage in Ceiling",
         description: "There is a water leakage in the living room ceiling. It started after the recent heavy rain.",
-        openTimestamp: Calendar.current.date(byAdding: .day, value: -3, to: Date()), // 3 days ago
+        openTimestamp: Calendar.current.date(byAdding: .day, value: -3, to: Date()),
         closeTimestamp: nil,
-        keyHandoverDate: Calendar.current.date(byAdding: .day, value: 2, to: Date()), // 2 days from now
-        deadlineDate: Calendar.current.date(byAdding: .day, value: 10, to: Date()), // 10 days from now
+        keyHandoverDate: Calendar.current.date(byAdding: .day, value: 2, to: Date()),
+        deadlineDate: Calendar.current.date(byAdding: .day, value: 10, to: Date()),
         latitude: nil,
         longitude: nil,
         handoverMethod: .inHouse,
@@ -124,7 +130,17 @@ struct ResidentComplaintCardView: View {
         classification: nil
     )
     
-    ResidentComplaintCardView(complaint: mockComplaint)
-        .padding()
-        .background(Color(.systemGroupedBackground))
+    Group {
+        ResidentComplaintCardView(complaint: mockComplaint)
+            .padding()
+            .background(Color(.systemBackground))
+            .preferredColorScheme(.light)
+            .environment(\.sizeCategory, .extraExtraExtraLarge)
+        
+        ResidentComplaintCardView(complaint: mockComplaint)
+            .padding()
+            .background(Color(.systemBackground))
+            .preferredColorScheme(.dark)
+            .environment(\.sizeCategory, .extraSmall)
+    }
 }

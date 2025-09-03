@@ -33,12 +33,20 @@ let sidebarMenu: [MenuItem] = [
 
 struct SidebarView: View {
     @Binding var selection: MenuItem?
-
+    @Environment(\.colorScheme) var colorScheme
+    
     var body: some View {
         ZStack {
-            Color(red: 243/255, green: 249/255, blue: 255/255)
-                .ignoresSafeArea()
-
+            // Background beda sesuai mode
+            Group {
+                if colorScheme == .dark {
+                    Color(.systemBackground) // ikut dark mode
+                } else {
+                    Color(red: 243/255, green: 249/255, blue: 255/255) // biru muda
+                }
+            }
+            .ignoresSafeArea()
+            
             List(sidebarMenu, children: \.children, selection: $selection) { item in
                 Label(item.title, systemImage: item.systemImage)
                     .foregroundColor(selection == item ? .white : .primary)

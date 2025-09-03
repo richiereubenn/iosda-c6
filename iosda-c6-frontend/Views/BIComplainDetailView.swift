@@ -12,9 +12,12 @@ struct BIComplaintDetailView: View {
     @State private var showAcceptSheet = false
     @State private var rejectionReason = ""
     
+    @State private var statusID: Status.ComplaintStatusID = .init(rawValue: 4)!
+    
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 20) {
+                
                 VStack(alignment: .leading, spacing: 16) {
                     Text("Judul Komplain")
                         .font(.system(size: 24, weight: .bold))
@@ -36,13 +39,8 @@ struct BIComplaintDetailView: View {
                                 .foregroundColor(.gray)
                                 .font(.system(size: 14))
                             
-                            Text("Under Review")
-                                .foregroundColor(.black)
-                                .font(.system(size: 14, weight: .medium))
-                                .padding(.horizontal, 12)
-                                .padding(.vertical, 4)
-                                .background(Color.yellow.opacity(0.3))
-                                .cornerRadius(12)
+                            StatusBadge(statusID: statusID) // ✅ tampilkan status pakai badge
+                            Spacer()
                         }
                         .frame(maxWidth: .infinity, alignment: .leading)
                         
@@ -52,7 +50,7 @@ struct BIComplaintDetailView: View {
                                 .font(.system(size: 14))
                             
                             Text("Lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec sit amet eros id lectus commodo laoreet sed vitae magna...")
-                                .foregroundColor(.black)
+                                .foregroundColor(.primary)
                                 .font(.system(size: 14))
                                 .lineLimit(nil)
                                 .multilineTextAlignment(.leading)
@@ -61,6 +59,7 @@ struct BIComplaintDetailView: View {
                     }
                 }
                 
+                                
                 // Image section
                 VStack(alignment: .leading, spacing: 12) {
                     Text("Image")
@@ -108,7 +107,6 @@ struct BIComplaintDetailView: View {
                     }
                 }
                 
-                // Location/Unit Detail
                 VStack(alignment: .leading, spacing: 12) {
                     Text("Location/Unit Detail")
                         .font(.system(size: 18, weight: .semibold))
@@ -141,27 +139,28 @@ struct BIComplaintDetailView: View {
                         )
                     }
                 }
-                
-                HStack(spacing: 16) {
-                    CustomButtonComponent(
-                        text: "Reject",
-                        backgroundColor: .red,
-                        textColor: .white
-                    ) {
-                        showRejectAlert = true
-                    }
-                    
-                    CustomButtonComponent(
-                        text: "Accept",
-                        backgroundColor: .primaryBlue,
-                        textColor: .white
-                    ) {
-                        showAcceptSheet = true
-                    }
-                }
-                .padding(.top, 20)
             }
             .padding(20)
+            
+            HStack(spacing: 16) {
+                CustomButtonComponent(
+                    text: "Reject",
+                    backgroundColor: .red,
+                    textColor: .white
+                ) {
+                    showRejectAlert = true
+                }
+                
+                CustomButtonComponent(
+                    text: "Accept",
+                    backgroundColor: .primaryBlue,
+                    textColor: .white
+                ) {
+                    showAcceptSheet = true
+                }
+            }
+            .padding(20)
+
         }
         .navigationBarTitleDisplayMode(.inline)
         .navigationTitle("Detail Complain")
@@ -174,22 +173,21 @@ struct BIComplaintDetailView: View {
             }
             
             Button("Reject", role: .destructive) {
-                // handleReject()
+                statusID = .init(rawValue: 6)!
             }
         } message: {
             Text("Explain why you reject this issue")
         }
         
-        // Accept sheet - Example with 2 photos
         .sheet(isPresented: $showAcceptSheet) {
             PhotoUploadSheet(
                 title: "Start this Work?",
                 description: "This will set the work status to\n'In Progress'.",
                 photoLabel1: "A close-up photo of the specific defect.",
                 photoLabel2: "A wide-angle photo showing the entire work area.",
-                uploadAmount: 1, // Change to 1 for single photo upload
+                uploadAmount: 1,
                 onStartWork: {
-                    // handleAccept()
+                    statusID = .init(rawValue: 5)!
                     showAcceptSheet = false
                 },
                 onCancel: {

@@ -68,7 +68,7 @@ struct UnitRequestCard: View {
             }
         }
         .padding(16)
-        .background(Color(.systemBackground))
+        .background(Color.cardBackground)
         .cornerRadius(12)
         .shadow(color: Color.black.opacity(0.1), radius: 2, x: 0, y: 1)
     }

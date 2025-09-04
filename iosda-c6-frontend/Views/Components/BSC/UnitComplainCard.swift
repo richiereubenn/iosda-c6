@@ -12,7 +12,6 @@ struct UnitComplainCard: View {
     let latestComplaintDate: String
     let totalComplaints: Int
     let completedComplaints: Int
-
     @Environment(\.horizontalSizeClass) var horizontalSizeClass
     
     private var isCompact: Bool { horizontalSizeClass == .compact }
@@ -29,6 +28,7 @@ struct UnitComplainCard: View {
             return .red
         }
     }
+    
     
     var body: some View {
         HStack {
@@ -72,13 +72,14 @@ struct UnitComplainCard: View {
             }
         }
         .padding(isCompact ? 10 : 16)
-        .background(Color(.systemBackground))
+        .background(Color.cardBackground)
         .overlay(
             RoundedRectangle(cornerRadius: 12)
-                .stroke(Color(.separator), lineWidth: 0.5)
+            //.stroke(Color(.separator), lineWidth: 0.5)
+                .stroke(Color.cardBackground, lineWidth: 0.5)
         )
         .cornerRadius(12)
-        .shadow(color: .black.opacity(0.08), radius: 4, x: 0, y: 2)
+        //.shadow(color: .black.opacity(0.08), radius: 4, x: 0, y: 2)
     }
 }
 

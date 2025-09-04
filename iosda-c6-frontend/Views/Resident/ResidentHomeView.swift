@@ -52,7 +52,7 @@ struct ResidentHomeView: View {
                         }
                     }
                     .padding()
-                    .background(Color.gray.opacity(0.1))
+                    .background(Color.cardBackground)
                     .cornerRadius(10)
                 } else {
                     HStack {
@@ -68,7 +68,7 @@ struct ResidentHomeView: View {
                         }
                     }
                     .padding()
-                    .background(Color.gray.opacity(0.1))
+                    .background(Color.cardBackground)
                     .cornerRadius(10)
                 }
 
@@ -130,7 +130,7 @@ struct ResidentHomeView: View {
                 await viewModel.loadComplaints()
             }
         }
-        .background(Color(.systemBackground))
+        .background(Color(.systemGroupedBackground))
         .sheet(isPresented: $showingCreateView) {
             ResidentAddComplaintView(
                 unitViewModel: unitViewModel, // Use same instance, not new one

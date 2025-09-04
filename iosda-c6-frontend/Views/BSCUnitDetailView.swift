@@ -4,7 +4,6 @@
 //
 //  Created by Richie Reuben Hermanto on 02/09/25.
 //
-
 import SwiftUI
 
 struct BSCUnitDetailView: View {
@@ -12,6 +11,7 @@ struct BSCUnitDetailView: View {
     let userUnit: UserUnit?
     @ObservedObject var viewModel: UnitViewModel
     @Environment(\.dismiss) private var dismiss
+    @Environment(\.horizontalSizeClass) private var sizeClass
     
     private let dummyUser = (
         name: "John Doe",
@@ -20,115 +20,148 @@ struct BSCUnitDetailView: View {
     )
     
     var body: some View {
+        ScrollView {
             VStack(spacing: 20) {
                 
-                HStack(spacing: 10) {
-                    VStack(alignment: .leading, spacing: 12) {
-                        Text("Informasi Unit")
-                            .font(.system(size: 18, weight: .bold))
-                            .frame(maxWidth: .infinity, alignment: .leading)
-                        
-                        VStack(spacing: 5) {
-                            DataRowComponent(label: "Nama Unit:", value: unit.name)
-                            
-                            if let project = unit.project {
-                                DataRowComponent(label: "Project:", value: project)
-                            }
-                            
-                            if let area = unit.area {
-                                DataRowComponent(label: "Area:", value: area)
-                            }
-                            
-                            if let block = unit.block {
-                                DataRowComponent(label: "Block:", value: block)
-                            }
-                            
-                            if let unitNumber = unit.unitNumber {
-                                DataRowComponent(label: "No. Unit:", value: unitNumber)
-                            }
-                            
-                            DataRowComponent(
-                                label: "Izin Renovasi:",
-                                value: unit.renovationPermit! ? "Ya" : "Tidak"
-                            )
-                            
-                            if let ownershipType = userUnit?.ownershipType {
-                                DataRowComponent(label: "Tipe Kepemilikan:", value: ownershipType)
-                            }
-                        }
+                if sizeClass == .compact {
+                    VStack(spacing: 20) {
+                        unitInfoCard
+                        userInfoCard
                     }
-                    
-                    VStack(alignment: .leading, spacing: 12) {
-                        Text("Informasi Pemohon")
-                            .font(.system(size: 18, weight: .bold))
-                            .frame(maxWidth: .infinity, alignment: .leading)
-                        
-                        VStack(spacing: 5) {
-                            DataRowComponent(label: "Nama:", value: dummyUser.name)
-                            DataRowComponent(label: "No. Telepon:", value: dummyUser.phone)
-                            DataRowComponent(label: "Email:", value: dummyUser.email)
-                        }
-                        
-                        VStack(alignment: .leading, spacing: 12) {
-                            Text("Status Request")
-                                .font(.system(size: 18, weight: .bold))
-                                .frame(maxWidth: .infinity, alignment: .leading)
-                            
-                            HStack {
-                                Text("Status:")
-                                    .foregroundColor(.gray)
-                                    .font(.system(size: 14))
-                                
-                                if unit.isApproved == true {
-                                    Text("Unit Terdaftar")
-                                        .foregroundColor(.white)
-                                        .font(.system(size: 12, weight: .medium))
-                                        .padding(.horizontal, 12)
-                                        .padding(.vertical, 4)
-                                        .background(.green)
-                                        .cornerRadius(4)
-                                } else {
-                                    HStack(spacing: 6) {
-                                           Image(systemName: "clock.fill")
-                                               .foregroundColor(.white)
-                                               .font(.system(size: 12))
-                                           
-                                           Text("Menunggu Persetujuan")
-                                               .foregroundColor(.white)
-                                               .font(.system(size: 12, weight: .medium))
-                                       }
-                                       .padding(.horizontal, 12)
-                                       .padding(.vertical, 6)
-                                       .background(.orange)
-                                       .cornerRadius(5)
-                                }
-                                
-                            }
-                        }
-                        
+                } else {
+                    HStack(alignment: .top, spacing: 20) {
+                        unitInfoCard
+                        userInfoCard
                     }
-                    
                 }
                 
-                
+                statusRequestCard
                 
                 Spacer()
                 
                 if unit.isApproved != true {
-                    
-                    HStack{
-                        CustomButtonComponent(text: "Reject", backgroundColor: .red, textColor: .white) {
+                    HStack(spacing: 16) {
+                        CustomButtonComponent(
+                            text: "Reject",
+                            backgroundColor: .red,
+                            textColor: .white
+                        ) {
+                            rejectUnit()
                         }
-                        CustomButtonComponent(text: "Accept", backgroundColor: .primaryBlue, textColor: .white) {
+                        
+                        CustomButtonComponent(
+                            text: "Accept",
+                            backgroundColor: .primaryBlue,
+                            textColor: .white
+                        ) {
+                            acceptUnit()
                         }
                     }
                 }
-                
-            
+            }
+            .padding(.horizontal, 20)
+            .padding(.top, 16)
         }
-        .padding(.horizontal, 20)
         .navigationTitle("Detail Unit")
         .navigationBarTitleDisplayMode(.large)
+        .background(Color(.systemGroupedBackground))
+    }
+    
+    
+    private var unitInfoCard: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            Text("Informasi Unit")
+                .font(.system(size: 18, weight: .bold))
+                .frame(maxWidth: .infinity, alignment: .leading)
+            GroupedCard{
+                VStack(spacing: 5) {
+                    DataRowComponent(label: "Nama Unit:", value: unit.name)
+                    
+                    if let project = unit.project {
+                        DataRowComponent(label: "Project:", value: project)
+                    }
+                    
+                    if let area = unit.area {
+                        DataRowComponent(label: "Area:", value: area)
+                    }
+                    
+                    if let block = unit.block {
+                        DataRowComponent(label: "Block:", value: block)
+                    }
+                    
+                    if let unitNumber = unit.unitNumber {
+                        DataRowComponent(label: "No. Unit:", value: unitNumber)
+                    }
+                    
+                    DataRowComponent(
+                        label: "Izin Renovasi:",
+                        value: unit.renovationPermit! ? "Ya" : "Tidak"
+                    )
+                    
+                    if let ownershipType = userUnit?.ownershipType {
+                        DataRowComponent(label: "Tipe Kepemilikan:", value: ownershipType)
+                    }
+                }
+            }
+            
+        }
+    }
+    
+    private var userInfoCard: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            Text("Informasi Pemohon")
+                .font(.system(size: 18, weight: .bold))
+                .frame(maxWidth: .infinity, alignment: .leading)
+            GroupedCard{
+                VStack(spacing: 5) {
+                    DataRowComponent(label: "Nama:", value: dummyUser.name)
+                    DataRowComponent(label: "No. Telepon:", value: dummyUser.phone)
+                    DataRowComponent(label: "Email:", value: dummyUser.email)
+                }
+            }
+           
+        }
+        
+    }
+    
+    private var statusRequestCard: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            Text("Status Request")
+                .font(.system(size: 18, weight: .bold))
+                .frame(maxWidth: .infinity, alignment: .leading)
+            GroupedCard{
+                HStack {
+                    Text("Status:")
+                        .foregroundColor(.gray)
+                        .font(.system(size: 14))
+                    
+                    if unit.isApproved == true {
+                        Text("Unit Terdaftar")
+                            .foregroundColor(.white)
+                            .font(.system(size: 12, weight: .medium))
+                            .padding(.horizontal, 12)
+                            .padding(.vertical, 4)
+                            .background(.green)
+                            .cornerRadius(4)
+                    } else {
+                        HStack(spacing: 6) {
+                            Image(systemName: "clock.fill")
+                                .foregroundColor(.white)
+                                .font(.system(size: 12))
+                            
+                            Text("Menunggu Persetujuan")
+                                .foregroundColor(.white)
+                                .font(.system(size: 12, weight: .medium))
+                        }
+                        .padding(.horizontal, 12)
+                        .padding(.vertical, 6)
+                        .background(.orange)
+                        .cornerRadius(5)
+                    }
+                }
+            }
+            
+        }
     }
     
     private func acceptUnit() {

@@ -61,7 +61,7 @@ struct BIHomepage: View {
             HStack {
                 Text("Latest Complaints from Units")
                     .font(.system(size: 20, weight: .bold))
-                    .foregroundColor(.black)
+                    .foregroundColor(.primary)
                     .accessibilityAddTraits(.isHeader)
                 
                 Spacer()
@@ -79,7 +79,7 @@ struct BIHomepage: View {
             ScrollView {
                 LazyVStack(spacing: 12) {
                     ForEach(viewModel.getFilteredAndSortedUnits(), id: \.unitCode) { unit in
-                        NavigationLink(destination: ComplaintListView(viewModel: ComplaintListViewModel())) {
+                        NavigationLink(destination: BIComplaintListView(viewModel: ComplaintListViewModel())) {
                             UnitComplainCard(
                                 unitCode: unit.unitCode,
                                 latestComplaintDate: unit.latestComplaintDate,
@@ -98,7 +98,9 @@ struct BIHomepage: View {
             
             Spacer()
         }
+        
         .padding(.horizontal)
+        .background(Color(.systemGroupedBackground))
     }
 }
 

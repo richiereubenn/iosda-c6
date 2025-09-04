@@ -28,7 +28,11 @@ let sidebarMenu: [MenuItem] = [
         MenuItem(title: "Other", systemImage: "ellipsis.circle")
     ]),
     MenuItem(title: "Unit", systemImage: "square.stack.3d.up"),
-    MenuItem(title: "User", systemImage: "person.2")
+    MenuItem(title: "User", systemImage: "person.2"),
+    MenuItem(title: "Other Role", systemImage: "person.3", children: [
+        MenuItem(title: "Resident View", systemImage: "person.3"),
+        MenuItem(title: "BI View", systemImage: "person.3")
+    ])
 ]
 
 struct SidebarView: View {

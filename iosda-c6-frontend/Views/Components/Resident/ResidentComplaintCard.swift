@@ -85,13 +85,13 @@ struct ResidentComplaintCardView: View {
         .padding(16)
         .background(
             RoundedRectangle(cornerRadius: 12)
-                .fill(Color(.systemBackground))
+                .fill(Color.cardBackground)
         )
         .overlay(
             RoundedRectangle(cornerRadius: 12)
-                .stroke(Color(.separator), lineWidth: 0.5)
+            //.stroke(Color(.separator), lineWidth: 0.5)
+                .stroke(Color.cardBackground, lineWidth: 0.5)
         )
-        .shadow(color: .black.opacity(0.08), radius: 2, x: 0, y: 1)
     }
 }
 

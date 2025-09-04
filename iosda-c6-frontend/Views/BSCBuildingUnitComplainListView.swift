@@ -30,7 +30,7 @@ struct BSCBuildingUnitComplainListView: View {
             ScrollView {
                 LazyVStack(spacing: 12) {
                     ForEach(viewModel.getFilteredAndSortedUnits(), id: \.unitCode) { unit in
-                        NavigationLink(destination: ComplaintListView(viewModel: ComplaintListViewModel())) {
+                        NavigationLink(destination: BSCComplaintListView(viewModel: ComplaintListViewModel())) {
                             UnitComplainCard(
                                 unitCode: unit.unitCode,
                                 latestComplaintDate: unit.latestComplaintDate,
@@ -44,6 +44,7 @@ struct BSCBuildingUnitComplainListView: View {
             }
         }
         .padding(.horizontal)
+        .background(Color(.systemGroupedBackground))
         .padding(.top)
         .toolbar {
             ToolbarItem(placement: .navigationBarTrailing) {

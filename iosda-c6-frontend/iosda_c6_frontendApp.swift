@@ -29,9 +29,10 @@ struct iosda_c6_frontendApp: App {
 
     var body: some Scene {
         WindowGroup {
-            BIContentView()
-            /*esidentComplaintListView(viewModel: ComplaintListViewModel())*/
+            BSCContentView()
+            /*ResidentComplaintListView(viewModel: ComplaintListViewModel())*/
         }
         .modelContainer(sharedModelContainer)
     }
 }
+

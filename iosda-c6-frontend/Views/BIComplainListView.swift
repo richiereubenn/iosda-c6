@@ -1,13 +1,13 @@
 //
-//  ComplainListView.swift
+//  BSCComplainList.swift
 //  iosda-c6-frontend
 //
-//  Created by Richie Reuben Hermanto on 31/08/25.
+//  Created by Richie Reuben Hermanto on 03/09/25.
 //
 
 import SwiftUI
 
-struct ComplaintListView: View {
+struct BIComplaintListView: View {
     @ObservedObject var viewModel: ComplaintListViewModel
     @State private var searchText: String = ""
     @State private var showingCreateView = false
@@ -53,7 +53,7 @@ struct ComplaintListView: View {
                         LazyVStack(spacing: 12) {
                             ForEach(viewModel.filteredComplaints) { complaint in
                                 NavigationLink(
-                                    destination: BSCComplainDetailView()
+                                    destination: BIComplaintDetailView()
                                 ) {
                                     ResidentComplaintCardView(complaint: complaint)
                                         .accessibilityElement(children: .combine)
@@ -68,7 +68,7 @@ struct ComplaintListView: View {
                 }
             }
         }
-        .background(Color(.systemBackground))
+        .background(Color(.systemGroupedBackground))
         .navigationTitle("Kode Rumah")
         .navigationBarTitleDisplayMode(.large)
         .searchable(text: $searchText, prompt: "Search complaints...")
@@ -89,7 +89,7 @@ struct ComplaintListView: View {
 #Preview {
     Group {
         NavigationStack {
-            ComplaintListView(viewModel: ComplaintListViewModel())
+            BIComplaintListView(viewModel: ComplaintListViewModel())
         }
         .environment(\.sizeCategory, .medium)
         

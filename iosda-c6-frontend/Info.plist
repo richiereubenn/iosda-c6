@@ -15,11 +15,5 @@
 			<string></string>
 		</dict>
 	</array>
-	<key>NSCameraUsageDescription</key>
-	<string>This app needs access to camera to take photos for work documentation</string>
-	<key>NSPhotoLibraryAddUsageDescription</key>
-	<string>This app needs access to save photos to your photo library</string>
-	<key>NSPhotoLibraryUsageDescription</key>
-	<string>This app needs access to photo library to select images for work documentation</string>
 </dict>
 </plist>

@@ -14,26 +14,28 @@ struct BSCContentView: View {
         NavigationSplitView {
             SidebarView(selection: $selection)
         } detail: {
-            NavigationStack {
                 if let selection {
                     switch selection.title {
                     case "Dashboard":
-                       Text("Halo")
+                       Text("Dashboard")
                         
                     case "Building":
                         BSCBuildingUnitComplainListView()
                         
                     case "Land":
-                        BSCComplainDetailView()
+                        Text("Land")
                         
                     case "Other":
-                        BSCBuildingUnitComplainListView()
+                        Text("Other")
                         
                     case "Unit":
                         BSCUnitListView()
                         
-                    case "User":
-                        BSCBuildingUnitComplainListView()
+                    case "Resident View":
+                        ResidentHomeView(viewModel: ComplaintListViewModel(), unitViewModel: UnitViewModel())
+                        
+                    case "BI View":
+                        BIContentView()
                         
                     default:
                         BSCBuildingUnitComplainListView()
@@ -41,7 +43,7 @@ struct BSCContentView: View {
                 } else {
                     BSCBuildingUnitComplainListView()
                 }
-            }
+            
         }
     }
 }

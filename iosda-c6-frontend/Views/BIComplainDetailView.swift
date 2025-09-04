@@ -21,124 +21,129 @@ struct BIComplaintDetailView: View {
                 VStack(alignment: .leading, spacing: 16) {
                     Text("Judul Komplain")
                         .font(.system(size: 24, weight: .bold))
-                        .foregroundColor(.black)
-                    
-                    VStack(alignment: .leading, spacing: 8) {
-                        DataRowComponent(
-                            label: "Opened :",
-                            value: "25 August 2025 | 13:14:23"
-                        )
-                        
-                        DataRowComponent(
-                            label: "Deadline :",
-                            value: "01 September 2025 | 13:14:23"
-                        )
-                        
-                        HStack {
-                            Text("Status :")
-                                .foregroundColor(.gray)
-                                .font(.system(size: 14))
+                        .foregroundColor(.primary)
+                    GroupedCard{
+                        VStack(alignment: .leading, spacing: 8) {
+                            DataRowComponent(
+                                label: "Opened :",
+                                value: "25 August 2025 | 13:14:23"
+                            )
                             
-                            StatusBadge(statusID: statusID) // ✅ tampilkan status pakai badge
-                            Spacer()
-                        }
-                        .frame(maxWidth: .infinity, alignment: .leading)
-                        
-                        VStack(alignment: .leading, spacing: 5) {
-                            Text("Description")
-                                .foregroundColor(.gray)
-                                .font(.system(size: 14))
+                            DataRowComponent(
+                                label: "Deadline :",
+                                value: "01 September 2025 | 13:14:23"
+                            )
                             
-                            Text("Lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec sit amet eros id lectus commodo laoreet sed vitae magna...")
-                                .foregroundColor(.primary)
-                                .font(.system(size: 14))
-                                .lineLimit(nil)
-                                .multilineTextAlignment(.leading)
+                            HStack {
+                                Text("Status :")
+                                    .foregroundColor(.gray)
+                                    .font(.system(size: 14))
+                                
+                                StatusBadge(statusID: statusID)
+                                Spacer()
+                            }
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                            
+                            VStack(alignment: .leading, spacing: 5) {
+                                Text("Description")
+                                    .foregroundColor(.gray)
+                                    .font(.system(size: 14))
+                                
+                                Text("Lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec sit amet eros id lectus commodo laoreet sed vitae magna...")
+                                    .foregroundColor(.primary)
+                                    .font(.system(size: 14))
+                                    .lineLimit(nil)
+                                    .multilineTextAlignment(.leading)
+                            }
+                            .frame(maxWidth: .infinity, alignment: .leading)
                         }
-                        .frame(maxWidth: .infinity, alignment: .leading)
                     }
+                    
                 }
                 
-                                
-                // Image section
+               
                 VStack(alignment: .leading, spacing: 12) {
                     Text("Image")
                         .font(.system(size: 18, weight: .semibold))
-                        .foregroundColor(.black)
+                        .foregroundColor(.primary)
                     
-                    VStack(spacing: 8) {
-                        Text("Close-up view:")
-                            .foregroundColor(.gray)
-                            .font(.system(size: 14))
-                            .frame(maxWidth: .infinity, alignment: .leading)
-                        
-                        VStack {
-                            Image(systemName: "camera.fill")
-                                .font(.system(size: 40))
+                    GroupedCard{
+                        VStack(spacing: 8) {
+                            Text("Close-up view:")
                                 .foregroundColor(.gray)
-                            Text("Close-up of the Defect")
-                                .font(.system(size: 14, weight: .medium))
-                                .foregroundColor(.black)
-                        }
-                        .frame(height: 150)
-                        .frame(maxWidth: .infinity)
-                        .background(Color.gray.opacity(0.1))
-                        .cornerRadius(8)
-                    }
-                    
-                    VStack(spacing: 8) {
-                        Text("Overall view:")
-                            .foregroundColor(.gray)
-                            .font(.system(size: 14))
-                            .frame(maxWidth: .infinity, alignment: .leading)
+                                .font(.system(size: 14))
+                                .frame(maxWidth: .infinity, alignment: .leading)
+                            
+                            VStack {
+                                Image(systemName: "camera.fill")
+                                    .font(.system(size: 40))
+                                    .foregroundColor(.gray)
+                                Text("Close-up of the Defect")
+                                    .font(.system(size: 14, weight: .medium))
+                                    .foregroundColor(.black)
+                            }
+                            .frame(height: 150)
+                            .frame(maxWidth: .infinity)
+                            .background(Color.gray.opacity(0.1))
+                            .cornerRadius(8)
                         
-                        VStack {
-                            Image(systemName: "camera.fill")
-                                .font(.system(size: 40))
+                        
+                            Text("Overall view:")
                                 .foregroundColor(.gray)
-                            Text("Overall View of the Area")
-                                .font(.system(size: 14, weight: .medium))
-                                .foregroundColor(.black)
+                                .font(.system(size: 14))
+                                .frame(maxWidth: .infinity, alignment: .leading)
+                            
+                            VStack {
+                                Image(systemName: "camera.fill")
+                                    .font(.system(size: 40))
+                                    .foregroundColor(.gray)
+                                Text("Overall View of the Area")
+                                    .font(.system(size: 14, weight: .medium))
+                                    .foregroundColor(.black)
+                            }
+                            .frame(height: 150)
+                            .frame(maxWidth: .infinity)
+                            .background(Color.gray.opacity(0.1))
+                            .cornerRadius(8)
                         }
-                        .frame(height: 150)
-                        .frame(maxWidth: .infinity)
-                        .background(Color.gray.opacity(0.1))
-                        .cornerRadius(8)
                     }
                 }
                 
                 VStack(alignment: .leading, spacing: 12) {
                     Text("Location/Unit Detail")
                         .font(.system(size: 18, weight: .semibold))
-                        .foregroundColor(.black)
-                    
-                    VStack(alignment: .leading, spacing: 8) {
-                        DataRowComponent(
-                            label: "Project :",
-                            value: "CitraLand Surabaya"
-                        )
-                        
-                        DataRowComponent(
-                            label: "Area :",
-                            value: "Bukit Golf"
-                        )
-                        
-                        DataRowComponent(
-                            label: "Block :",
-                            value: "A03"
-                        )
-                        
-                        DataRowComponent(
-                            label: "Unit :",
-                            value: "A03/006"
-                        )
-                        
-                        DataRowComponent(
-                            label: "Coordinates :",
-                            value: "40.7127281, -74.0060152"
-                        )
+                        .foregroundColor(.primary)
+                    GroupedCard{
+                        VStack(alignment: .leading, spacing: 8) {
+                            DataRowComponent(
+                                label: "Project :",
+                                value: "CitraLand Surabaya"
+                            )
+                            
+                            DataRowComponent(
+                                label: "Area :",
+                                value: "Bukit Golf"
+                            )
+                            
+                            DataRowComponent(
+                                label: "Block :",
+                                value: "A03"
+                            )
+                            
+                            DataRowComponent(
+                                label: "Unit :",
+                                value: "A03/006"
+                            )
+                            
+                            DataRowComponent(
+                                label: "Coordinates :",
+                                value: "40.7127281, -74.0060152"
+                            )
+                        }
                     }
+                    
                 }
+                
             }
             .padding(20)
             
@@ -164,6 +169,7 @@ struct BIComplaintDetailView: View {
         }
         .navigationBarTitleDisplayMode(.inline)
         .navigationTitle("Detail Complain")
+        .background(Color(.systemGroupedBackground))
         
         .alert("Do you want to reject this issue?", isPresented: $showRejectAlert) {
             TextField("Explain why you reject this issue", text: $rejectionReason, axis: .vertical)

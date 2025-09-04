@@ -1,0 +1,98 @@
+//
+//  BSCComplainList.swift
+//  iosda-c6-frontend
+//
+//  Created by Richie Reuben Hermanto on 03/09/25.
+//
+
+import SwiftUI
+
+struct BSCComplaintListView: View {
+    @ObservedObject var viewModel: ComplaintListViewModel
+    @State private var searchText: String = ""
+    @State private var showingCreateView = false
+
+    var body: some View {
+        VStack(spacing: 8) {
+            Picker("Complaint Status", selection: $viewModel.selectedFilter) {
+                ForEach(ComplaintListViewModel.ComplaintFilter.allCases, id: \.self) { filter in
+                    Text(filter.rawValue)
+                        .font(.subheadline)
+                        .minimumScaleFactor(0.8)
+                        .lineLimit(1)
+                        .tag(filter)
+                }
+            }
+            .pickerStyle(SegmentedPickerStyle())
+            .padding(.horizontal)
+            .onChange(of: viewModel.selectedFilter) { _ in
+                viewModel.filterComplaints()
+            }
+            
+            Group {
+                if viewModel.isLoading {
+                    ProgressView()
+                        .scaleEffect(1.2)
+                        .padding(.top, 40)
+                    Spacer()
+                } else if viewModel.filteredComplaints.isEmpty {
+                    VStack(spacing: 12) {
+                        Image(systemName: "doc.text")
+                            .font(.title)
+                            .foregroundColor(.secondary)
+                        Text("No complaints found")
+                            .font(.body.weight(.medium))
+                            .foregroundColor(.secondary)
+                            .minimumScaleFactor(0.8)
+                            .lineLimit(2)
+                    }
+                    .padding(.top, 40)
+                    Spacer()
+                } else {
+                    ScrollView {
+                        LazyVStack(spacing: 12) {
+                            ForEach(viewModel.filteredComplaints) { complaint in
+                                NavigationLink(
+                                    destination: BSCComplainDetailView()
+                                ) {
+                                    ResidentComplaintCardView(complaint: complaint)
+                                        .accessibilityElement(children: .combine)
+                                        .accessibilityLabel("\(complaint.title), \(complaint.status)")
+                                }
+                                .buttonStyle(PlainButtonStyle())
+                            }
+                        }
+                        .padding(.horizontal, 20)
+                        .padding(.top, 20)
+                    }
+                }
+            }
+        }
+        .background(Color(.systemGroupedBackground))
+        .navigationTitle("Kode Rumah")
+        .navigationBarTitleDisplayMode(.large)
+        .searchable(text: $searchText, prompt: "Search complaints...")
+        .onAppear {
+            Task {
+                await viewModel.loadComplaints()
+            }
+        }
+        .alert("Error", isPresented: .constant(viewModel.errorMessage != nil)) {
+            Button("OK") { viewModel.errorMessage = nil }
+        } message: {
+            Text(viewModel.errorMessage ?? "")
+                .font(.body)
+        }
+    }
+}
+
+#Preview {
+    Group {
+        NavigationStack {
+            BSCComplaintListView(viewModel: ComplaintListViewModel())
+        }
+        .environment(\.sizeCategory, .medium)
+        
+    }
+}
+

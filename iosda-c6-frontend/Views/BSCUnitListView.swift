@@ -74,6 +74,7 @@ struct BSCUnitListView: View {
             }
         }
         .padding(.horizontal)
+        .background(Color(.systemGroupedBackground))
         .padding(.top)
         .searchable(text: $searchText, prompt: "Cari unit, area, atau project...")
         .navigationTitle("Unit Request List")

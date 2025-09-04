@@ -40,14 +40,19 @@ struct BSCComplainDetailView: View {
                     .frame(maxWidth: .infinity, alignment: .leading)
                 
                 if sizeClass == .regular {
-                    HStack(alignment: .top, spacing: 20) {
-                        complainImages
-                        complainDetails
+                    GroupedCard{
+                        HStack(alignment: .top, spacing: 20) {
+                            complainImages
+                            complainDetails
+                        }
                     }
+                    
                 } else {
-                    VStack(spacing: 20) {
-                        complainImages
-                        complainDetails
+                    GroupedCard{
+                        VStack(spacing: 20) {
+                            complainImages
+                            complainDetails
+                        }
                     }
                 }
                 
@@ -55,20 +60,22 @@ struct BSCComplainDetailView: View {
                     Text("Syarat")
                         .font(.headline)
                         .frame(maxWidth: .infinity, alignment: .leading)
-                    
-                    VStack(spacing: 5) {
-                        RequirementsCheckbox(
-                            text: "Garansi",
-                            isChecked: garansiChecked,
-                            onToggle: { garansiChecked.toggle() }
-                        )
-                        
-                        RequirementsCheckbox(
-                            text: "Izin Renovasi",
-                            isChecked: izinRenovasiChecked,
-                            onToggle: { izinRenovasiChecked.toggle() }
-                        )
+                    GroupedCard{
+                        VStack(spacing: 5) {
+                            RequirementsCheckbox(
+                                text: "Garansi",
+                                isChecked: garansiChecked,
+                                onToggle: { garansiChecked.toggle() }
+                            )
+                            
+                            RequirementsCheckbox(
+                                text: "Izin Renovasi",
+                                isChecked: izinRenovasiChecked,
+                                onToggle: { izinRenovasiChecked.toggle() }
+                            )
+                        }
                     }
+                   
                 }
                 
                 VStack(alignment: .leading, spacing: 12) {
@@ -113,6 +120,7 @@ struct BSCComplainDetailView: View {
         }
         .navigationTitle("Detail Complain")
         .navigationBarTitleDisplayMode(.large)
+        .background(Color(.systemGroupedBackground))
     }
     
     private var residenceProfile: some View {
@@ -121,12 +129,16 @@ struct BSCComplainDetailView: View {
                 .font(.headline)
                 .frame(maxWidth: .infinity, alignment: .leading)
             
-            VStack(spacing: 5) {
-                DataRowComponent(label: "Nama:", value: "Kevin Mulyono")
-                DataRowComponent(label: "Nomor HP:", value: "0858321231231")
-                DataRowComponent(label: "Kode Rumah:", value: "AA/ADA/XAV")
-                DataRowComponent(label: "Tanggal ST:", value: "20 Januari 2025")
+            GroupedCard{
+                VStack(spacing: 5) {
+                    DataRowComponent(label: "Nama:", value: "Kevin Mulyono")
+                    DataRowComponent(label: "Nomor HP:", value: "0858321231231")
+                    DataRowComponent(label: "Kode Rumah:", value: "AA/ADA/XAV")
+                    DataRowComponent(label: "Tanggal ST:", value: "20 Januari 2025")
+                }
             }
+           
+            
         }
     }
     
@@ -135,19 +147,20 @@ struct BSCComplainDetailView: View {
             Text("Status Complain")
                 .font(.headline)
                 .frame(maxWidth: .infinity, alignment: .leading)
-            
-            VStack(spacing: 5) {
-                DataRowComponent(label: "Tanggal Masuk:", value: "22 Februari 2025")
-                DataRowComponent(label: "Key Status:", value: "In House")
-                HStack {
-                    Text("Status:")
-                        .foregroundColor(.gray)
-                        .font(.system(size: 14))
-                    
-                    StatusBadge(statusID: statusID)
-                    Spacer()
+            GroupedCard{
+                VStack(spacing: 5) {
+                    DataRowComponent(label: "Tanggal Masuk:", value: "22 Februari 2025")
+                    DataRowComponent(label: "Key Status:", value: "In House")
+                    HStack {
+                        Text("Status:")
+                            .foregroundColor(.gray)
+                            .font(.system(size: 14))
+                        
+                        StatusBadge(statusID: statusID)
+                        Spacer()
+                    }
+                    DataRowComponent(label: "Deadline:", value: "30 Februari 2025")
                 }
-                DataRowComponent(label: "Deadline:", value: "30 Februari 2025")
             }
         }
     }

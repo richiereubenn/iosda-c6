@@ -73,9 +73,9 @@ struct ResidentHomeView: View {
                 }
 
                 // New Complaint Button
-                PrimaryButton(title: "New Complaint", action: {
-                    showingCreateView = true
-                })
+                CustomButtonComponent(text: "New Complaint", action: {
+                                  showingCreateView = true
+                              })
             }
             .padding(.horizontal, 20)
             .padding(.vertical, 20)

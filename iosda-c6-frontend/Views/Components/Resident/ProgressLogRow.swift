@@ -93,7 +93,7 @@ struct ProgressLogRow: View {
 
 #Preview {
     ProgressLogRow(progressLog: mockProgressLog, isLast: false, isCurrent: true)
-            .padding()
+        .padding()
 }
 private let mockProgressLog = ProgressLog(
     id: 1,

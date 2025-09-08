@@ -94,12 +94,11 @@ struct ResidentKeyDateView: View {
     }
     
     private var submitButton: some View {
-        PrimaryButton(
-            title: "Make a Complaint",
-            action: submitComplaint,
-            isLoading: complaintViewModel.isLoading,
-            isDisabled: !isFormValid
-        )
+        CustomButtonComponent(
+                    text: "Make a Complaint",
+                    isDisabled: complaintViewModel.isLoading || !isFormValid,
+                    action: submitComplaint
+                )
     }
     
     // MARK: - Computed Properties

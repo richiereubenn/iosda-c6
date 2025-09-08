@@ -137,24 +137,23 @@ struct ResidentAddUnitView: View {
                     .padding(.top, 8)
                     
                     // Submit
-                    PrimaryButton(
-                        title: "Submit a Claim",
-                        action: {
-                            viewModel.addUnit(
-                                name: selectedArea + " - " + selectedBlock + selectedUnitNumber,
-                                project: selectedProject,
-                                area: selectedArea,
-                                block: selectedBlock,
-                                unitNumber: selectedUnitNumber,
-                                handoverDate: nil,
-                                renovationPermit: false,
-                                ownershipType: ownershipStatus
-                            )
-                        },
-                        isLoading: viewModel.isLoading,
-                        isDisabled: !isFormValid
-                    )
-                    .padding(.top, 12)
+                    CustomButtonComponent(
+                                            text: "Submit a Claim",
+                                            isDisabled: viewModel.isLoading || !isFormValid,
+                                            action: {
+                                                viewModel.addUnit(
+                                                    name: selectedArea + " - " + selectedBlock + selectedUnitNumber,
+                                                    project: selectedProject,
+                                                    area: selectedArea,
+                                                    block: selectedBlock,
+                                                    unitNumber: selectedUnitNumber,
+                                                    handoverDate: nil,
+                                                    renovationPermit: false,
+                                                    ownershipType: ownershipStatus
+                                                )
+                                            }
+                                        )
+                                        .padding(.top, 12)
 
                 }
                 .padding(.horizontal)
@@ -197,7 +196,7 @@ struct CustomPicker: View {
         } label: {
             HStack {
                 Text(selection.isEmpty ? title : selection)
-                    .foregroundColor(selection.isEmpty ? .gray : .black)
+                    .foregroundColor(selection.isEmpty ? .gray : .primary)
                 Spacer()
                 Image(systemName: "chevron.down")
                     .foregroundColor(.gray)

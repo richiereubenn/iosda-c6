@@ -8,12 +8,12 @@ struct ResidentComplaintDetailView: View {
     @State private var selectedImageIndex = 0
     @State private var showingProgressDetail = false
     
-
+    
     init(complaint: Complaint, complaintListViewModel: ComplaintListViewModel? = nil) {
         self.complaint = complaint
         self.complaintListViewModel = complaintListViewModel
     }
-
+    
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 20) {
@@ -167,7 +167,7 @@ struct ResidentComplaintDetailView: View {
         .navigationTitle("")
         .navigationBarBackButtonHidden(true)
         .navigationDestination(isPresented: $showingProgressDetail) {
-       
+            
             ProgressDetailView(
                 complaintId: complaint.id ?? 0,
                 complaintListViewModel: complaintListViewModel
@@ -195,8 +195,8 @@ struct ResidentComplaintDetailView: View {
                (statusID == .inProgress || statusID == .waitingKey),
                complaint.handoverMethod == .bringToMO {
                 VStack(spacing: 0) {
-                    PrimaryButton(
-                        title: "Submit Key Handover Evidence",
+                    CustomButtonComponent(
+                        text: "Submit Key Handover Evidence",
                         action: {
                             // Handle submit key handover evidence
                         }

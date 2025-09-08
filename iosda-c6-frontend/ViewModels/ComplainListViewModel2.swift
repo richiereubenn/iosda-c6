@@ -33,7 +33,7 @@ class ComplaintListViewModel2: ObservableObject {
         defer { isLoading = false }
         
         do {
-            let data = try await service.fetchAllComplaints()
+            let data = try await service.getAllComplaints()
             complaints = data
             applyFilters()
         } catch {
@@ -46,7 +46,7 @@ class ComplaintListViewModel2: ObservableObject {
         defer { isLoading = false }
         
         do {
-            let data = try await service.fetchComplaintsByUnitId(unitId)
+            let data = try await service.getComplaintsByUnitId(unitId)
             complaints = data
             applyFilters()
         } catch {

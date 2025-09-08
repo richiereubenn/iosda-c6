@@ -40,14 +40,14 @@ struct BSCComplaintListView: View {
                 ScrollView {
                     VStack(spacing: 12) {
                         ForEach(viewModel.filteredComplaints) { complaint in
-                            ComplaintCard(complaint: complaint)
+                            NavigationLink(destination: BSCComplainDetailView(complaintId: complaint.id)) {
+                                ComplaintCard(complaint: complaint)
+                            }
                         }
                     }
                     .padding(.horizontal)
                 }
             }
-            
-            
         }
         .searchable(text: $viewModel.searchText, prompt: "Search complaints...")
         .navigationTitle("Kode Rumah")

@@ -1,5 +1,5 @@
 //
-//  ComplainDetailViewModel2.swift
+//  ComplaintStatusViewModel2.swift
 //  iosda-c6-frontend
 //
 //  Created by Richie Reuben Hermanto on 09/09/25.
@@ -13,6 +13,7 @@ class ComplaintDetailViewModel2: ObservableObject {
     @Published var selectedComplaint: Complaint2? = nil
     @Published var selectedStatus: ComplaintStatus? = nil
     @Published var isLoading: Bool = false
+    @Published var isUpdating: Bool = false
     @Published var errorMessage: String? = nil
     
     private let service: ComplaintServiceProtocol2
@@ -22,17 +23,36 @@ class ComplaintDetailViewModel2: ObservableObject {
     }
     
     func loadComplaint(byId id: String) async {
-        isLoading = true
-        defer { isLoading = false }
-
         do {
             let complaint = try await service.getComplaintById(id)
-
             selectedComplaint = complaint
             selectedStatus = ComplaintStatus(raw: complaint.statusName)
-            
         } catch {
             errorMessage = "Failed to load complaint \(id): \(error.localizedDescription)"
+        }
+    }
+    
+    func updateStatus(to statusId: String) async {
+        guard let complaint = selectedComplaint else {
+            errorMessage = "No complaint selected"
+            return
+        }
+        
+        isUpdating = true
+        defer { isUpdating = false }
+        
+        do {
+            let updatedComplaint = try await service.updateComplaintStatus(
+                complaintId: complaint.id,
+                statusId: statusId
+            )
+            
+            let complainDetail = try await service.getComplaintById(updatedComplaint.id)
+            
+            selectedComplaint = complainDetail
+            selectedStatus = ComplaintStatus(raw: complainDetail.statusName)
+        } catch {
+            errorMessage = "Failed to update status: \(error.localizedDescription)"
         }
     }
 }

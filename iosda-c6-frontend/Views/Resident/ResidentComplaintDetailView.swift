@@ -51,9 +51,9 @@ struct ResidentComplaintDetailView: View {
                             .font(.title2)
                             .fontWeight(.bold)
                         
-                        if let statusID = complaint.status?.complaintStatusID {
-                            StatusBadge(statusID: statusID)
-                        }
+//                        if let statusID = complaint.status?.complaintStatusID {
+//                            StatusBadge(statusID: statusID)
+//                        }
                         Spacer()
                         
                         Button("See Detail") {

@@ -39,7 +39,7 @@ struct BIComplaintDetailView: View {
                                     .foregroundColor(.gray)
                                     .font(.system(size: 14))
                                 
-                                StatusBadge(statusID: statusID)
+//                                StatusBadge(statusID: statusID)
                                 Spacer()
                             }
                             .frame(maxWidth: .infinity, alignment: .leading)

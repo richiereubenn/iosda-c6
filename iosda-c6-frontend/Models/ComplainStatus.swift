@@ -14,6 +14,7 @@ enum ComplaintStatus: String {
     case inProgress = "in progress"
     case resolved = "resolved"
     case rejected = "rejected"
+    case closed = "closed"
     case unknown = "unknown"
     
     init(raw: String?) {
@@ -21,8 +22,18 @@ enum ComplaintStatus: String {
             self = .unknown
             return
         }
-        self = ComplaintStatus(rawValue: raw) ?? .unknown
+        switch raw {
+        case "open": self = .open
+        case "under review": self = .underReview
+        case "waiting key": self = .waitingKey
+        case "in progress": self = .inProgress
+        case "resolved": self = .resolved
+        case "rejected": self = .rejected
+        case "closed": self = .closed
+        default: self = .unknown
+        }
     }
+
     
     var color: Color {
         switch self {
@@ -33,6 +44,8 @@ enum ComplaintStatus: String {
         case .resolved: return .green
         case .rejected: return .gray
         case .unknown: return .gray
+        case .closed:
+            return .gray
         }
     }
     
@@ -45,6 +58,8 @@ enum ComplaintStatus: String {
         case .resolved: return "Resolved"
         case .rejected: return "Rejected"
         case .unknown: return "Unknown"
+        case .closed:
+            return "Closed"
         }
     }
 }

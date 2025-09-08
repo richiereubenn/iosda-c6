@@ -199,28 +199,74 @@ struct BSCComplainDetailView: View {
                         textColor: .white,
                         isDisabled: isConfirmDisabled
                     ) {
-                        viewModel.selectedStatus = .inProgress
-                        NotificationManager.shared.sendNotification(
-                            title: "Complain Confirmed",
-                            body: "You have confirmed the complain."
-                        )
+                        Task {
+                            await viewModel.updateStatus(to: "ba1b0384-9c57-4c34-a70b-2ed7e44b7ce0") // In Progress
+                            NotificationManager.shared.sendNotification(
+                                title: "Complain Confirmed",
+                                body: "You have confirmed the complain."
+                            )
+                        }
                     }
-                case .inProgress:
-                    EmptyView()
-                case .resolved:
-                    EmptyView()
-                case .rejected:
-                    EmptyView()
-                case .unknown:
-                    EmptyView()
+                    
                 case .underReview:
-                    EmptyView()
+                    HStack(spacing: 12) {
+                        // Reject Button
+                        CustomButtonComponent(
+                            text: "Reject",
+                            backgroundColor: .red,
+                            textColor: .white
+                        ) {
+                            Task {
+                                await viewModel.updateStatus(to: "99d06c4a-e49f-4144-b617-2a1b6c51092f") // Rejected
+                            }
+                        }
+                        
+                        // Accept Button
+                        CustomButtonComponent(
+                            text: "Accept",
+                            backgroundColor: .green,
+                            textColor: .white
+                        ) {
+                            Task {
+                                await viewModel.updateStatus(to: "200635a5-68f1-4ceb-8c97-0d4cfea48119") // Waiting Key Handover
+                            }
+                        }
+                    }
+                    
                 case .waitingKey:
+                    HStack(spacing: 12) {
+                        // Accept Key Button
+                        CustomButtonComponent(
+                            text: "Accept Key",
+                            backgroundColor: .green,
+                            textColor: .white
+                        ) {
+                            Task {
+                                // Update status ke Closed misal
+                                await viewModel.updateStatus(to: "9c982cf2-c5dc-48ae-8346-235cb73cf302") // Closed
+                            }
+                        }
+                        
+                        // Not Receive Key Button
+                        CustomButtonComponent(
+                            text: "Not Receive Key",
+                            backgroundColor: .red,
+                            textColor: .white
+                        ) {
+                            Task {
+                                // Update status ke Rejected misal
+                                await viewModel.updateStatus(to: "99d06c4a-e49f-4144-b617-2a1b6c51092f") // Rejected
+                            }
+                        }
+                    }
+                    
+                case .inProgress, .resolved, .rejected, .unknown, .closed:
                     EmptyView()
                 }
             }
         }
     }
+
     
     private func formatDate(_ date: Date, format: String) -> String {
         let formatter = DateFormatter()

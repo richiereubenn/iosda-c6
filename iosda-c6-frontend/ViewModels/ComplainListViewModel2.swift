@@ -33,11 +33,24 @@ class ComplaintListViewModel2: ObservableObject {
         defer { isLoading = false }
         
         do {
-            let data = try await service.fetchComplaints()
+            let data = try await service.fetchAllComplaints()
             complaints = data
             applyFilters()
         } catch {
             errorMessage = "Failed to load complaints: \(error.localizedDescription)"
+        }
+    }
+    
+    func loadComplaints(byUnitId unitId: String) async {
+        isLoading = true
+        defer { isLoading = false }
+        
+        do {
+            let data = try await service.fetchComplaintsByUnitId(unitId)
+            complaints = data
+            applyFilters()
+        } catch {
+            errorMessage = "Failed to load complaints for unit \(unitId): \(error.localizedDescription)"
         }
     }
     
@@ -64,11 +77,10 @@ class ComplaintListViewModel2: ObservableObject {
         if !searchText.isEmpty {
             let query = searchText.lowercased()
             results = results.filter {
-                ($0.title ?? "").lowercased().contains(query) ||
-                ($0.description ?? "").lowercased().contains(query)
+                $0.title.lowercased().contains(query) ||
+                $0.description.lowercased().contains(query)
             }
         }
-
         
         filteredComplaints = results
     }

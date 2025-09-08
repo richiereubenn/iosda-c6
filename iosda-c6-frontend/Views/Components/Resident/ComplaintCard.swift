@@ -1,9 +1,8 @@
 import SwiftUI
 
-struct ResidentComplaintCard2: View {
+struct ComplaintCard: View {
     let complaint: Complaint2
     
-    // ✅ Gunakan enum global ComplaintStatus
     private var status: ComplaintStatus {
         ComplaintStatus(raw: complaint.statusName)
     }
@@ -26,7 +25,6 @@ struct ResidentComplaintCard2: View {
                 
                 Spacer()
                 
-                // ✅ StatusBadge sekarang menerima enum global
                 StatusBadge(status: status)
             }
             

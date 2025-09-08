@@ -40,7 +40,7 @@ struct BSCComplaintListView: View {
                 ScrollView {
                     VStack(spacing: 12) {
                         ForEach(viewModel.filteredComplaints) { complaint in
-                            ResidentComplaintCard2(complaint: complaint)
+                            ComplaintCard(complaint: complaint)
                         }
                     }
                     .padding(.horizontal)

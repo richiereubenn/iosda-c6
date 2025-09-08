@@ -55,9 +55,9 @@ struct ResidentComplaintCardView: View {
                 
                 Spacer()
                 
-                if let statusID = complaint.status?.complaintStatusID {
-                    StatusBadge(statusID: statusID)
-                }
+//                if let statusID = complaint.status?.complaintStatusID {
+//                    StatusBadge(statusID: statusID)
+//                }
             }
             
             Text(complaint.title)

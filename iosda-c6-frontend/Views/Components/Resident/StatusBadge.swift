@@ -9,17 +9,14 @@
 import SwiftUI
 
 struct StatusBadge: View {
-    let statusID: Status.ComplaintStatusID
-
+    let status: ComplaintStatus
+    
     var body: some View {
-        Text(statusID.displayName)
-            .font(.system(size: 12, weight: .medium))
-            .foregroundColor(.primary)
-            .padding(.horizontal, 12)
-            .padding(.vertical, 4)
-            .background(
-                RoundedRectangle(cornerRadius: 12)
-                    .fill(statusID.color.opacity(0.2))
-            )
+        Text(status.displayName)
+            .font(.caption.weight(.bold))
+            .padding(6)
+            .background(status.color.opacity(0.2))
+            .foregroundColor(status.color)
+            .cornerRadius(8)
     }
 }

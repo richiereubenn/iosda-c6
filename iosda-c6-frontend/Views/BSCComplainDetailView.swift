@@ -156,7 +156,7 @@ struct BSCComplainDetailView: View {
                             .foregroundColor(.gray)
                             .font(.system(size: 14))
                         
-                        StatusBadge(statusID: statusID)
+//                        StatusBadge(statusID: statusID)
                         Spacer()
                     }
                     DataRowComponent(label: "Deadline:", value: "30 Februari 2025")

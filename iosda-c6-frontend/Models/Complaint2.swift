@@ -6,6 +6,7 @@
 //
 
 import Foundation
+import SwiftUICore
 
 struct Complaint2: Identifiable, Codable {
     let id: String

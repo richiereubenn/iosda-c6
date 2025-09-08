@@ -1,0 +1,50 @@
+//
+//  ComplainStatus.swift
+//  iosda-c6-frontend
+//
+//  Created by Richie Reuben Hermanto on 08/09/25.
+//
+
+import SwiftUI
+
+enum ComplaintStatus: String {
+    case open = "open"
+    case underReview = "under review"
+    case waitingKey = "waiting key"
+    case inProgress = "in progress"
+    case resolved = "resolved"
+    case rejected = "rejected"
+    case unknown = "unknown"
+    
+    init(raw: String?) {
+        guard let raw = raw?.lowercased() else {
+            self = .unknown
+            return
+        }
+        self = ComplaintStatus(rawValue: raw) ?? .unknown
+    }
+    
+    var color: Color {
+        switch self {
+        case .open: return .red
+        case .underReview: return .yellow
+        case .waitingKey: return .orange
+        case .inProgress: return .blue
+        case .resolved: return .green
+        case .rejected: return .gray
+        case .unknown: return .gray
+        }
+    }
+    
+    var displayName: String {
+        switch self {
+        case .open: return "Open"
+        case .underReview: return "Under Review"
+        case .waitingKey: return "Waiting Key"
+        case .inProgress: return "In Progress"
+        case .resolved: return "Resolved"
+        case .rejected: return "Rejected"
+        case .unknown: return "Unknown"
+        }
+    }
+}

@@ -1,11 +1,3 @@
-//
-//  StatusProgressView.swift
-//  iosda-c6-frontend
-//
-//  Created by Gabriella Natasya Pingky Davis on 01/09/25.
-//
-
-
 import SwiftUI
 
 struct StatusProgressBar: View {
@@ -68,11 +60,18 @@ struct StatusProgressBar: View {
         }
     }
 
+    // ✅ --- THIS FUNCTION IS NOW FIXED ---
     private func isStepCompleted(_ statusID: Status.ComplaintStatusID, effectiveStatusID: Status.ComplaintStatusID?) -> Bool {
-        guard let effectiveStatusID else { return false }
-
-        let currentIndex = statusSteps.firstIndex { $0.statusID == effectiveStatusID } ?? 0
-        let stepIndex = statusSteps.firstIndex { $0.statusID == statusID } ?? 0
+        // Safely find the index for the current status. If it's not a progress step, we can't compare.
+        guard let effectiveStatusID = effectiveStatusID,
+              let currentIndex = statusSteps.firstIndex(where: { $0.statusID == effectiveStatusID }) else {
+            return false
+        }
+        
+        // Safely find the index for the step we are checking.
+        guard let stepIndex = statusSteps.firstIndex(where: { $0.statusID == statusID }) else {
+            return false
+        }
 
         return stepIndex <= currentIndex
     }

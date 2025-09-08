@@ -96,7 +96,7 @@ struct ProgressLogRow: View {
         .padding()
 }
 private let mockProgressLog = ProgressLog(
-    id: 1,
+    id: "1",
     userId: nil,
     attachmentId: nil,
     title: "Laporan Diterima",
@@ -104,7 +104,7 @@ private let mockProgressLog = ProgressLog(
     timestamp: Date(),
     files: [
         File(
-            id: 1,
+            id: "1",
             name: "foto_lampiran.jpg",
             path: "https://www.example.com/foto_lampiran.jpg",
             mimeType: "image/jpeg",
@@ -114,12 +114,12 @@ private let mockProgressLog = ProgressLog(
     ],
     progressFiles: [
         ProgressFile(
-            id: 1,
-            progressId: 1,
-            fileId: 2,
+            id: "1",
+            progressId: "1",
+            fileId: "2",
             progress: nil,
             file: File(
-                id: 2,
+                id: "2",
                 name: "form_pengaduan.pdf",
                 path: "https://www.example.com/form_pengaduan.pdf",
                 mimeType: "application/pdf",

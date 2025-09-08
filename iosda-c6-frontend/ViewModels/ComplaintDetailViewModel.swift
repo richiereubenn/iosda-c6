@@ -8,7 +8,7 @@ class ComplaintDetailViewModel: ObservableObject {
     @Published var errorMessage: String?
 
     private let complaintService: ComplaintServiceProtocol
-    private let useMockData = true 
+    private let useMockData = true
     
    
     private let complaintListViewModel: ComplaintListViewModel?
@@ -21,7 +21,7 @@ class ComplaintDetailViewModel: ObservableObject {
         self.complaintListViewModel = complaintListViewModel
     }
 
-    func fetchProgressLogs(complaintId: Int) async {
+    func fetchProgressLogs(complaintId: String) async {
         isLoading = true
         errorMessage = nil
 
@@ -48,14 +48,14 @@ class ComplaintDetailViewModel: ObservableObject {
     }
 
     
-    private func getMockProgressLogs(for complaintId: Int) -> [ProgressLog] {
+    private func getMockProgressLogs(for complaintId: String) -> [ProgressLog] {
         let formatter = ISO8601DateFormatter()
         
         switch complaintId {
-        case 1:
+        case "1":
             return [
                 ProgressLog(
-                    id: 101,
+                    id: "101",
                     userId: nil,
                     attachmentId: nil,
                     title: "Complaint Submitted",
@@ -65,7 +65,7 @@ class ComplaintDetailViewModel: ObservableObject {
                     progressFiles: nil
                 ),
                 ProgressLog(
-                    id: 102,
+                    id: "102",
                     userId: nil,
                     attachmentId: nil,
                     title: "Teknisi Dijadwalkan",
@@ -75,10 +75,10 @@ class ComplaintDetailViewModel: ObservableObject {
                     progressFiles: nil
                 )
             ]
-        case 2:
+        case "2":
             return [
                 ProgressLog(
-                    id: 401,
+                    id: "401",
                     userId: nil,
                     attachmentId: nil,
                     title: "Complaint Submitted",
@@ -88,7 +88,7 @@ class ComplaintDetailViewModel: ObservableObject {
                     progressFiles: nil
                 ),
                 ProgressLog(
-                    id: 402,
+                    id: "402",
                     userId: nil,
                     attachmentId: nil,
                     title: "Material Dipesan",
@@ -98,10 +98,10 @@ class ComplaintDetailViewModel: ObservableObject {
                     progressFiles: nil
                 )
             ]
-        case 3:
+        case "3":
             return [
                 ProgressLog(
-                    id: 501,
+                    id: "501",
                     userId: nil,
                     attachmentId: nil,
                     title: "Complaint Submitted",
@@ -111,7 +111,7 @@ class ComplaintDetailViewModel: ObservableObject {
                     progressFiles: nil
                 ),
                 ProgressLog(
-                    id: 502,
+                    id: "502",
                     userId: nil,
                     attachmentId: nil,
                     title: "Masalah Terselesaikan",
@@ -121,10 +121,10 @@ class ComplaintDetailViewModel: ObservableObject {
                     progressFiles: nil
                 )
             ]
-        case 4:
+        case "4":
             return [
                 ProgressLog(
-                    id: 201,
+                    id: "201",
                     userId: nil,
                     attachmentId: nil,
                     title: "Complaint Submitted",
@@ -134,10 +134,10 @@ class ComplaintDetailViewModel: ObservableObject {
                     progressFiles: nil
                 )
             ]
-        case 5:
+        case "5":
             return [
                 ProgressLog(
-                    id: 301,
+                    id: "301",
                     userId: nil,
                     attachmentId: nil,
                     title: "Complaint Submitted",
@@ -147,7 +147,7 @@ class ComplaintDetailViewModel: ObservableObject {
                     progressFiles: nil
                 ),
                 ProgressLog(
-                    id: 302,
+                    id: "302",
                     userId: nil,
                     attachmentId: nil,
                     title: "Pekerjaan Dimulai",

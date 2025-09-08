@@ -69,7 +69,8 @@ class UnitViewModel: ObservableObject {
     func addUnit(name: String, project: String?, area: String?, block: String?, unitNumber: String?, handoverDate: Date?, renovationPermit: Bool, ownershipType: String?) {
         if useMockData {
             // Mock: Add unit to waiting list
-            let newUnitId = Int.random(in: 1000...9999)
+            let newUnitId = UUID().uuidString // Generate a proper String ID
+
             
             let newUnit = Unit(
                 id: newUnitId,
@@ -150,7 +151,7 @@ class UnitViewModel: ObservableObject {
         units = [
             // Claimed units (approved)
             Unit(
-                id: 1,
+                id: "1",
                 name: "Northwest Park - NA01/001",
                 bscUuid: nil,
                 biUuid: nil,
@@ -166,7 +167,7 @@ class UnitViewModel: ObservableObject {
                 isApproved: true
             ),
             Unit(
-                id: 2,
+                id: "2",
                 name: "Northwest Lake - A08/023",
                 bscUuid: nil,
                 biUuid: nil,
@@ -182,7 +183,7 @@ class UnitViewModel: ObservableObject {
                 isApproved: true
             ),
             Unit(
-                id: 3,
+                id: "3",
                 name: "Bukit Golf - C07/010",
                 bscUuid: nil,
                 biUuid: nil,
@@ -200,7 +201,7 @@ class UnitViewModel: ObservableObject {
             
             // Waiting units (not approved)
             Unit(
-                id: 4,
+                id: "4",
                 name: "Northwest Park - ND09/033",
                 bscUuid: nil,
                 biUuid: nil,
@@ -216,7 +217,7 @@ class UnitViewModel: ObservableObject {
                 isApproved: false
             ),
             Unit(
-                id: 5,
+                id: "5",
                 name: "Diamond Hill - B01/003",
                 bscUuid: nil,
                 biUuid: nil,
@@ -233,11 +234,11 @@ class UnitViewModel: ObservableObject {
             )
         ]
         userUnits = [
-            UserUnit(id: nil, userId: nil, unitId: 1, ownershipType: "Owner"),
-            UserUnit(id: nil, userId: nil, unitId: 2, ownershipType: "Family"),
-            UserUnit(id: nil, userId: nil, unitId: 3, ownershipType: "Owner"),
-            UserUnit(id: nil, userId: nil, unitId: 4, ownershipType: "Others"),
-            UserUnit(id: nil, userId: nil, unitId: 5, ownershipType: "Family")
+            UserUnit(id: nil, userId: nil, unitId: "1", ownershipType: "Owner"),
+            UserUnit(id: nil, userId: nil, unitId: "2", ownershipType: "Family"),
+            UserUnit(id: nil, userId: nil, unitId: "3", ownershipType: "Owner"),
+            UserUnit(id: nil, userId: nil, unitId: "4", ownershipType: "Others"),
+            UserUnit(id: nil, userId: nil, unitId: "5", ownershipType: "Family")
         ]
         if self.selectedUnit == nil {
                 self.selectedUnit = claimedUnits.first

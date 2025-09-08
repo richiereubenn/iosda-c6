@@ -47,10 +47,10 @@ struct ResidentComplaintCardView: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
             HStack {
-                Text("ID: #\(complaint.id ?? 0)")
-                    .font(.subheadline)
-                    .foregroundColor(.secondary)
-                    .lineLimit(1)
+                Text("ID: #\(complaint.id ?? "N/A")")
+                                    .font(.subheadline)
+                                    .foregroundColor(.secondary)
+                                    .lineLimit(1)
                     .minimumScaleFactor(0.8)
                 
                 Spacer()
@@ -97,9 +97,9 @@ struct ResidentComplaintCardView: View {
 
 #Preview {
     let mockComplaint = Complaint(
-        id: 101,
-        unitId: 1,
-        statusId: 3,
+        id: "101",
+        unitId: "1",
+        statusId: "3",
         progressId: nil,
         classificationId: nil,
         title: "Water Leakage in Ceiling",
@@ -112,7 +112,7 @@ struct ResidentComplaintCardView: View {
         longitude: nil,
         handoverMethod: .inHouse,
         unit: Unit(
-            id: 1,
+            id: "1",
             name: "Citraland Surabaya - 01/001",
             bscUuid: nil,
             biUuid: nil,
@@ -126,7 +126,7 @@ struct ResidentComplaintCardView: View {
             renovationPermit: false,
             isApproved: true
         ),
-        status: Status(id: 3, name: "waiting_key"),
+        status: Status(id: "3", name: "waiting_key"),
         classification: nil
     )
     

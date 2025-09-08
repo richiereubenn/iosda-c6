@@ -2,11 +2,11 @@ import SwiftUI
 
 struct ProgressDetailView: View {
     @ObservedObject private var viewModel: ComplaintDetailViewModel
-    let complaintId: Int
+    let complaintId: String
     var previewData: [ProgressLog]? = nil // Optional injected data
 
     init(
-        complaintId: Int,
+        complaintId: String,
         complaintListViewModel: ComplaintListViewModel? = nil,
         previewData: [ProgressLog]? = nil
     ) {
@@ -71,19 +71,19 @@ struct ProgressDetailView: View {
 
 #Preview {
     ProgressDetailView(
-        complaintId: 1,
+        complaintId: "1",
         complaintListViewModel: nil,
         previewData: [
             ProgressLog(
-                id: 101,
-                userId: 1,
+                id: "101",
+                userId: "1",
                 attachmentId: nil,
                 title: "Laporan Diterima",
                 description: "Pengaduan berhasil dikirim dan diterima oleh sistem.",
                 timestamp: ISO8601DateFormatter().date(from: "2025-08-20T10:05:00Z")!,
                 files: [
                     File(
-                        id: 201,
+                        id: "201",
                         name: "lampiran_foto.jpg",
                         path: "https://via.placeholder.com/300", // Replace with your mock or real URL
                         mimeType: "image/jpeg",
@@ -93,12 +93,12 @@ struct ProgressDetailView: View {
                 ],
                 progressFiles: [
                     ProgressFile(
-                        id: 301,
-                        progressId: 101,
-                        fileId: 202,
+                        id: "301",
+                        progressId: "101",
+                        fileId: "202",
                         progress: nil,
                         file: File(
-                            id: 202,
+                            id: "202",
                             name: "form_pengaduan.pdf",
                             path: "https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf",
                             mimeType: "application/pdf",
@@ -109,8 +109,8 @@ struct ProgressDetailView: View {
                 ]
             ),
             ProgressLog(
-                id: 102,
-                userId: 2,
+                id: "102",
+                userId: "2",
                 attachmentId: nil,
                 title: "Teknisi Dijadwalkan",
                 description: "Teknisi akan datang pada 22 Agustus.",

@@ -98,7 +98,8 @@ struct ResidentComplaintDetailView: View {
                         .fontWeight(.bold)
                     
                     VStack(alignment: .leading, spacing: 8) {
-                        DetailRow(label: "ID", value: "#\(complaint.id ?? 0)")
+                        DetailRow(label: "ID", value: "#\(complaint.id ?? "")")
+
                         DetailRow(label: "Complain Type", value: complaint.classification?.name ?? "Unknown")
                         DetailRow(label: "Created", value: formatDateWithTime(complaint.openTimestamp ?? Date()))
                         
@@ -169,9 +170,10 @@ struct ResidentComplaintDetailView: View {
         .navigationDestination(isPresented: $showingProgressDetail) {
             
             ProgressDetailView(
-                complaintId: complaint.id ?? 0,
+                complaintId: complaint.id ?? "",
                 complaintListViewModel: complaintListViewModel
             )
+
         }
         .toolbar {
             ToolbarItem(placement: .navigationBarLeading) {
@@ -244,13 +246,14 @@ struct DetailRow: View {
     NavigationStack {
         ResidentComplaintDetailView(
             complaint: Complaint(
-                id: 26082025002,
-                unitId: 1,
-                statusId: 4,
+                id: "26082025002",
+                unitId: "1",
+                // ✅ FIX: Make these two lines consistent!
+                statusId: "4",
                 progressId: nil,
-                classificationId: 1,
+                classificationId: "1",
                 title: "Anjing Masuk Rumah",
-                description: "when an unknown printer took a galley of type and scrambled it to make a type specimen book. It has survived not only five centuries, but also the leap into electronic typesetting, remaining essentially unchanged.",
+                description: "when an unknown printer took a galley of type and scrambled it to make a type specimen book...",
                 openTimestamp: Date(),
                 closeTimestamp: nil,
                 keyHandoverDate: Calendar.current.date(byAdding: .day, value: 18, to: Date()),
@@ -259,12 +262,9 @@ struct DetailRow: View {
                 longitude: nil,
                 handoverMethod: .bringToMO,
                 unit: Unit(
-                    id: 1,
+                    id: "1",
                     name: "Northwest Park - NA01/001",
-                    bscUuid: nil,
-                    biUuid: nil,
-                    contractorUuid: nil,
-                    keyUuid: nil,
+                    bscUuid: nil, biUuid: nil, contractorUuid: nil, keyUuid: nil,
                     project: "Citraland Surabaya",
                     area: "Northwest Park",
                     block: "NA",
@@ -273,8 +273,10 @@ struct DetailRow: View {
                     renovationPermit: false,
                     isApproved: true
                 ),
-                status: Status(id: 3, name: "")
-            )
+                // ✅ FIX: Make this ID match the statusId above.
+                status: Status(id: "4", name: "in_progress")
+            ),
+            complaintListViewModel: ComplaintListViewModel()
         )
     }
 }

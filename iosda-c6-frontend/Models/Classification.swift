@@ -7,7 +7,7 @@
 
 
 struct Classification: Identifiable, Codable {
-    let id: Int?
+    let id: String?
     let name: String
     let workDetail: String?
     let workDuration: String?

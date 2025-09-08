@@ -52,7 +52,7 @@ struct BSCComplaintListView: View {
         .searchable(text: $viewModel.searchText, prompt: "Search complaints...")
         .navigationTitle("Kode Rumah")
         .task {
-            await viewModel.loadComplaints()
+            await viewModel.loadComplaints(byUnitId: "123e4567-e89b-12d3-a456-426614174000")
         }
         .alert("Error", isPresented: .constant(viewModel.errorMessage != nil)) {
             Button("OK") { viewModel.errorMessage = nil }

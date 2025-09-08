@@ -166,19 +166,18 @@ struct ResidentAddComplaintView: View {
     }
     
     private var submitButton: some View {
-        PrimaryButton(
-            title: "Make a Complaint",
-            action: {
-                if handoverMethod == .bringToMO {
-                    navigateToKeyDate = true
-                } else if handoverMethod == .inHouse {
-                    submitInHouseComplaint()
-                }
-            },
-            isLoading: false,
-            isDisabled: !isFormValid
-        )
-        .padding(.top, 12)
+        CustomButtonComponent(
+                    text: "Make a Complaint",
+                    isDisabled: !isFormValid,
+                    action: {
+                        if handoverMethod == .bringToMO {
+                            navigateToKeyDate = true
+                        } else if handoverMethod == .inHouse {
+                            submitInHouseComplaint()
+                        }
+                    }
+                )
+                .padding(.top, 12)
     }
     
     private var closeButton: some View {

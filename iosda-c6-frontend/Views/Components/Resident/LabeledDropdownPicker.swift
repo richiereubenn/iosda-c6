@@ -9,7 +9,7 @@ struct LabeledDropdownPicker: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 6) {
-            if let label = label{
+            if let label = label {
                 Text(label)
                     .font(.headline)
             }
@@ -23,7 +23,7 @@ struct LabeledDropdownPicker: View {
             } label: {
                 HStack {
                     Text(selection.isEmpty ? placeholder : selection)
-                        .foregroundColor(selection.isEmpty ? .gray : .black)
+                        .foregroundColor(selection.isEmpty ? .gray : .primary)
                     Spacer()
                     Image(systemName: "chevron.down")
                         .foregroundColor(.gray)
@@ -35,6 +35,7 @@ struct LabeledDropdownPicker: View {
                         .stroke(Color.gray.opacity(0.5), lineWidth: 1)
                 )
             }
+            .buttonStyle(.borderless)
             .disabled(isDisabled)
             .opacity(isDisabled ? 0.5 : 1)
         }

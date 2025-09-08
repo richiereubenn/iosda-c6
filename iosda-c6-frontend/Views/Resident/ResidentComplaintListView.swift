@@ -6,7 +6,7 @@ struct ResidentComplaintListView: View {
     @State private var searchText: String = ""
 
     var body: some View {
-        NavigationView {
+        //NavigationView {
             VStack(spacing: 8) {
                 
                 // Picker
@@ -95,7 +95,7 @@ struct ResidentComplaintListView: View {
             }
         }
     }
-}
+//}
 
 #Preview {
     NavigationStack {

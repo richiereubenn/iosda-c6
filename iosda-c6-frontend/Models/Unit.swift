@@ -1,12 +1,12 @@
 import Foundation
 
 struct Unit: Identifiable, Codable {
-    let id: Int?
+    let id: String?
     let name: String
     let bscUuid: String?
     let biUuid: String?
     let contractorUuid: String?
-    let keyUuid: Int?
+    let keyUuid: String?
     let project: String?
     let area: String?
     let block: String?

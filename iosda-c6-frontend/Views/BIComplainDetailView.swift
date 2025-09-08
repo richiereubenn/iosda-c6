@@ -12,7 +12,7 @@ struct BIComplaintDetailView: View {
     @State private var showAcceptSheet = false
     @State private var rejectionReason = ""
     
-    @State private var statusID: Status.ComplaintStatusID = .init(rawValue: 4)!
+    @State private var statusID: Status.ComplaintStatusID = .init(rawValue: "4")!
     
     var body: some View {
         ScrollView {
@@ -179,7 +179,7 @@ struct BIComplaintDetailView: View {
             }
             
             Button("Reject", role: .destructive) {
-                statusID = .init(rawValue: 6)!
+                statusID = .init(rawValue: "6")!
             }
         } message: {
             Text("Explain why you reject this issue")
@@ -193,7 +193,7 @@ struct BIComplaintDetailView: View {
                 photoLabel2: "A wide-angle photo showing the entire work area.",
                 uploadAmount: 1,
                 onStartWork: {
-                    statusID = .init(rawValue: 5)!
+                    statusID = .init(rawValue: "5")!
                     showAcceptSheet = false
                 },
                 onCancel: {

@@ -13,7 +13,7 @@ struct BSCComplainDetailView: View {
     @State private var garansiChecked = true
     @State private var izinRenovasiChecked = true
     
-    @State private var statusID: Status.ComplaintStatusID = .init(rawValue: 2)!
+    @State private var statusID: Status.ComplaintStatusID = .init(rawValue: "2")!
     
     private var isConfirmDisabled: Bool {
         !(garansiChecked && izinRenovasiChecked)
@@ -79,7 +79,7 @@ struct BSCComplainDetailView: View {
                 }
                 
                 VStack(alignment: .leading, spacing: 12) {
-                    if statusID.rawValue == 3 {
+                    if statusID.rawValue == "3" {
                         HStack(spacing: 16) {
                             CustomButtonComponent(
                                 text: "Reject",
@@ -88,7 +88,7 @@ struct BSCComplainDetailView: View {
                                 isDisabled: false
                             ) {
                                 print("Rejected")
-                                statusID = .init(rawValue: 6)!
+                                statusID = .init(rawValue: "6")!
                             }
                             
                             CustomButtonComponent(
@@ -98,10 +98,10 @@ struct BSCComplainDetailView: View {
                                 isDisabled: isConfirmDisabled
                             ) {
                                 print("Accepted")
-                                statusID = .init(rawValue: 4)!
+                                statusID = .init(rawValue: "4")!
                             }
                         }
-                    }else if statusID.rawValue == 4 || statusID.rawValue == 6  {
+                    }else if statusID.rawValue == "4" || statusID.rawValue == "6"  {
                         
                     }else {
                         CustomButtonComponent(
@@ -110,7 +110,7 @@ struct BSCComplainDetailView: View {
                             textColor: .white,
                             isDisabled: isConfirmDisabled
                         ) {
-                            statusID = .init(rawValue: 3)!
+                            statusID = .init(rawValue: "3")!
                             NotificationManager.shared.sendNotification(title: "Complain Confirmed", body: "You have confirmed the complain.")
                         }
                     }

@@ -2,7 +2,7 @@ import Foundation
 
 
 struct KeyLog: Identifiable, Codable {
-    let id: Int?
+    let id: String?
     let position: String?
     let timestamp: Date?
     

@@ -10,7 +10,9 @@ struct ResidentAddComplaintView: View {
     @State private var complaintTitle: String = ""
     @State private var complaintDetails: String = ""
     @State private var handoverMethod: Complaint.HandoverMethod? = nil
-    @State private var selectedUnitId: Int? = nil
+    
+    // 1. FIX: Changed selectedUnitId from Int? to String?
+    @State private var selectedUnitId: String? = nil
     
     @State private var navigateToKeyDate = false
     
@@ -22,7 +24,7 @@ struct ResidentAddComplaintView: View {
             
             NavigationStack {
                 ScrollView {
-                    LazyVStack(alignment: .leading, spacing: 10) {
+                    LazyVStack(alignment: .leading, spacing: 20) {
                         titleSection
                         unitSelectionSection
                         detailsSection
@@ -41,6 +43,7 @@ struct ResidentAddComplaintView: View {
                     }
                 }
                 .navigationDestination(isPresented: $navigateToKeyDate) {
+                    // This view would also need to be updated to accept a String ID
                     ResidentKeyDateView(
                         handoverMethod: handoverMethod?.rawValue ?? "",
                         selectedUnitId: selectedUnitId,
@@ -55,9 +58,11 @@ struct ResidentAddComplaintView: View {
                 }
             }
             .onAppear {
-                unitViewModel.loadUnits()
-                if selectedUnitId == nil {
-                    selectedUnitId = unitViewModel.claimedUnits.first?.id
+                Task {
+                    await unitViewModel.loadUnits()
+                    if selectedUnitId == nil {
+                        selectedUnitId = unitViewModel.claimedUnits.first?.id
+                    }
                 }
             }
         }
@@ -70,122 +75,118 @@ struct ResidentAddComplaintView: View {
             .fill(Color.gray.opacity(0.4))
             .frame(width: 40, height: 5)
             .padding(.top, 10)
-            .padding(.bottom, 8)
     }
     
     @ViewBuilder
     private var titleSection: some View {
-        Text("Complaint Title")
-            .font(.title2)
-            .fontWeight(.bold)
-        
-        Text("What issues will be included in the report")
-            .font(.subheadline)
-            .foregroundColor(.gray)
-        
-        TextField("Enter title", text: $complaintTitle)
-            .padding()
-            .background(Color(.systemGray6))
-            .cornerRadius(8)
+        VStack(alignment: .leading, spacing: 8) {
+            Text("Complaint Title")
+                .font(.headline)
+            Text("Provide a clear and concise title for the issue.")
+                .font(.subheadline)
+                .foregroundColor(.gray)
+            TextField("e.g., Leaking Kitchen Faucet", text: $complaintTitle)
+                .padding(12)
+                .background(Color(uiColor: .secondarySystemBackground))
+                .cornerRadius(8)
+        }
     }
     
     @ViewBuilder
     private var unitSelectionSection: some View {
-        Text("Choose House Unit")
-            .font(.title2)
-            .fontWeight(.bold)
-        
-        LabeledDropdownPicker(
-            label: nil,
-            placeholder: "Select House Unit",
-            selection: unitBinding,
-            options: unitViewModel.claimedUnits.map { $0.name }
-        )
+        VStack(alignment: .leading, spacing: 8) {
+            Text("House Unit")
+                .font(.headline)
+            LabeledDropdownPicker(
+                label: nil,
+                placeholder: "Select House Unit",
+                selection: unitBinding,
+                options: unitViewModel.claimedUnits.map { $0.name }
+            )
+        }
     }
     
     @ViewBuilder
     private var detailsSection: some View {
-        Text("Complaint Details")
-            .font(.title2)
-            .fontWeight(.bold)
-        
-        Text("Explain the report in detail")
-            .font(.subheadline)
-            .foregroundColor(.gray)
-        
-        TextField("Enter details", text: $complaintDetails, axis: .vertical)
-            .lineLimit(5...8)
-            .padding()
-            .background(Color(.systemGray6))
-            .cornerRadius(8)
+        VStack(alignment: .leading, spacing: 8) {
+            Text("Complaint Details")
+                .font(.headline)
+            Text("Describe the problem in as much detail as possible.")
+                .font(.subheadline)
+                .foregroundColor(.gray)
+            TextEditor(text: $complaintDetails)
+                .frame(height: 150)
+                .padding(8)
+                .background(Color(uiColor: .secondarySystemBackground))
+                .cornerRadius(8)
+        }
     }
     
     @ViewBuilder
     private var imageSection: some View {
-        Text("Image")
-            .font(.title2)
-            .fontWeight(.bold)
-        
-        Text("Upload images of the problem you are reporting")
-            .font(.subheadline)
-            .foregroundColor(.gray)
-        
-        UploadImageCard(imageType: .closeUp)
-        imageInstructionView(text: "Please take a close-up photo focusing directly on the issue. Ensure the defect is clear and well-lit to show the full detail.")
-        
-        UploadImageCard(imageType: .overall)
-        imageInstructionView(text: "Please take a photo from a distance to show the issue and its surrounding area. This helps us identify the exact location.")
-    }
-    
-    @ViewBuilder
-    private var handoverSection: some View {
-        handoverHeader
-        
-        Text("Select the method to hand over house key for field officers to fix")
-            .font(.subheadline)
-            .foregroundColor(.gray)
-        
-        ForEach(handoverOptions, id: \.self) { option in
-            HStack {
-                Image(systemName: handoverMethod == option ? "largecircle.fill.circle" : "circle")
-                    .foregroundColor(.blue)
-                    .onTapGesture { handoverMethod = option }
-                Text(option.displayName)
-                    .onTapGesture { handoverMethod = option }
+        VStack(alignment: .leading, spacing: 8) {
+            Text("Attach Images")
+                .font(.headline)
+            Text("Upload photos to help us understand the issue better.")
+                .font(.subheadline)
+                .foregroundColor(.gray)
+            
+            VStack(spacing: 16) {
+                UploadImageCard(imageType: .closeUp)
+                imageInstructionView(text: "Take a close-up photo focusing on the issue. Ensure the defect is clear and well-lit.")
+                
+                UploadImageCard(imageType: .overall)
+                imageInstructionView(text: "Take a photo from a distance to show the issue in its surrounding area for context.")
             }
         }
     }
     
-    private var handoverHeader: some View {
-        HStack {
+    @ViewBuilder
+    private var handoverSection: some View {
+        VStack(alignment: .leading, spacing: 8) {
             Text("Key Handover Method")
-                .font(.title2)
-                .fontWeight(.bold)
-            Spacer()
+                .font(.headline)
+            Text("Select how our team can access the unit for repairs.")
+                .font(.subheadline)
+                .foregroundColor(.gray)
+            
+            ForEach(handoverOptions, id: \.self) { option in
+                Button(action: { handoverMethod = option }) {
+                    HStack {
+                        Image(systemName: handoverMethod == option ? "largecircle.fill.circle" : "circle")
+                            .foregroundColor(.accentColor)
+                        Text(option.displayName)
+                        Spacer()
+                    }
+                    .padding()
+                    .background(Color(uiColor: .secondarySystemBackground))
+                    .cornerRadius(8)
+                }
+                .buttonStyle(.plain)
+            }
         }
     }
     
     private var submitButton: some View {
         CustomButtonComponent(
-                    text: "Make a Complaint",
-                    isDisabled: !isFormValid,
-                    action: {
-                        if handoverMethod == .bringToMO {
-                            navigateToKeyDate = true
-                        } else if handoverMethod == .inHouse {
-                            submitInHouseComplaint()
-                        }
-                    }
-                )
-                .padding(.top, 12)
+            text: "Submit Complaint",
+            isDisabled: !isFormValid,
+            action: {
+                if handoverMethod == .bringToMO {
+                    navigateToKeyDate = true
+                } else if handoverMethod == .inHouse {
+                    submitInHouseComplaint()
+                }
+            }
+        )
+        .padding(.top, 12)
     }
     
     private var closeButton: some View {
-        Button(action: {
-            presentationMode.wrappedValue.dismiss()
-        }) {
-            Image(systemName: "xmark")
-                .foregroundColor(.gray)
+        Button(action: { presentationMode.wrappedValue.dismiss() }) {
+            Image(systemName: "xmark.circle.fill")
+                .font(.title2)
+                .foregroundColor(.gray.opacity(0.5))
         }
     }
     
@@ -198,7 +199,6 @@ struct ResidentAddComplaintView: View {
         }
         .font(.caption)
         .foregroundColor(.gray)
-        .italic()
     }
     
     // MARK: - Computed Properties
@@ -206,6 +206,7 @@ struct ResidentAddComplaintView: View {
     private var unitBinding: Binding<String> {
         Binding<String>(
             get: {
+                // This logic is now correct with String IDs
                 guard let selected = unitViewModel.claimedUnits.first(where: { $0.id == selectedUnitId }) else { return "" }
                 return selected.name
             },
@@ -218,16 +219,20 @@ struct ResidentAddComplaintView: View {
     }
     
     private var isFormValid: Bool {
-        !complaintTitle.isEmpty &&
-        !complaintDetails.isEmpty &&
+        !complaintTitle.trimmingCharacters(in: .whitespaces).isEmpty &&
+        !complaintDetails.trimmingCharacters(in: .whitespaces).isEmpty &&
         selectedUnitId != nil &&
         handoverMethod != nil
     }
     
+    // MARK: - Functions
     private func submitInHouseComplaint() {
         guard let unitId = selectedUnitId,
-              let method = handoverMethod else { return }
-        
+              let method = handoverMethod,
+              let selectedUnit = unitViewModel.claimedUnits.first(where: { $0.id == unitId }) else {
+            return
+        }
+
         Task {
             do {
                 try await complaintViewModel.submitInHouseComplaint(
@@ -237,13 +242,15 @@ struct ResidentAddComplaintView: View {
                     handoverMethod: method,
                     unitViewModel: unitViewModel
                 )
-                dismiss()
+
+                dismiss() // 
             } catch {
-                print("Error submitting complaint: \(error)")
-                // Optional: Show an alert
+                print("Error submitting in-house complaint: \(error)")
+                // TODO: Show an error alert to the user
             }
         }
     }
+
 }
 
 #Preview {

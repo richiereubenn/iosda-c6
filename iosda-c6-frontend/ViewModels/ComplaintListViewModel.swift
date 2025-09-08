@@ -4,7 +4,7 @@ import Foundation
 class ComplaintListViewModel: ObservableObject {
     @Published var complaints: [Complaint] = []
     @Published var filteredComplaints: [Complaint] = []
-    @Published var complaintLogs: [Int: [ProgressLog]] = [:] // complaintId -> logs
+    @Published var complaintLogs: [String: [ProgressLog]] = [:] // complaintId -> logs
 
     @Published var selectedFilter: ComplaintFilter = .open
     @Published var searchText = ""
@@ -20,7 +20,7 @@ class ComplaintListViewModel: ObservableObject {
         case resolved = "Resolved"
         case rejected = "Rejected"
         
-        var matchingStatusIDs: [Int] {
+        var matchingStatusIDs: [String] {
             switch self {
             case .open: return [Status.ComplaintStatusID.open.rawValue,
                                 Status.ComplaintStatusID.underReview.rawValue,
@@ -57,18 +57,19 @@ class ComplaintListViewModel: ObservableObject {
         isLoading = false
     }
     
-    func logs(for complaintId: Int) -> [ProgressLog] {
-        complaintLogs[complaintId] ?? []
-    }
+    func logs(for complaintId: String) -> [ProgressLog] {
+         complaintLogs[complaintId] ?? []
+     }
+
     
     private func loadMockComplaints() {
         let formatter = ISO8601DateFormatter()
         
         complaints = [
             Complaint(
-                id: 1,
-                unitId: 1,
-                statusId: 1,
+                id: "1",
+                unitId: "1",
+                statusId: "1",
                 progressId: nil,
                 classificationId: nil,
                 title: "Leaky Faucet",
@@ -81,7 +82,7 @@ class ComplaintListViewModel: ObservableObject {
                 longitude: nil,
                 handoverMethod: .inHouse,
                 unit: Unit(
-                    id: 1,
+                    id: "1",
                     name: "Northwest Park - NA01/001",
                     bscUuid: nil,
                     biUuid: nil,
@@ -95,13 +96,13 @@ class ComplaintListViewModel: ObservableObject {
                     renovationPermit: false,
                     isApproved: true
                 ),
-                status: Status(id: 1, name: "open"),
+                status: Status(id: "1", name: "open"),
                 classification: nil
             ),
             Complaint(
-                id: 4,
-                unitId: 1,
-                statusId: 3,
+                id: "4",
+                unitId: "1",
+                statusId: "3",
                 progressId: nil,
                 classificationId: nil,
                 title: "Leaky Faucet",
@@ -114,7 +115,7 @@ class ComplaintListViewModel: ObservableObject {
                 longitude: nil,
                 handoverMethod: .inHouse,
                 unit: Unit(
-                    id: 1,
+                    id: "1",
                     name: "Northwest Park - NA01/001",
                     bscUuid: nil,
                     biUuid: nil,
@@ -128,13 +129,13 @@ class ComplaintListViewModel: ObservableObject {
                     renovationPermit: false,
                     isApproved: true
                 ),
-                status: Status(id: 3, name: "waiting_key"),
+                status: Status(id: "3", name: "waiting_key"),
                 classification: nil
             ),
             Complaint(
-                id: 5,
-                unitId: 1,
-                statusId: 2,
+                id: "5",
+                unitId: "1",
+                statusId: "2",
                 progressId: nil,
                 classificationId: nil,
                 title: "Leaky Faucet",
@@ -147,7 +148,7 @@ class ComplaintListViewModel: ObservableObject {
                 longitude: nil,
                 handoverMethod: .bringToMO,
                 unit: Unit(
-                    id: 1,
+                    id: "1",
                     name: "Northwest Park - NA01/001",
                     bscUuid: nil,
                     biUuid: nil,
@@ -161,13 +162,13 @@ class ComplaintListViewModel: ObservableObject {
                     renovationPermit: false,
                     isApproved: true
                 ),
-                status: Status(id: 2, name: "under_review"),
+                status: Status(id: "2", name: "under_review"),
                 classification: nil
             ),
             Complaint(
-                id: 2,
-                unitId: 2,
-                statusId: 4,
+                id: "2",
+                unitId: "2",
+                statusId: "4",
                 progressId: nil,
                 classificationId: nil,
                 title: "Broken Window",
@@ -180,7 +181,7 @@ class ComplaintListViewModel: ObservableObject {
                 longitude: nil,
                 handoverMethod: .bringToMO,
                 unit: Unit(
-                    id: 2,
+                    id: "2",
                     name: "Northwest Lake - A08/023",
                     bscUuid: nil,
                     biUuid: nil,
@@ -194,13 +195,13 @@ class ComplaintListViewModel: ObservableObject {
                     renovationPermit: true,
                     isApproved: true
                 ),
-                status: Status(id: 4, name: "in_progress"),
+                status: Status(id: "4", name: "in_progress"),
                 classification: nil
             ),
             Complaint(
-                id: 3,
-                unitId: 3,
-                statusId: 5,
+                id: "3",
+                unitId: "3",
+                statusId: "5",
                 progressId: nil,
                 classificationId: nil,
                 title: "Power Outage",
@@ -213,7 +214,7 @@ class ComplaintListViewModel: ObservableObject {
                 longitude: nil,
                 handoverMethod: .inHouse,
                 unit: Unit(
-                    id: 3,
+                    id: "3",
                     name: "Bukit Golf - C07/010",
                     bscUuid: nil,
                     biUuid: nil,
@@ -227,15 +228,15 @@ class ComplaintListViewModel: ObservableObject {
                     renovationPermit: false,
                     isApproved: true
                 ),
-                status: Status(id: 5, name: "resolved"),
+                status: Status(id: "5", name: "resolved"),
                 classification: nil
             )
         ]
         
         complaintLogs = [
-                1: [
+                "1": [
                     ProgressLog(
-                        id: 101,
+                        id: "101",
                         userId: nil,
                         attachmentId: nil,
                         title: "Complaint Submitted",
@@ -245,7 +246,7 @@ class ComplaintListViewModel: ObservableObject {
                         progressFiles: nil
                     ),
                     ProgressLog(
-                        id: 102,
+                        id: "102",
                         userId: nil,
                         attachmentId: nil,
                         title: "Teknisi Dijadwalkan",
@@ -255,9 +256,9 @@ class ComplaintListViewModel: ObservableObject {
                         progressFiles: nil
                     )
                 ],
-                4: [
+                "4": [
                     ProgressLog(
-                        id: 201,
+                        id: "201",
                         userId: nil,
                         attachmentId: nil,
                         title: "Complaint Submitted",
@@ -267,9 +268,9 @@ class ComplaintListViewModel: ObservableObject {
                         progressFiles: nil
                     )
                 ],
-                5: [
+                "5": [
                     ProgressLog(
-                        id: 301,
+                        id: "301",
                         userId: nil,
                         attachmentId: nil,
                         title: "Complaint Submitted",
@@ -279,7 +280,7 @@ class ComplaintListViewModel: ObservableObject {
                         progressFiles: nil
                     ),
                     ProgressLog(
-                        id: 302,
+                        id: "302",
                         userId: nil,
                         attachmentId: nil,
                         title: "Pekerjaan Dimulai",
@@ -289,9 +290,9 @@ class ComplaintListViewModel: ObservableObject {
                         progressFiles: nil
                     )
                 ],
-                2: [
+                "2": [
                     ProgressLog(
-                        id: 401,
+                        id: "401",
                         userId: nil,
                         attachmentId: nil,
                         title: "Complaint Submitted",
@@ -301,7 +302,7 @@ class ComplaintListViewModel: ObservableObject {
                         progressFiles: nil
                     ),
                     ProgressLog(
-                        id: 402,
+                        id: "402",
                         userId: nil,
                         attachmentId: nil,
                         title: "Material Dipesan",
@@ -311,9 +312,9 @@ class ComplaintListViewModel: ObservableObject {
                         progressFiles: nil
                     )
                 ],
-                3: [
+                "3": [
                     ProgressLog(
-                        id: 501,
+                        id: "501",
                         userId: nil,
                         attachmentId: nil,
                         title: "Complaint Submitted",
@@ -323,7 +324,7 @@ class ComplaintListViewModel: ObservableObject {
                         progressFiles: nil
                     ),
                     ProgressLog(
-                        id: 502,
+                        id: "502",
                         userId: nil,
                         attachmentId: nil,
                         title: "Masalah Terselesaikan",
@@ -343,7 +344,7 @@ class ComplaintListViewModel: ObservableObject {
             }
             return selectedFilter.matchingStatusIDs.contains(statusId)
         }
-        
+
         if !searchText.isEmpty {
             filteredComplaints = filteredComplaints.filter { complaint in
                 complaint.title.localizedCaseInsensitiveContains(searchText) ||
@@ -352,10 +353,12 @@ class ComplaintListViewModel: ObservableObject {
             }
         }
     }
+
+
     
-    func submitComplaint(request: CreateComplaintRequest, unitViewModel: UnitViewModel) async throws {
+    func submitComplaint(request: CreateComplaintRequest, selectedUnit: Unit) async throws {
         if useMockData {
-            let newId = (complaints.map { $0.id ?? 0 }.max() ?? 0) + 1
+            let newId = UUID().uuidString
 
             let newComplaint = Complaint(
                 id: newId,
@@ -372,16 +375,18 @@ class ComplaintListViewModel: ObservableObject {
                 latitude: request.latitude,
                 longitude: request.longitude,
                 handoverMethod: Complaint.HandoverMethod(rawValue: request.handoverMethod ?? "") ?? .bringToMO,
-                unit: unitViewModel.units.first(where: { $0.id == request.unitId }),
-                status: Status(id: Status.ComplaintStatusID.open.rawValue, name: Status.ComplaintStatusID.open.apiName),
+                unit: selectedUnit,
+                status: Status(
+                    id: String(Status.ComplaintStatusID.open.rawValue),
+                    name: Status.ComplaintStatusID.open.apiName
+                ),
                 classification: nil
             )
 
             complaints.insert(newComplaint, at: 0)
-            
-            // ✅ Create initial progress log with proper message
+
             let newProgressLog = ProgressLog(
-                id: UUID().hashValue,
+                id: UUID().uuidString,
                 userId: nil,
                 attachmentId: nil,
                 title: "Complaint Submitted",
@@ -390,21 +395,21 @@ class ComplaintListViewModel: ObservableObject {
                 files: nil,
                 progressFiles: nil
             )
-            complaintLogs[newId] = [newProgressLog]
 
+            complaintLogs[newId] = [newProgressLog]
             filterComplaints()
             return
         }
 
-        // Real backend flow
         _ = try await complaintService.createComplaint(request)
         await loadComplaints()
     }
 
+
     func submitInHouseComplaint(
         title: String,
         description: String,
-        unitId: Int,
+        unitId: String,
         handoverMethod: Complaint.HandoverMethod,
         unitViewModel: UnitViewModel
     ) async throws {
@@ -419,12 +424,19 @@ class ComplaintListViewModel: ObservableObject {
             handoverMethod: handoverMethod.rawValue
         )
 
-        try await submitComplaint(request: request, unitViewModel: unitViewModel)
+        guard let selectedUnit = unitViewModel.selectedUnit else {
+            throw URLError(.badURL) // Or handle the missing unit however you want
+        }
+        try await submitComplaint(request: request, selectedUnit: selectedUnit)
+
     }
 
+
     func logs(for complaint: Complaint) -> [ProgressLog] {
-        complaintLogs[complaint.id ?? 0] ?? []
+        guard let id = complaint.id else { return [] }
+        return complaintLogs[id] ?? []
     }
+
     
     func deleteComplaint(at indexSet: IndexSet) async {
         for index in indexSet {
@@ -439,4 +451,5 @@ class ComplaintListViewModel: ObservableObject {
             }
         }
     }
+
 }

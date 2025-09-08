@@ -28,52 +28,37 @@ struct SummaryComplaintCard: View {
         VStack(spacing: isVeryCompact ? 8 : isCompact ? 12 : 16) {
             HStack(spacing: isCompact ? 8 : 12) {
                 Text(title)
-                    .font(.system(
-                        size: isVeryCompact ? 16 : isCompact ? 18 : 20,
-                        weight: .semibold,
-                        design: .rounded
-                    ))
+                    .font(.headline) 
+                    .fontWeight(.semibold)
                     .foregroundColor(.white)
                     .multilineTextAlignment(.leading)
-                    .minimumScaleFactor(0.8)
                     .lineLimit(isVeryCompact ? 1 : 2)
+                    .minimumScaleFactor(0.8)
             }
             
             VStack(spacing: isVeryCompact ? 6 : isCompact ? 8 : 12) {
                 HStack {
                     Image(systemName: "building.2.fill")
-                        .font(.system(
-                            size: isVeryCompact ? 14 : isCompact ? 16 : 18,
-                            weight: .medium
-                        ))
+                        .font(.body)
                         .foregroundColor(.white)
                         .frame(width: isVeryCompact ? 20 : 24)
                     
                     Text("\(String(format: "%02d", unitCount)) Unit")
-                        .font(.system(
-                            size: isVeryCompact ? 22 : isCompact ? 25 : 28,
-                            weight: .bold,
-                            design: .rounded
-                        ))
+                        .font(.title)
+                        .fontWeight(.bold)
                         .foregroundColor(.white)
                         .minimumScaleFactor(0.7)
                 }
                 
                 HStack {
                     Image(systemName: "list.bullet.clipboard.fill")
-                        .font(.system(
-                            size: isVeryCompact ? 14 : isCompact ? 14 : 18,
-                            weight: .medium
-                        ))
+                        .font(.body)
                         .foregroundColor(.white)
                         .frame(width: isVeryCompact ? 20 : 24)
                     
                     Text("\(String(format: "%03d", complaintCount)) Complaint")
-                        .font(.system(
-                            size: isVeryCompact ? 12 : isCompact ? 14 : 18,
-                            weight: .medium,
-                            design: .rounded
-                        ))
+                        .font(.subheadline)
+                        .fontWeight(.medium)
                         .foregroundColor(.white)
                         .minimumScaleFactor(0.8)
                 }

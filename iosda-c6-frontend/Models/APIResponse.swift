@@ -8,9 +8,12 @@
 import Foundation
 
 struct APIResponse<T: Codable>: Codable {
-    let data: T?
-    let message: String?
     let success: Bool
+    let code: Int?
+    let message: String?
+    let data: T?
+    let errors: [String: String]?
+    let meta: MetaData?
     
     var isSuccess: Bool {
         return success
@@ -21,25 +24,34 @@ struct APIResponse<T: Codable>: Codable {
     }
 }
 
-extension APIResponse {
-    static func successResponse(message: String = "Berhasil") -> APIResponse<EmptyData> {
-        return APIResponse<EmptyData>(
-            data: EmptyData(),
-            message: message,
-            success: true
-        )
-    }
+struct MetaData: Codable {
+    let pagination: Pagination?
+    let requestId: String?
+    let timestamp: String?
+    let processingTimeMs: Int?
+    let startTime: Int?
     
-    static func errorResponse(message: String) -> APIResponse<EmptyData> {
-        return APIResponse<EmptyData>(
-            data: EmptyData(),
-            message: message,
-            success: false
-        )
+    private enum CodingKeys: String, CodingKey {
+        case pagination
+        case requestId = "request_id"
+        case timestamp
+        case processingTimeMs = "processing_time_ms"
+        case startTime = "start_time"
     }
 }
 
-struct EmptyData: Codable {
+struct Pagination: Codable {
+    let totalItems: Int
+    let perPage: Int
+    let currentPage: Int
+    let totalPages: Int
+    
+    private enum CodingKeys: String, CodingKey {
+        case totalItems = "total_items"
+        case perPage = "per_page"
+        case currentPage = "current_page"
+        case totalPages = "total_pages"
+    }
 }
 
 struct CreateUnitRequest: Codable {

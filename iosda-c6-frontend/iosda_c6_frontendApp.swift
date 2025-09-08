@@ -10,6 +10,7 @@ import SwiftData
 
 @main
 struct iosda_c6_frontendApp: App {
+    
     var sharedModelContainer: ModelContainer = {
         let schema = Schema([
             Item.self,

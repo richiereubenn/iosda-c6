@@ -32,7 +32,9 @@ enum NetworkError: Error, LocalizedError {
 
 class NetworkManager {
     static let shared = NetworkManager()
-    private let baseURL = "https://api.example.com/v1"
+    private let baseURL = "https://api.kevinchr.com"
+    
+    var bearerToken: String?
     
     private init() {}
     
@@ -49,6 +51,10 @@ class NetworkManager {
         request.httpMethod = method.rawValue
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
         
+        if let token = bearerToken {
+            request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+        }
+        
         if let body = body {
             request.httpBody = body
         }
@@ -64,9 +70,7 @@ class NetworkManager {
                 throw NetworkError.serverError(httpResponse.statusCode)
             }
             
-            let decoder = JSONDecoder()
-            decoder.dateDecodingStrategy = .iso8601
-            
+            let decoder = JSONDecoder.iso8601WithFractionalSeconds
             return try decoder.decode(T.self, from: data)
         } catch {
             if error is DecodingError {
@@ -87,6 +91,10 @@ class NetworkManager {
         var request = URLRequest(url: url)
         request.httpMethod = method.rawValue
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        
+        if let token = bearerToken {
+            request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+        }
 
         let (_, response) = try await URLSession.shared.data(for: request)
 
@@ -98,7 +106,6 @@ class NetworkManager {
             throw NetworkError.serverError(httpResponse.statusCode)
         }
     }
-
 }
 
 enum HTTPMethod: String {
@@ -107,4 +114,16 @@ enum HTTPMethod: String {
     case PUT = "PUT"
     case DELETE = "DELETE"
     case PATCH = "PATCH"
+}
+
+extension JSONDecoder {
+    static var iso8601WithFractionalSeconds: JSONDecoder {
+        let decoder = JSONDecoder()
+        let formatter = DateFormatter()
+        formatter.dateFormat = "yyyy-MM-dd'T'HH:mm:ss.SSSZ"
+        formatter.locale = Locale(identifier: "en_US_POSIX")
+        formatter.timeZone = TimeZone(secondsFromGMT: 0)
+        decoder.dateDecodingStrategy = .formatted(formatter)
+        return decoder
+    }
 }

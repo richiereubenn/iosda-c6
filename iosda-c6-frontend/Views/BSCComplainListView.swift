@@ -8,88 +8,67 @@
 import SwiftUI
 
 struct BSCComplaintListView: View {
-    @ObservedObject var viewModel: ComplaintListViewModel
-    @State private var searchText: String = ""
-    @State private var showingCreateView = false
-
+    @StateObject var viewModel = ComplaintListViewModel2()
+    
     var body: some View {
-        VStack(spacing: 8) {
+        VStack {
             Picker("Complaint Status", selection: $viewModel.selectedFilter) {
-                ForEach(ComplaintListViewModel.ComplaintFilter.allCases, id: \.self) { filter in
-                    Text(filter.rawValue)
-                        .font(.subheadline)
-                        .minimumScaleFactor(0.8)
-                        .lineLimit(1)
-                        .tag(filter)
+                ForEach(ComplaintListViewModel2.ComplaintFilter.allCases, id: \.self) { filter in
+                    Text(filter.rawValue).tag(filter)
                 }
             }
-            .pickerStyle(SegmentedPickerStyle())
-            .padding(.horizontal)
-            .onChange(of: viewModel.selectedFilter) { _ in
-                viewModel.filterComplaints()
+            .pickerStyle(.segmented)
+            .padding()
+            
+            if viewModel.isLoading {
+                ProgressView("Loading...")
+                Spacer()
+            } else if viewModel.filteredComplaints.isEmpty {
+                VStack(spacing: 12) {
+                    Image(systemName: "doc.text")
+                        .font(.title)
+                        .foregroundColor(.secondary)
+                    Text("No complaints found")
+                        .font(.body.weight(.medium))
+                        .foregroundColor(.secondary)
+                        .minimumScaleFactor(0.8)
+                        .lineLimit(2)
+                }
+                .padding(.top, 40)
+                Spacer()
+            } else {
+                ScrollView {
+                    VStack(spacing: 12) {
+                        ForEach(viewModel.filteredComplaints) { complaint in
+                            ResidentComplaintCard2(complaint: complaint)
+                        }
+                    }
+                    .padding(.horizontal)
+                }
             }
             
-            Group {
-                if viewModel.isLoading {
-                    ProgressView()
-                        .scaleEffect(1.2)
-                        .padding(.top, 40)
-                    Spacer()
-                } else if viewModel.filteredComplaints.isEmpty {
-                    VStack(spacing: 12) {
-                        Image(systemName: "doc.text")
-                            .font(.title)
-                            .foregroundColor(.secondary)
-                        Text("No complaints found")
-                            .font(.body.weight(.medium))
-                            .foregroundColor(.secondary)
-                            .minimumScaleFactor(0.8)
-                            .lineLimit(2)
-                    }
-                    .padding(.top, 40)
-                    Spacer()
-                } else {
-                    ScrollView {
-                        LazyVStack(spacing: 12) {
-                            ForEach(viewModel.filteredComplaints) { complaint in
-                                NavigationLink(
-                                    destination: BSCComplainDetailView()
-                                ) {
-                                    ResidentComplaintCardView(complaint: complaint)
-                                        .accessibilityElement(children: .combine)
-                                        .accessibilityLabel("\(complaint.title), \(complaint.status)")
-                                }
-                                .buttonStyle(PlainButtonStyle())
-                            }
-                        }
-                        .padding(.horizontal, 20)
-                        .padding(.top, 20)
-                    }
-                }
-            }
+            
         }
-        .background(Color(.systemGroupedBackground))
+        .searchable(text: $viewModel.searchText, prompt: "Search complaints...")
         .navigationTitle("Kode Rumah")
-        .navigationBarTitleDisplayMode(.large)
-        .searchable(text: $searchText, prompt: "Search complaints...")
-        .onAppear {
-            Task {
-                await viewModel.loadComplaints()
-            }
+        .task {
+            await viewModel.loadComplaints()
         }
         .alert("Error", isPresented: .constant(viewModel.errorMessage != nil)) {
             Button("OK") { viewModel.errorMessage = nil }
         } message: {
             Text(viewModel.errorMessage ?? "")
-                .font(.body)
         }
+        .background(Color(.systemGroupedBackground))
     }
 }
+
+
 
 #Preview {
     Group {
         NavigationStack {
-            BSCComplaintListView(viewModel: ComplaintListViewModel())
+            BSCComplaintListView(viewModel: ComplaintListViewModel2())
         }
         .environment(\.sizeCategory, .medium)
         

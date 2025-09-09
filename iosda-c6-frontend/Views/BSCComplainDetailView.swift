@@ -21,36 +21,39 @@ struct BSCComplainDetailView: View {
     }
     
     var body: some View {
-        Group {
-            if viewModel.isLoading {
-                ProgressView("Loading...")
-            } else if let complaint = viewModel.selectedComplaint {
-                ScrollView {
-                    VStack(spacing: 20) {
-                        headerSection(complaint: complaint)
-                        
-                        Text("Complain Description")
-                            .font(.headline)
-                            .frame(maxWidth: .infinity, alignment: .leading)
-                        
-                        detailsSection(complaint: complaint)
-                        requirementsSection
-                        actionButtons
+        ZStack {
+            Color(.systemGroupedBackground)
+                .ignoresSafeArea() // memastikan background menutupi seluruh layar
+            
+            Group {
+                if viewModel.isLoading {
+                    ProgressView("Loading...")
+                } else if let complaint = viewModel.selectedComplaint {
+                    ScrollView {
+                        VStack(spacing: 20) {
+                            headerSection(complaint: complaint)
+                            Text("Complain Description")
+                                .font(.headline)
+                                .frame(maxWidth: .infinity, alignment: .leading)
+                            detailsSection(complaint: complaint)
+                            requirementsSection
+                            actionButtons
+                        }
+                        .padding(.horizontal, 20)
                     }
-                    .padding(.horizontal, 20)
+                } else {
+                    Text("Complaint not found")
+                        .foregroundColor(.secondary)
                 }
-            } else {
-                Text("Complaint not found")
-                    .foregroundColor(.secondary)
             }
         }
         .navigationTitle("Detail Complain")
         .navigationBarTitleDisplayMode(.large)
-        .background(Color(.systemGroupedBackground))
         .task {
             await viewModel.loadComplaint(byId: complaintId)
         }
     }
+
     
     private func headerSection(complaint: Complaint2) -> some View {
         Group {
@@ -130,21 +133,25 @@ struct BSCComplainDetailView: View {
     }
     
     private func complainImages(for complaint: Complaint2) -> some View {
-        Group {
+        let urls = viewModel.firstProgressImageURLs
+        return Group {
             if sizeClass == .regular {
                 VStack(spacing: 12) {
-                    complaintImage(url: "https://via.placeholder.com/150x100")
-                    complaintImage(url: "https://via.placeholder.com/150x100")
+                    ForEach(urls, id: \.self) { url in
+                        complaintImage(url: url)
+                    }
                 }
             } else {
                 HStack(spacing: 12) {
-                    complaintImage(url: "https://via.placeholder.com/150x100")
-                    complaintImage(url: "https://via.placeholder.com/150x100")
+                    ForEach(urls, id: \.self) { url in
+                        complaintImage(url: url)
+                    }
                     Spacer()
                 }
             }
         }
     }
+
 
     private func complaintImage(url: String) -> some View {
         AsyncImage(url: URL(string: url)) { image in

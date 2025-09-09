@@ -1,104 +1,78 @@
 import SwiftUI
 
 struct ResidentComplaintListView: View {
-    @ObservedObject var viewModel: ComplaintListViewModel
-    @State private var showingCreateView = false
-    @State private var searchText: String = ""
+    @StateObject var viewModel: ComplaintListViewModel2
+    let userId: String
 
     var body: some View {
-        //NavigationView {
-            VStack(spacing: 8) {
-                
-                // Picker
-                Picker("Complaint Status", selection: $viewModel.selectedFilter) {
-                    ForEach(ComplaintListViewModel.ComplaintFilter.allCases, id: \.self) { filter in
-                        Text(filter.rawValue).tag(filter)
-                    }
+        VStack {
+            // Complaint Filter Picker
+            Picker("Complaint Status", selection: $viewModel.selectedFilter) {
+                ForEach(ComplaintListViewModel2.ComplaintFilter.allCases, id: \.self) { filter in
+                    Text(filter.rawValue).tag(filter)
                 }
-                .pickerStyle(SegmentedPickerStyle())
-                .padding(.horizontal)
-                .onChange(of: viewModel.selectedFilter) { _ in
-                    viewModel.filterComplaints()
+            }
+            .pickerStyle(.segmented)
+            .padding()
+
+            // Loading State
+            if viewModel.isLoading {
+                ProgressView("Loading...")
+                    .padding(.top, 40)
+                Spacer()
+            }
+
+            // Empty State
+            else if viewModel.filteredComplaints.isEmpty {
+                VStack(spacing: 12) {
+                    Image(systemName: "doc.text")
+                        .font(.title)
+                        .foregroundColor(.secondary)
+                    Text("No complaints found")
+                        .font(.body.weight(.medium))
+                        .foregroundColor(.secondary)
+                        .minimumScaleFactor(0.8)
+                        .lineLimit(2)
                 }
-                
-                // Complaint List
-                if viewModel.isLoading {
-                    Spacer()
-                    ProgressView()
-                        .scaleEffect(1.2)
-                    Spacer()
-                } else if viewModel.filteredComplaints.isEmpty {
-                    Spacer()
+                .padding(.top, 40)
+                Spacer()
+            }
+
+            // Complaint List
+            else {
+                ScrollView {
                     VStack(spacing: 12) {
-                        Image(systemName: "doc.text")
-                            .font(.system(size: 48))
-                            .foregroundColor(.gray.opacity(0.5))
-                        Text("No complaints found")
-                            .font(.system(size: 18, weight: .medium))
-                            .foregroundColor(.gray)
-                    }
-                    Spacer()
-                } else {
-                    ScrollView {
-                        LazyVStack(spacing: 12) {
-                            ForEach(viewModel.filteredComplaints) { complaint in
-                                NavigationLink(destination: ResidentComplaintDetailView(
-                                    complaint: complaint,
-                                    complaintListViewModel: viewModel
-                                )) {
-                                    ResidentComplaintCardView(complaint: complaint)
-                                }
-                                .buttonStyle(PlainButtonStyle())
+                        ForEach(viewModel.filteredComplaints) { complaint in
+                            NavigationLink(destination: ResidentComplaintDetailView(complaint: complaint, complaintListViewModel: viewModel)) {
+                                ComplaintCard(complaint: complaint)
                             }
+                            .buttonStyle(PlainButtonStyle())
+
                         }
-                        .padding(.horizontal, 20)
-                        .padding(.top, 20)
                     }
+                    .padding(.horizontal)
                 }
-                
-            }
-            
-            .navigationTitle("Complaint List")
-            .navigationBarTitleDisplayMode(.large)
-            .toolbar {
-                ToolbarItem(placement: .navigationBarTrailing) {
-                    Button(action: {
-                        showingCreateView = true
-                    }) {
-                        Image(systemName: "plus")
-                            .foregroundColor(.blue)
-                    }
-                }
-            }
-            .searchable(text: $searchText)
-            .onChange(of: searchText) { _ in
-                viewModel.searchText = searchText
-                viewModel.filterComplaints()
-            }
-            .onAppear {
-                Task {
-                    await viewModel.loadComplaints()
-                }
-            }
-            .alert("Error", isPresented: .constant(viewModel.errorMessage != nil)) {
-                Button("OK") {
-                    viewModel.errorMessage = nil
-                }
-            } message: {
-                Text(viewModel.errorMessage ?? "")
-            }
-            .sheet(isPresented: $showingCreateView) {
-                ResidentAddComplaintView(
-                    unitViewModel: UnitViewModel(),
-                    complaintViewModel: viewModel
-                )
             }
         }
+        .searchable(text: $viewModel.searchText, prompt: "Search complaints...")
+        .navigationTitle("Complaint List")
+        .background(Color(.systemGroupedBackground))
+        .task {
+            await viewModel.loadComplaints(byUserId: userId)
+        }
+        .alert("Error", isPresented: .constant(viewModel.errorMessage != nil)) {
+            Button("OK") { viewModel.errorMessage = nil }
+        } message: {
+            Text(viewModel.errorMessage ?? "")
+        }
     }
-//}
+}
 
 #Preview {
     NavigationStack {
-        ResidentComplaintListView(viewModel: ComplaintListViewModel())
+        ResidentComplaintListView(
+            viewModel: ComplaintListViewModel2(),
+            userId: "2b4c59bd-0460-426b-a720-80ccd85ed5b2" // Replace with your test user ID
+        )
     }
 }

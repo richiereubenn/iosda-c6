@@ -8,10 +8,14 @@
 import Foundation
 
 protocol ComplaintServiceProtocol2 {
+
     func getAllComplaints() async throws -> [Complaint2]
     func getComplaintsByUnitId(_ unitId: String) async throws -> [Complaint2]
     func getComplaintById(_ id: String) async throws -> Complaint2
     func updateComplaintStatus(complaintId: String, statusId: String) async throws -> Complaint2
+    func getComplaintsByUserId(_ userId: String) async throws -> [Complaint2]
+    func getProgressLogs(complaintId: String) async throws -> [ProgressLog]
+
 }
 
 class ComplaintService2: ComplaintServiceProtocol2 {
@@ -52,26 +56,59 @@ class ComplaintService2: ComplaintServiceProtocol2 {
     }
     
     func updateComplaintStatus(complaintId: String, statusId: String) async throws -> Complaint2 {
-        let endpoint = "/complaint/v1/complaints/\(complaintId)/status"
+            let endpoint = "/complaint/v1/complaints/\(complaintId)/status"
+            
+            let bodyDict: [String: Any] = ["status_id": statusId]
+            let bodyData = try JSONSerialization.data(withJSONObject: bodyDict, options: [])
+            
+            let response: APIResponse<Complaint2> = try await networkManager.request(
+                endpoint: endpoint,
+                method: .PUT,
+                body: bodyData
+            )
+            
+            guard response.success else {
+                throw NetworkError.serverError(response.code ?? 0)
+            }
+            
+            guard let updatedComplaint = response.data else {
+                throw NetworkError.noData
+            }
+            
+            return updatedComplaint
+        }
+
+    
+    func getProgressLogs(complaintId: String) async throws -> [ProgressLog] {
+            // Define the endpoint for fetching progress logs for a specific complaint
+            let endpoint = "/complaint/v1/complaints/\(complaintId)/progress"
+            
+            let response: APIResponse<[ProgressLog]> = try await networkManager.request(endpoint: endpoint)
+            
+            guard response.success else {
+                throw NetworkError.serverError(response.code ?? 0)
+            }
+            
+            return response.data ?? []
+        }
+    
+
+    func getComplaintsByUserId(_ userId: String) async throws -> [Complaint2] {
+
+        let endpoint = "/complaint/v1/complaints?user_id=\(userId)"
+        let response: APIResponse<[Complaint2]> = try await networkManager.request(endpoint: endpoint)
         
-        let bodyDict: [String: Any] = ["status_id": statusId]
-        let bodyData = try JSONSerialization.data(withJSONObject: bodyDict, options: [])
-        
-        let response: APIResponse<Complaint2> = try await networkManager.request(
-            endpoint: endpoint,
-            method: .PUT,
-            body: bodyData
-        )
-        
+ 
         guard response.success else {
             throw NetworkError.serverError(response.code ?? 0)
         }
         
+
         guard let updatedComplaint = response.data else {
             throw NetworkError.noData
         }
         
         return updatedComplaint
     }
-
 }
+

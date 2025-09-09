@@ -1,7 +1,7 @@
 import SwiftUI
 struct ResidentHomeView: View {
     
-    @ObservedObject var viewModel: ComplaintListViewModel
+    @ObservedObject var viewModel: ComplaintListViewModel2
     @ObservedObject var unitViewModel: UnitViewModel
     @State private var showingCreateView = false
     
@@ -89,7 +89,10 @@ struct ResidentHomeView: View {
                     
                     Spacer()
                     
-                    NavigationLink(destination: ResidentComplaintListView(viewModel: viewModel)) {
+                    NavigationLink(destination: ResidentComplaintListView(
+                        viewModel: ComplaintListViewModel2(),
+                        userId: "2b4c59bd-0460-426b-a720-80ccd85ed5b2" // Replace with your test user ID
+                    )) {
                         Text("View All")
                             .foregroundColor(.blue)
                             .font(.body)
@@ -103,7 +106,7 @@ struct ResidentHomeView: View {
                     LazyVStack(spacing: 15) {
                         ForEach(viewModel.complaints.prefix(5)) { complaint in
                             NavigationLink(destination: ResidentComplaintDetailView(complaint: complaint)) {
-                                ResidentComplaintCardView(complaint: complaint)
+                                ComplaintCard(complaint: complaint)
                             }
                             .buttonStyle(PlainButtonStyle())
                         }
@@ -131,12 +134,12 @@ struct ResidentHomeView: View {
             }
         }
         .background(Color(.systemGroupedBackground))
-        .sheet(isPresented: $showingCreateView) {
-            ResidentAddComplaintView(
-                unitViewModel: unitViewModel, // Use same instance, not new one
-                complaintViewModel: viewModel
-            )
-        }
+//        .sheet(isPresented: $showingCreateView) {
+//            ResidentAddComplaintView(
+//                unitViewModel: unitViewModel, // Use same instance, not new one
+//                complaintViewModel: viewModel
+//            )
+//        }
     }
 }
 
@@ -144,7 +147,7 @@ struct ResidentHomeView: View {
 #Preview {
     NavigationStack {
         ResidentHomeView(
-            viewModel: ComplaintListViewModel(),
+            viewModel: ComplaintListViewModel2(),
             unitViewModel: UnitViewModel()
         )
         .navigationBarHidden(true)

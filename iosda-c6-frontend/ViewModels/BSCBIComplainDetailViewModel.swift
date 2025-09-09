@@ -15,20 +15,41 @@ class BSCBIComplaintDetailViewModel: ObservableObject {
     @Published var isLoading: Bool = false
     @Published var isUpdating: Bool = false
     @Published var errorMessage: String? = nil
+    @Published var firstProgress: ProgressLog2? = nil
     
     private let service: ComplaintServiceProtocol2
+    private let progressService: ProgressLogServiceProtocol
     
-    init(service: ComplaintServiceProtocol2 = ComplaintService2()) {
+    private let baseURL = "https://api.kevinchr.com/complaint"
+    
+    init(
+        service: ComplaintServiceProtocol2 = ComplaintService2(),
+        progressService: ProgressLogServiceProtocol = ProgressLogService()
+    ) {
         self.service = service
+        self.progressService = progressService
     }
     
     func loadComplaint(byId id: String) async {
+        isLoading = true
+        defer { isLoading = false }
+        
         do {
             let complaint = try await service.getComplaintById(id)
             selectedComplaint = complaint
             selectedStatus = ComplaintStatus(raw: complaint.statusName)
+            
+            await loadFirstProgress(for: id)
         } catch {
             errorMessage = "Failed to load complaint \(id): \(error.localizedDescription)"
+        }
+    }
+    
+    private func loadFirstProgress(for complaintId: String) async {
+        do {
+            firstProgress = try await progressService.getFirstProgress(complaintId: complaintId)
+        } catch {
+            print("Failed to load first progress: \(error.localizedDescription)")
         }
     }
     
@@ -51,7 +72,6 @@ class BSCBIComplaintDetailViewModel: ObservableObject {
             
             selectedComplaint = complainDetail
             selectedStatus = ComplaintStatus(raw: complainDetail.statusName)
-            print(complainDetail.statusName)
         } catch {
             errorMessage = "Failed to update status: \(error.localizedDescription)"
         }
@@ -66,6 +86,19 @@ class BSCBIComplaintDetailViewModel: ObservableObject {
             return false
         }
     }
-
+    
+    var firstProgressImageURLs: [String] {
+        firstProgress?.files?.compactMap { file in
+            fullURL(for: file.url)
+        } ?? []
+    }
+    
+    private func fullURL(for path: String?) -> String {
+        guard let path else { return "" }
+        if path.hasPrefix("http") {
+            return path
+        } else {
+            return baseURL + path
+        }
+    }
 }
-

@@ -11,7 +11,7 @@ struct BSCComplainDetailView: View {
     let complaintId: String
     
     @Environment(\.horizontalSizeClass) private var sizeClass
-    @StateObject private var viewModel = ComplaintDetailViewModel2()
+    @StateObject private var viewModel = BSCBIComplaintDetailViewModel()
     
     @State private var garansiChecked = true
     @State private var izinRenovasiChecked = true
@@ -192,7 +192,7 @@ struct BSCComplainDetailView: View {
         VStack(alignment: .leading, spacing: 12) {
             if let status = viewModel.selectedStatus {
                 switch status {
-                case .open:
+                case .underReview:
                     CustomButtonComponent(
                         text: "Confirm",
                         backgroundColor: .primaryBlue,
@@ -200,7 +200,7 @@ struct BSCComplainDetailView: View {
                         isDisabled: isConfirmDisabled
                     ) {
                         Task {
-                            await viewModel.updateStatus(to: "ba1b0384-9c57-4c34-a70b-2ed7e44b7ce0") // In Progress
+                            await viewModel.updateStatus(to: "8e8f0a90-36eb-4a7f-aad0-ee2e59fd9b8f") 
                             NotificationManager.shared.sendNotification(
                                 title: "Complain Confirmed",
                                 body: "You have confirmed the complain."
@@ -208,59 +208,34 @@ struct BSCComplainDetailView: View {
                         }
                     }
                     
-                case .underReview:
+                case .waitingKeyHandover:
                     HStack(spacing: 12) {
-                        // Reject Button
-                        CustomButtonComponent(
-                            text: "Reject",
-                            backgroundColor: .red,
-                            textColor: .white
-                        ) {
-                            Task {
-                                await viewModel.updateStatus(to: "99d06c4a-e49f-4144-b617-2a1b6c51092f") // Rejected
-                            }
-                        }
-                        
-                        // Accept Button
-                        CustomButtonComponent(
-                            text: "Accept",
-                            backgroundColor: .green,
-                            textColor: .white
-                        ) {
-                            Task {
-                                await viewModel.updateStatus(to: "200635a5-68f1-4ceb-8c97-0d4cfea48119") // Waiting Key Handover
-                            }
-                        }
-                    }
-                    
-                case .waitingKey:
-                    HStack(spacing: 12) {
-                        // Accept Key Button
                         CustomButtonComponent(
                             text: "Accept Key",
                             backgroundColor: .green,
                             textColor: .white
                         ) {
                             Task {
-                                // Update status ke Closed misal
-                                await viewModel.updateStatus(to: "9c982cf2-c5dc-48ae-8346-235cb73cf302") // Closed
+                                await viewModel.updateStatus(to: "ba1b0384-9c57-4c34-a70b-2ed7e44b7ce0")
                             }
                         }
                         
-                        // Not Receive Key Button
                         CustomButtonComponent(
                             text: "Not Receive Key",
                             backgroundColor: .red,
                             textColor: .white
                         ) {
                             Task {
-                                // Update status ke Rejected misal
-                                await viewModel.updateStatus(to: "99d06c4a-e49f-4144-b617-2a1b6c51092f") // Rejected
+                                await viewModel.updateStatus(to: "99d06c4a-e49f-4144-b617-2a1b6c51092f")
                             }
                         }
                     }
                     
-                case .inProgress, .resolved, .rejected, .unknown, .closed:
+                case .inProgress:
+                    HStack(spacing: 12) {
+                    }
+                    
+                case .open, .resolved, .rejected, .unknown, .closed:
                     EmptyView()
                 }
             }

@@ -72,12 +72,10 @@ class ComplaintListViewModel2: ObservableObject {
         switch selectedFilter {
         case .all:
             break
-        case .open:
-            results = results.filter { $0.statusName?.lowercased() == "open" }
         case .underReview:
             results = results.filter { $0.statusName?.lowercased() == "under review" }
         case .waitingKey:
-            results = results.filter { $0.statusName?.lowercased() == "waiting key" }
+            results = results.filter { $0.statusName?.lowercased() == "waiting key handover" }
         case .inProgress:
             results = results.filter { $0.statusName?.lowercased() == "in progress" }
         case .resolved:
@@ -99,9 +97,8 @@ class ComplaintListViewModel2: ObservableObject {
     
     enum ComplaintFilter: String, CaseIterable {
         case all = "All"
-        case open = "Open"
         case underReview = "Under Review"
-        case waitingKey = "Waiting Key"
+        case waitingKey = "Waiting Key Handover"
         case inProgress = "In Progress"
         case resolved = "Resolved"
         case rejected = "Rejected"

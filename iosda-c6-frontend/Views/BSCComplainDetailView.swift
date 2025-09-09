@@ -23,7 +23,7 @@ struct BSCComplainDetailView: View {
     var body: some View {
         ZStack {
             Color(.systemGroupedBackground)
-                .ignoresSafeArea() // memastikan background menutupi seluruh layar
+                .ignoresSafeArea() 
             
             Group {
                 if viewModel.isLoading {
@@ -207,7 +207,7 @@ struct BSCComplainDetailView: View {
                         isDisabled: isConfirmDisabled
                     ) {
                         Task {
-                            await viewModel.updateStatus(to: "8e8f0a90-36eb-4a7f-aad0-ee2e59fd9b8f") 
+                            await viewModel.updateStatus(to: "8e8f0a90-36eb-4a7f-aad0-ee2e59fd9b8f")
                             NotificationManager.shared.sendNotification(
                                 title: "Complain Confirmed",
                                 body: "You have confirmed the complain."

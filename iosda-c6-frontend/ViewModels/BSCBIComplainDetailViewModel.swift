@@ -16,6 +16,7 @@ class BSCBIComplaintDetailViewModel: ObservableObject {
     @Published var isUpdating: Bool = false
     @Published var errorMessage: String? = nil
     @Published var firstProgress: ProgressLog2? = nil
+    @Published var isSubmitting: Bool = false
     
     private let service: ComplaintServiceProtocol2
     private let progressService: ProgressLogServiceProtocol
@@ -101,4 +102,47 @@ class BSCBIComplaintDetailViewModel: ObservableObject {
             return baseURL + path
         }
     }
+    
+    func submitRejectionProgress(complaintId: String,
+                                 userId: String,
+                                 reason: String) async {
+        isSubmitting = true
+        defer { isSubmitting = false }
+        
+        do {
+            _ = try await progressService.createProgress(
+                complaintId: complaintId,
+                userId: userId,
+                title: "reject info",
+                description: reason,
+                files: nil
+            )
+        } catch {
+            errorMessage = "Failed to create rejection progress: \(error.localizedDescription)"
+        }
+    }
+    
+    func submitStartWorkProgress(
+            complaintId: String,
+            userId: String,
+            images: [UIImage]
+        ) async {
+            isSubmitting = true
+            defer { isSubmitting = false }
+            
+            do {
+                _ = try await progressService.uploadProgressWithFiles(
+                    complaintId: complaintId,
+                    userId: userId,
+                    title: "start work 2",
+                    description: nil,
+                    images: images
+                )
+            } catch {
+                errorMessage = "Failed to create start work progress: \(error.localizedDescription)"
+            }
+        }
+    
+    
+
 }

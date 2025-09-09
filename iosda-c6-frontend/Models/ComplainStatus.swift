@@ -10,7 +10,7 @@ import SwiftUI
 enum ComplaintStatus: String {
     case open = "open"
     case underReview = "under review"
-    case waitingKey = "waiting key"
+    case waitingKeyHandover = "waiting key handover"
     case inProgress = "in progress"
     case resolved = "resolved"
     case rejected = "rejected"
@@ -25,7 +25,7 @@ enum ComplaintStatus: String {
         switch raw {
         case "open": self = .open
         case "under review": self = .underReview
-        case "waiting key": self = .waitingKey
+        case "waiting key handover": self = .waitingKeyHandover
         case "in progress": self = .inProgress
         case "resolved": self = .resolved
         case "rejected": self = .rejected
@@ -39,7 +39,7 @@ enum ComplaintStatus: String {
         switch self {
         case .open: return .red
         case .underReview: return .yellow
-        case .waitingKey: return .orange
+        case .waitingKeyHandover: return .orange
         case .inProgress: return .blue
         case .resolved: return .green
         case .rejected: return .gray
@@ -53,7 +53,7 @@ enum ComplaintStatus: String {
         switch self {
         case .open: return "Open"
         case .underReview: return "Under Review"
-        case .waitingKey: return "Waiting Key"
+        case .waitingKeyHandover: return "Waiting Key Handover"
         case .inProgress: return "In Progress"
         case .resolved: return "Resolved"
         case .rejected: return "Rejected"

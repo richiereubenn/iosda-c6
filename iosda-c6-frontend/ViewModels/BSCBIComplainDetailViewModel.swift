@@ -1,5 +1,5 @@
 //
-//  ComplaintStatusViewModel2.swift
+//  BSCBIComplainDetailViewModel.swift
 //  iosda-c6-frontend
 //
 //  Created by Richie Reuben Hermanto on 09/09/25.
@@ -9,7 +9,7 @@ import Foundation
 import SwiftUI
 
 @MainActor
-class ComplaintDetailViewModel2: ObservableObject {
+class BSCBIComplaintDetailViewModel: ObservableObject {
     @Published var selectedComplaint: Complaint2? = nil
     @Published var selectedStatus: ComplaintStatus? = nil
     @Published var isLoading: Bool = false
@@ -51,8 +51,21 @@ class ComplaintDetailViewModel2: ObservableObject {
             
             selectedComplaint = complainDetail
             selectedStatus = ComplaintStatus(raw: complainDetail.statusName)
+            print(complainDetail.statusName)
         } catch {
             errorMessage = "Failed to update status: \(error.localizedDescription)"
         }
     }
+    
+    func shouldShowActions(for status: ComplaintStatus?) -> Bool {
+        guard let status else { return false }
+        switch status {
+        case .underReview:
+            return true
+        default:
+            return false
+        }
+    }
+
 }
+

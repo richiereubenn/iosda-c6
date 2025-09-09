@@ -1,7 +1,7 @@
 import SwiftUI
 
 struct ResidentComplaintDetailView: View {
-    // 1. Updated model and view model types
+    
     let complaint: Complaint2
     let complaintListViewModel: ComplaintListViewModel2?
     
@@ -10,7 +10,6 @@ struct ResidentComplaintDetailView: View {
     @State private var selectedImageIndex = 0
     @State private var showingProgressDetail = false
     
-    // Initializer with the new types
     init(complaint: Complaint2, complaintListViewModel: ComplaintListViewModel2? = nil) {
         self.complaint = complaint
         self.complaintListViewModel = complaintListViewModel
@@ -134,7 +133,7 @@ struct ResidentComplaintDetailView: View {
         .navigationBarBackButtonHidden(true)
         .navigationDestination(isPresented: $showingProgressDetail) {
             // Updated to use the new ViewModel type
-            ProgressDetailView(
+            ResidentProgressDetailView(
                 complaintId: complaint.id, complaintListViewModel: ComplaintListViewModel2()
             )
         }

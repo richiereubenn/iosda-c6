@@ -1,7 +1,7 @@
 import Foundation
 
 @MainActor
-class ComplaintDetailViewModel: ObservableObject {
+class ResidentComplaintDetailViewModel: ObservableObject {
     @Published var progressLogs: [ProgressLog] = []
     @Published var isLoading = false
     @Published var errorMessage: String?

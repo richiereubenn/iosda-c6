@@ -1,20 +1,16 @@
 import SwiftUI
 
-struct ProgressDetailView: View {
-    // 1. Use @StateObject for a view model created and owned by this view.
-    // This is the correct property wrapper to prevent state loss on re-renders.
-    @StateObject private var viewModel: ComplaintDetailViewModel
+struct ResidentProgressDetailView: View {
+
+    @StateObject private var viewModel: ResidentComplaintDetailViewModel
     
     let complaintId: String
-    var previewData: [ProgressLog]? // For previews
-
-    // 2. The initializer now takes the new ComplaintListViewModel2
-    // In ProgressDetailView.swift
-
+    var previewData: [ProgressLog]?
+    
     init(complaintId: String, complaintListViewModel: ComplaintListViewModel2, previewData: [ProgressLog]? = nil) {
         self.complaintId = complaintId
         self.previewData = previewData
-        _viewModel = StateObject(wrappedValue: ComplaintDetailViewModel())
+        _viewModel = StateObject(wrappedValue: ResidentComplaintDetailViewModel())
     }
 
     var body: some View {
@@ -66,7 +62,7 @@ struct ProgressDetailView: View {
 
 #Preview {
     NavigationStack {
-        ProgressDetailView(
+        ResidentProgressDetailView(
             complaintId: "1", complaintListViewModel: ComplaintListViewModel2(),
             previewData: [
                 ProgressLog(

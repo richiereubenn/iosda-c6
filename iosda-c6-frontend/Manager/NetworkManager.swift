@@ -6,6 +6,7 @@
 //
 
 import Foundation
+import UIKit
 
 enum NetworkError: Error, LocalizedError {
     case invalidURL
@@ -29,7 +30,6 @@ enum NetworkError: Error, LocalizedError {
         }
     }
 }
-
 class NetworkManager {
     static let shared = NetworkManager()
     private let baseURL = "https://api.kevinchr.com"
@@ -135,5 +135,78 @@ extension JSONDecoder {
         formatter.timeZone = TimeZone(secondsFromGMT: 0)
         decoder.dateDecodingStrategy = .formatted(formatter)
         return decoder
+    }
+}
+
+extension NetworkManager {
+    func createProgressWithFiles(
+        complaintId: String,
+        userId: String,
+        title: String,
+        description: String?,
+        images: [UIImage]
+    ) async throws -> ProgressLog2 {
+        
+        guard let url = URL(string: baseURL + "/complaint/v1/complaints/\(complaintId)/progress") else {
+            throw NetworkError.invalidURL
+        }
+        
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        
+        if let token = bearerToken {
+            request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+        }
+        
+        let boundary = UUID().uuidString
+        request.setValue("multipart/form-data; boundary=\(boundary)", forHTTPHeaderField: "Content-Type")
+        
+        var body = Data()
+        
+        // Add text fields
+        body.append("--\(boundary)\r\n".data(using: .utf8)!)
+        body.append("Content-Disposition: form-data; name=\"user_id\"\r\n\r\n".data(using: .utf8)!)
+        body.append("\(userId)\r\n".data(using: .utf8)!)
+        
+        body.append("--\(boundary)\r\n".data(using: .utf8)!)
+        body.append("Content-Disposition: form-data; name=\"title\"\r\n\r\n".data(using: .utf8)!)
+        body.append("\(title)\r\n".data(using: .utf8)!)
+        
+        if let description = description {
+            body.append("--\(boundary)\r\n".data(using: .utf8)!)
+            body.append("Content-Disposition: form-data; name=\"description\"\r\n\r\n".data(using: .utf8)!)
+            body.append("\(description)\r\n".data(using: .utf8)!)
+        }
+        
+        // Add image files
+        for (index, image) in images.enumerated() {
+            guard let imageData = image.jpegData(compressionQuality: 0.8) else {
+                continue
+            }
+            
+            body.append("--\(boundary)\r\n".data(using: .utf8)!)
+            body.append("Content-Disposition: form-data; name=\"files\"; filename=\"image_\(index).jpg\"\r\n".data(using: .utf8)!)
+            body.append("Content-Type: image/jpeg\r\n\r\n".data(using: .utf8)!)
+            body.append(imageData)
+            body.append("\r\n".data(using: .utf8)!)
+        }
+        
+        body.append("--\(boundary)--\r\n".data(using: .utf8)!)
+        
+        let (data, response) = try await URLSession.shared.upload(for: request, from: body)
+        
+        guard let httpResponse = response as? HTTPURLResponse,
+              200...299 ~= httpResponse.statusCode else {
+            throw NetworkError.serverError((response as? HTTPURLResponse)?.statusCode ?? 0)
+        }
+        
+        let decoder = JSONDecoder.iso8601WithFractionalSeconds
+        let apiResponse = try decoder.decode(APIResponse<ProgressLog2>.self, from: data)
+        
+        guard apiResponse.success, let progressLog = apiResponse.data else {
+            throw NetworkError.serverError(apiResponse.code ?? 0)
+        }
+        
+        return progressLog
     }
 }

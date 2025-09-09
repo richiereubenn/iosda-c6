@@ -24,7 +24,6 @@ struct BIComplaintDetailView: View {
             } else if let complaint = viewModel.selectedComplaint {
                 VStack(alignment: .leading, spacing: 20) {
                     
-                    // MARK: Header + Basic Info
                     VStack(alignment: .leading, spacing: 16) {
                         Text("Judul Komplain")
                             .font(.system(size: 24, weight: .bold))
@@ -65,7 +64,6 @@ struct BIComplaintDetailView: View {
                         }
                     }
                     
-                    // MARK: Image
                     VStack(alignment: .leading, spacing: 12) {
                         Text("Image")
                             .font(.system(size: 18, weight: .semibold))
@@ -89,7 +87,6 @@ struct BIComplaintDetailView: View {
                         }
                     }
                     
-                    // MARK: Location
                     VStack(alignment: .leading, spacing: 12) {
                         Text("Location/Unit Detail")
                             .font(.system(size: 18, weight: .semibold))
@@ -105,7 +102,6 @@ struct BIComplaintDetailView: View {
                         }
                     }
                     
-                    // ✅ Action Buttons
                     actionButtons
                 }
                 .padding(20)
@@ -119,7 +115,6 @@ struct BIComplaintDetailView: View {
         .navigationTitle("Detail Complain")
         .background(Color(.systemGroupedBackground))
         
-        // MARK: Reject Alert
         .alert("Do you want to reject this issue?", isPresented: $showRejectAlert) {
             TextField("Explain why you reject this issue", text: $rejectionReason, axis: .vertical)
             
@@ -128,25 +123,35 @@ struct BIComplaintDetailView: View {
             }
             
             Button("Reject", role: .destructive) {
+                let reason = rejectionReason.trimmingCharacters(in: .whitespacesAndNewlines)
                 Task {
                     await viewModel.updateStatus(to: "8e8f0a90-36eb-4a7f-aad0-ee2e59fd9b8f")
+                    await viewModel.submitRejectionProgress(
+                                complaintId: complaintId,
+                                userId: "2b4c59bd-0460-426b-a720-80ccd85ed5b2",
+                                reason: reason
+                            )
                 }
             }
         } message: {
             Text("Explain why you reject this issue")
         }
         
-        // MARK: Accept Sheet
         .sheet(isPresented: $showAcceptSheet) {
             PhotoUploadSheet(
                 title: "Start this Work?",
                 description: "This will set the work status to\n'In Progress'.",
                 photoLabel1: "A close-up photo of the specific defect.",
                 photoLabel2: "A wide-angle photo showing the entire work area.",
-                uploadAmount: 1,
-                onStartWork: {
+                uploadAmount: 2,
+                onStartWork: { photos in
                     Task {
                         await viewModel.updateStatus(to: "8e8f0a90-36eb-4a7f-aad0-ee2e59fd9b8f")
+                        await viewModel.submitStartWorkProgress(
+                            complaintId: complaintId,
+                            userId: "2b4c59bd-0460-426b-a720-80ccd85ed5b2",
+                            images: photos
+                        )
                     }
                     showAcceptSheet = false
                 },
@@ -157,6 +162,7 @@ struct BIComplaintDetailView: View {
             .presentationDetents([.medium, .large])
             .presentationDragIndicator(.visible)
         }
+
         .task {
             await viewModel.loadComplaint(byId: complaintId)
         }
@@ -277,8 +283,6 @@ struct BIComplaintDetailView: View {
             )
         }
     }
-
-
     
     private func formatDate(_ date: Date?, format: String) -> String {
         guard let date else { return "-" }
@@ -287,10 +291,3 @@ struct BIComplaintDetailView: View {
         return formatter.string(from: date)
     }
 }
-
-//
-//#Preview {
-//    NavigationView {
-//        BIComplaintDetailView()
-//    }
-//}

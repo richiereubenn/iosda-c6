@@ -1,10 +1,3 @@
-//
-//  PhotoUploadSheet.swift
-//  iosda-c6-frontend
-//
-//  Created by Richie Reuben Hermanto on 01/09/25.
-//
-
 import SwiftUI
 
 struct PhotoUploadSheet: View {
@@ -13,7 +6,7 @@ struct PhotoUploadSheet: View {
     let photoLabel1: String
     let photoLabel2: String?
     let uploadAmount: Int // 1 or 2
-    let onStartWork: () -> Void
+    let onStartWork: ([UIImage]) -> Void
     let onCancel: () -> Void
     
     @StateObject private var viewModel = PhotoUploadAlertViewModel()
@@ -101,11 +94,11 @@ struct PhotoUploadSheet: View {
                     backgroundColor: viewModel.canStartWork(uploadAmount: uploadAmount) ? .primaryBlue : .gray,
                     textColor: .white
                 ) {
-                    onStartWork()
+                    let photos = [viewModel.photo1, viewModel.photo2].compactMap { $0 }
+                    onStartWork(photos)
                 }
                 .disabled(!viewModel.canStartWork(uploadAmount: uploadAmount))
             }
-
         }
         .padding(20)
         .onAppear {
@@ -138,21 +131,14 @@ struct PhotoUploadSheet: View {
 }
 
 #Preview {
-    Group {
-        PhotoUploadSheet(
-            title: "Start this Work?",
-            description: "This will set the work status to 'In Progress'.",
-            photoLabel1: "A close-up photo of the specific defect.",
-            photoLabel2: nil,
-            uploadAmount: 1,
-            onStartWork: {
-                print("Start Work tapped")
-            },
-            onCancel: {
-                print("Cancel tapped")
-            }
-        )
-        .previewDisplayName("Upload 1 Photo")
-    }
+    PhotoUploadSheet(
+        title: "Start this Work?",
+        description: "This will set the work status to 'In Progress'.",
+        photoLabel1: "A close-up photo of the specific defect.",
+        photoLabel2: "A wide-angle photo showing the entire work area.",
+        uploadAmount: 2,
+        onStartWork: { _ in },
+        onCancel: { }
+    )
     .padding()
 }

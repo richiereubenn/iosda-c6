@@ -34,7 +34,7 @@ class NetworkManager {
     static let shared = NetworkManager()
     private let baseURL = "https://api.kevinchr.com"
     
-    var bearerToken: String? = "eyJhbGciOiJFZERTQSJ9.eyJ1c2VyX2lkIjoiMmI0YzU5YmQtMDQ2MC00MjZiLWE3MjAtODBjY2Q4NWVkNWIyIiwibmFtZSI6IlN1cGVyIEFkbWluaXN0cmF0b3IiLCJ1c2VybmFtZSI6InN1cGVyYWRtaW4iLCJlbWFpbCI6ImFkbWluQGV4YW1wbGUuY29tIiwicm9sZXMiOlsic3VwZXJfYWRtaW4iXSwicGVybWlzc2lvbnMiOlsiY3JlYXRlOnBlcm1pc3Npb24iLCJjcmVhdGU6cm9sZSIsImNyZWF0ZTp1c2VyIiwiZGVsZXRlOnBlcm1pc3Npb24iLCJkZWxldGU6cm9sZSIsImRlbGV0ZTp1c2VyIiwibWFuYWdlOnJvbGVfcGVybWlzc2lvbnMiLCJyZWFkOmRlbGV0ZWRfcGVybWlzc2lvbnMiLCJyZWFkOmRlbGV0ZWRfcm9sZXMiLCJyZWFkOmRlbGV0ZWRfdXNlcnMiLCJyZWFkOnBlcm1pc3Npb24iLCJyZWFkOnBlcm1pc3Npb25zIiwicmVhZDpyb2xlIiwicmVhZDpyb2xlcyIsInJlYWQ6dXNlciIsInJlYWQ6dXNlcnMiLCJyZXN0b3JlOnBlcm1pc3Npb24iLCJyZXN0b3JlOnJvbGUiLCJyZXN0b3JlOnVzZXIiLCJ1cGRhdGU6cGVybWlzc2lvbiIsInVwZGF0ZTpyb2xlIiwidXBkYXRlOnVzZXIiXSwiaWF0IjoxNzU3Mjk4NDIxLCJleHAiOjE3NTczODQ4MjEsIm5iZiI6MTc1NzI5ODQyMSwianRpIjoiZjQ0ODc2OTMtNzhkOC00MWZhLTkyYzgtZWZmOTVhZWIwMmM5In0.xvNxOI3vTEJnBpg-o8Xgr2L0snqlKrcHQKGtG0T79xwAoOV1wPrImbi0PPHwdizXbDOoiLQReNDDwg4cTQI_CA"
+    var bearerToken: String? = "eyJhbGciOiJFZERTQSJ9.eyJ1c2VyX2lkIjoiMmI0YzU5YmQtMDQ2MC00MjZiLWE3MjAtODBjY2Q4NWVkNWIyIiwibmFtZSI6IlN1cGVyIEFkbWluaXN0cmF0b3IiLCJ1c2VybmFtZSI6InN1cGVyYWRtaW4iLCJlbWFpbCI6ImFkbWluQGV4YW1wbGUuY29tIiwicm9sZXMiOlsic3VwZXJfYWRtaW4iXSwicGVybWlzc2lvbnMiOlsiY3JlYXRlOnBlcm1pc3Npb24iLCJjcmVhdGU6cm9sZSIsImNyZWF0ZTp1c2VyIiwiZGVsZXRlOnBlcm1pc3Npb24iLCJkZWxldGU6cm9sZSIsImRlbGV0ZTp1c2VyIiwibWFuYWdlOnJvbGVfcGVybWlzc2lvbnMiLCJyZWFkOmRlbGV0ZWRfcGVybWlzc2lvbnMiLCJyZWFkOmRlbGV0ZWRfcm9sZXMiLCJyZWFkOmRlbGV0ZWRfdXNlcnMiLCJyZWFkOnBlcm1pc3Npb24iLCJyZWFkOnBlcm1pc3Npb25zIiwicmVhZDpyb2xlIiwicmVhZDpyb2xlcyIsInJlYWQ6dXNlciIsInJlYWQ6dXNlcnMiLCJyZXN0b3JlOnBlcm1pc3Npb24iLCJyZXN0b3JlOnJvbGUiLCJyZXN0b3JlOnVzZXIiLCJ1cGRhdGU6cGVybWlzc2lvbiIsInVwZGF0ZTpyb2xlIiwidXBkYXRlOnVzZXIiXSwiaWF0IjoxNzU3MzgwMjcwLCJleHAiOjE3NTc0NjY2NzAsIm5iZiI6MTc1NzM4MDI3MCwianRpIjoiNTI4OWE1ZWItY2RlNS00YjllLTllZjYtMTRhZGFhYzdlODU3In0.6r_5P_JWDWVcFRRj3ciMZqii-dNlyW_e-8rhtGEmoyrzm-5ocWDL5hv-pxT6BX5uxpR_2LHAcJuJYYPJMiCoBA"
     private init() {}
     
     func request<T: Codable>(
@@ -45,39 +45,50 @@ class NetworkManager {
         guard let url = URL(string: baseURL + endpoint) else {
             throw NetworkError.invalidURL
         }
-        
+
         var request = URLRequest(url: url)
         request.httpMethod = method.rawValue
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-        
+
         if let token = bearerToken {
             request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
         }
-        
+
         if let body = body {
             request.httpBody = body
+            print("Request body: \(String(data: body, encoding: .utf8) ?? "")")
         }
-        
+
+        print("Requesting URL: \(request.url?.absoluteString ?? "") with method: \(method.rawValue)")
+
+        let (data, response) = try await URLSession.shared.data(for: request)
+
+        if let httpResponse = response as? HTTPURLResponse {
+            print("Response status code: \(httpResponse.statusCode)")
+        }
+
+        print("Response data: \(String(data: data, encoding: .utf8) ?? "")")
+
+        guard let httpResponse = response as? HTTPURLResponse else {
+            throw NetworkError.serverError(0)
+        }
+
+        guard 200...299 ~= httpResponse.statusCode else {
+            throw NetworkError.serverError(httpResponse.statusCode)
+        }
+
+        let decoder = JSONDecoder.iso8601WithFractionalSeconds
+
         do {
-            let (data, response) = try await URLSession.shared.data(for: request)
-            
-            guard let httpResponse = response as? HTTPURLResponse else {
-                throw NetworkError.serverError(0)
-            }
-            
-            guard 200...299 ~= httpResponse.statusCode else {
-                throw NetworkError.serverError(httpResponse.statusCode)
-            }
-            
-            let decoder = JSONDecoder.iso8601WithFractionalSeconds
-            return try decoder.decode(T.self, from: data)
+            let decoded = try decoder.decode(T.self, from: data)
+            return decoded
         } catch {
-            if error is DecodingError {
-                throw NetworkError.decodingError
-            }
-            throw error
+            print("Decoding error: \(error)")
+            throw NetworkError.decodingError
         }
+
     }
+
     
     func requestEmpty(
         endpoint: String,

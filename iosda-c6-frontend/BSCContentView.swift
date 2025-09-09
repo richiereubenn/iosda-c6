@@ -26,7 +26,8 @@ struct BSCContentView: View {
                         Text("Land")
                         
                     case "Other":
-                        Text("Other")
+                        //Text("Other")
+                        LoginView()
                         
                     case "Unit":
                         BSCUnitListView()

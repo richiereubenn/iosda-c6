@@ -13,14 +13,14 @@ class LoginService: LoginServiceProtocol {
 
     func login(username: String, password: String) async throws -> User {
         let requestBody = [
-            "username": username,
+            "identifier": username,
             "password": password
         ]
 
         let bodyData = try JSONSerialization.data(withJSONObject: requestBody, options: [])
 
         let response: APIResponse<User> = try await networkManager.request(
-            endpoint: "/login",
+            endpoint: "/authN/v1/auth/login",
             method: .POST,
             body: bodyData
         )

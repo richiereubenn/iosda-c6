@@ -11,11 +11,12 @@ struct User: Identifiable, Codable {
     let id: String?
     let roleId: String?
     let name: String
-    let phone: String?
-    let email: String?
+    let phone: String
+    let email: String
     let username: String
     let password: String
     let acceptTosPrivacy: Bool
+    let otherAttribute: OtherAttribute?
     
     // Navigation properties
     var role: Role?
@@ -30,18 +31,11 @@ struct User: Identifiable, Codable {
         case username
         case password
         case acceptTosPrivacy = "accept_tos_pp"
-        case role
-    }
-    
-    init(id: String? = nil, roleId: String? = nil, name: String, phone: String?, email: String?, username: String, password: String, acceptTosPrivacy: Bool) {
-        self.id = id
-        self.roleId = roleId
-        self.name = name
-        self.phone = phone
-        self.email = email
-        self.username = username
-        self.password = password
-        self.acceptTosPrivacy = acceptTosPrivacy
+        case otherAttribute = "other_attribute"
     }
 
+}
+struct OtherAttribute: Codable {
+    var department: String
+    var location: String
 }

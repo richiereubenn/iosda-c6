@@ -52,10 +52,24 @@ class RegisterViewModel: ObservableObject {
                     email: email,
                     username: username,
                     password: password,
-                    acceptTosPrivacy: acceptedTerms
+                    acceptTosPrivacy: acceptedTerms,
+                    otherAttribute: nil // Explicitly nil, or just omit since it's optional
                 )
+
                 
                 let registeredUser = try await userService.register(newUser)
+                if let userId = registeredUser.id {
+                    print("🆔 Registered user ID: \(userId)")
+                } else {
+                    print("⚠️ Registered user ID is nil")
+                }
+
+                if let roleId = registeredUser.roleId {
+                    print("👤 Registered user role ID: \(roleId)")
+                } else {
+                    print("⚠️ Registered user role ID is nil")
+                }
+
                 
                 registrationSuccess = true
                 print("Registration successful for user: \(registeredUser.username)")

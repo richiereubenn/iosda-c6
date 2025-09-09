@@ -10,7 +10,7 @@ import SwiftUI
 struct ResidentContentView: View {
     var body: some View {
         NavigationStack{
-            ResidentHomeView(viewModel: ComplaintListViewModel(), unitViewModel: UnitViewModel())
+            ResidentHomeView(viewModel: ComplaintListViewModel2(), unitViewModel: UnitViewModel())
         }
     }
 }

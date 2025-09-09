@@ -41,6 +41,18 @@ class ComplaintListViewModel2: ObservableObject {
         }
     }
     
+    func loadComplaints(byUserId userId: String) async {
+            isLoading = true
+            defer { isLoading = false }
+            
+            do {
+                complaints = try await service.getComplaintsByUserId(userId)
+                applyFilters() // Apply default filters after loading
+            } catch {
+                errorMessage = "Failed to load your complaints: \(error.localizedDescription)"
+            }
+        }
+    
     func loadComplaints(byUnitId unitId: String) async {
         isLoading = true
         defer { isLoading = false }

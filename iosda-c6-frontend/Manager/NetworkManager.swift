@@ -45,39 +45,50 @@ class NetworkManager {
         guard let url = URL(string: baseURL + endpoint) else {
             throw NetworkError.invalidURL
         }
-        
+
         var request = URLRequest(url: url)
         request.httpMethod = method.rawValue
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-        
+
         if let token = bearerToken {
             request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
         }
-        
+
         if let body = body {
             request.httpBody = body
+            print("Request body: \(String(data: body, encoding: .utf8) ?? "")")
         }
-        
+
+        print("Requesting URL: \(request.url?.absoluteString ?? "") with method: \(method.rawValue)")
+
+        let (data, response) = try await URLSession.shared.data(for: request)
+
+        if let httpResponse = response as? HTTPURLResponse {
+            print("Response status code: \(httpResponse.statusCode)")
+        }
+
+        print("Response data: \(String(data: data, encoding: .utf8) ?? "")")
+
+        guard let httpResponse = response as? HTTPURLResponse else {
+            throw NetworkError.serverError(0)
+        }
+
+        guard 200...299 ~= httpResponse.statusCode else {
+            throw NetworkError.serverError(httpResponse.statusCode)
+        }
+
+        let decoder = JSONDecoder.iso8601WithFractionalSeconds
+
         do {
-            let (data, response) = try await URLSession.shared.data(for: request)
-            
-            guard let httpResponse = response as? HTTPURLResponse else {
-                throw NetworkError.serverError(0)
-            }
-            
-            guard 200...299 ~= httpResponse.statusCode else {
-                throw NetworkError.serverError(httpResponse.statusCode)
-            }
-            
-            let decoder = JSONDecoder.iso8601WithFractionalSeconds
-            return try decoder.decode(T.self, from: data)
+            let decoded = try decoder.decode(T.self, from: data)
+            return decoded
         } catch {
-            if error is DecodingError {
-                throw NetworkError.decodingError
-            }
-            throw error
+            print("Decoding error: \(error)")
+            throw NetworkError.decodingError
         }
+
     }
+
     
     func requestEmpty(
         endpoint: String,

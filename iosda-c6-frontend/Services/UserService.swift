@@ -21,19 +21,21 @@ class UserService: UserServiceProtocol {
 
     func register(_ request: User) async throws -> User {
         let encoder = JSONEncoder()
-        encoder.keyEncodingStrategy = .convertToSnakeCase // This is important
+        encoder.keyEncodingStrategy = .convertToSnakeCase
         
         let bodyData = try encoder.encode(request)
 
         let response: APIResponse<User> = try await networkManager.request(
-            endpoint: "/register", // Your registration endpoint
+            endpoint: "/authN/v1/auth/register",
             method: .POST,
             body: bodyData
         )
 
         guard response.success else {
-            // Throw a more specific error, perhaps using the message from the API
-            throw NetworkError.serverError(0)
+            let code = response.code ?? 0
+            let message = response.message ?? "Unknown error"
+            print("Registration failed with code \(code): \(message)")
+            throw NetworkError.serverError(code)
         }
 
         guard let user = response.data else {

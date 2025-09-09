@@ -90,14 +90,14 @@ struct LoginView: View {
                                 ProgressView()
                                     .frame(maxWidth: .infinity)
                                     .frame(height: 52)
-                                    .background(Color("ciputrablue"))
+                                    .background(Color(.blue))
                                     .cornerRadius(12)
                             } else {
                                 Text("Continue")
                                     .font(.system(size: 16, weight: .medium))
                                     .frame(maxWidth: .infinity)
                                     .frame(height: 52)
-                                    .background(viewModel.isFormValid ? Color("ciputrablue") : Color.gray.opacity(0.4))
+                                    .background(viewModel.isFormValid ? Color(.blue) : Color.gray.opacity(0.4))
                                     .foregroundColor(.white)
                                     .cornerRadius(12)
                             }

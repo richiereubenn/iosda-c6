@@ -2,7 +2,7 @@ import SwiftUI
 
 struct ResidentHomeView: View {
     
-    @ObservedObject var viewModel: ComplaintListViewModel2
+    @ObservedObject var viewModel: ResidentComplaintListViewModel
     @ObservedObject var unitViewModel: UnitViewModel
     @State private var showingCreateView = false
     
@@ -95,7 +95,7 @@ struct ResidentHomeView: View {
                     
                     // 2. Use the new userId property for the navigation link
                     NavigationLink(destination: ResidentComplaintListView(
-                        viewModel: ComplaintListViewModel2(),
+                        viewModel: ResidentComplaintListViewModel(),
                         userId: userId
                     )) {
                         Text("View All")
@@ -110,10 +110,11 @@ struct ResidentHomeView: View {
                 ScrollView {
                     LazyVStack(spacing: 15) {
                         ForEach(viewModel.complaints.prefix(5)) { complaint in
-                            NavigationLink(destination: ResidentComplaintDetailView(complaint: complaint)) {
-                                ComplaintCard(complaint: complaint)
+                            NavigationLink(destination: ResidentComplainDetailView(complaintId: complaint.id)) {
+                                ResidentComplaintCard(complaint: complaint)
                             }
                             .buttonStyle(PlainButtonStyle())
+
                         }
                     }
                     .padding(.horizontal, 20)
@@ -154,7 +155,7 @@ struct ResidentHomeView: View {
     NavigationStack {
         // 4. Update the preview to provide a test user ID
         ResidentHomeView(
-            viewModel: ComplaintListViewModel2(),
+            viewModel: ResidentComplaintListViewModel(),
             unitViewModel: UnitViewModel(),
             userId: "2b4c59bd-0460-426b-a720-80ccd85ed5b2"
         )

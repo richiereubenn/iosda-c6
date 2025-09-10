@@ -1,14 +1,14 @@
 import SwiftUI
 
 struct ResidentComplaintListView: View {
-    @StateObject var viewModel: ComplaintListViewModel2
+    @StateObject var viewModel: ResidentComplaintListViewModel
     let userId: String
 
     var body: some View {
         VStack {
             // Complaint Filter Picker
             Picker("Complaint Status", selection: $viewModel.selectedFilter) {
-                ForEach(ComplaintListViewModel2.ComplaintFilter.allCases, id: \.self) { filter in
+                ForEach(ResidentComplaintListViewModel.ComplaintFilter.allCases, id: \.self) { filter in
                     Text(filter.rawValue).tag(filter)
                 }
             }
@@ -43,10 +43,12 @@ struct ResidentComplaintListView: View {
                 ScrollView {
                     VStack(spacing: 12) {
                         ForEach(viewModel.filteredComplaints) { complaint in
-                            NavigationLink(destination: ResidentComplaintDetailView(complaint: complaint)) {
-                                ComplaintCard(complaint: complaint)
+                            NavigationLink(destination: ResidentComplainDetailView(complaintId: complaint.id)) {
+                                ResidentComplaintCard(complaint: complaint)
                             }
                             .buttonStyle(PlainButtonStyle())
+
+
                         }
 
                     }
@@ -71,7 +73,7 @@ struct ResidentComplaintListView: View {
 #Preview {
     NavigationStack {
         ResidentComplaintListView(
-            viewModel: ComplaintListViewModel2(),
+            viewModel: ResidentComplaintListViewModel(),
             userId: "2b4c59bd-0460-426b-a720-80ccd85ed5b2" // Replace with your test user ID
         )
     }

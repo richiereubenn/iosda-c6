@@ -11,7 +11,7 @@ struct ProgressAttachmentsView: View {
                 ScrollView(.horizontal, showsIndicators: false) {
                     HStack(spacing: 8) {
                         ForEach(imageFiles, id: \.id) { file in
-                            AsyncImage(url: URL(string: file.url ?? file.path ?? "")) { image in
+                            AsyncImage(url: URL(string: ResidentComplaintDetailViewModel.fullURL(for: file.url ?? file.path))) { image in
                                 image
                                     .resizable()
                                     .aspectRatio(contentMode: .fill)
@@ -56,10 +56,11 @@ struct ProgressAttachmentsView: View {
                         .background(Color.gray.opacity(0.1))
                         .clipShape(RoundedRectangle(cornerRadius: 6))
                         .onTapGesture {
-                            if let urlString = file.url ?? file.path,
-                               let url = URL(string: urlString) {
+                            let full = ResidentComplaintDetailViewModel.fullURL(for: file.url ?? file.path)
+                            if let url = URL(string: full) {
                                 UIApplication.shared.open(url)
                             }
+
                         }
                     }
                 }

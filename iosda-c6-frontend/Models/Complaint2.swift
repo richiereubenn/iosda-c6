@@ -53,3 +53,13 @@ struct Complaint2: Identifiable, Codable {
         case classificationName = "classification_name"
     }
 }
+
+extension Complaint2 {
+    var residentStatus: ComplaintStatus {
+        switch ComplaintStatus(raw: statusName) {
+        case .assignToVendor: return .inProgress
+        default: return ComplaintStatus(raw: statusName)
+        }
+    }
+}
+

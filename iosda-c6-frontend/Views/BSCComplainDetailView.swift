@@ -199,7 +199,7 @@ struct BSCComplainDetailView: View {
         VStack(alignment: .leading, spacing: 12) {
             if let status = viewModel.selectedStatus {
                 switch status {
-                case .underReview:
+                case .underReviewByBI:
                     CustomButtonComponent(
                         text: "Confirm",
                         backgroundColor: .primaryBlue,
@@ -242,7 +242,7 @@ struct BSCComplainDetailView: View {
                     HStack(spacing: 12) {
                     }
                     
-                case .open, .resolved, .rejected, .unknown, .closed:
+                case .open, .resolved, .rejected, .unknown, .closed, .assignToVendor, .underReviewbByBSC:
                     EmptyView()
                 }
             }

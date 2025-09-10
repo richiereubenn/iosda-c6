@@ -47,8 +47,17 @@ class ProgressLogService: ProgressLogServiceProtocol {
     
     func getFirstProgress(complaintId: String) async throws -> ProgressLog2? {
         let logs = try await getAllProgress(complaintId: complaintId)
-        return logs.last
+        
+        let sortedLogs = logs.sorted {
+            guard let date1 = $0.createdAt, let date2 = $1.createdAt else {
+                return $0.createdAt != nil
+            }
+            return date1 < date2
+        }
+        
+        return sortedLogs.last
     }
+
     
     func createProgress(complaintId: String,
                         userId: String,

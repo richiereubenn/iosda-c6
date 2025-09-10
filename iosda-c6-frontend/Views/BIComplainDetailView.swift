@@ -13,6 +13,12 @@ struct BIComplaintDetailView: View {
     @State private var showRejectAlert = false
     @State private var showAcceptSheet = false
     @State private var rejectionReason = ""
+    @State private var sheetTitle = "tes"
+    @State private var sheetDescription = ""
+    @State private var sheetUploadAmount = 1
+    @State private var statusId = ""
+    @State private var showPhotoUploadSheet = false
+
     
     @StateObject private var viewModel = BSCBIComplaintDetailViewModel()
     
@@ -125,7 +131,7 @@ struct BIComplaintDetailView: View {
             Button("Reject", role: .destructive) {
                 let reason = rejectionReason.trimmingCharacters(in: .whitespacesAndNewlines)
                 Task {
-                    await viewModel.updateStatus(to: "8e8f0a90-36eb-4a7f-aad0-ee2e59fd9b8f")
+                    await viewModel.updateStatus(to: "99d06c4a-e49f-4144-b617-2a1b6c51092f")
                     await viewModel.submitRejectionProgress(
                                 complaintId: complaintId,
                                 userId: "2b4c59bd-0460-426b-a720-80ccd85ed5b2",
@@ -137,31 +143,35 @@ struct BIComplaintDetailView: View {
             Text("Explain why you reject this issue")
         }
         
-        .sheet(isPresented: $showAcceptSheet) {
+        .sheet(isPresented: $showPhotoUploadSheet) {
             PhotoUploadSheet(
-                title: "Start this Work?",
-                description: "This will set the work status to\n'In Progress'.",
-                photoLabel1: "A close-up photo of the specific defect.",
-                photoLabel2: "A wide-angle photo showing the entire work area.",
-                uploadAmount: 2,
-                onStartWork: { photos in
+                title: $sheetTitle,
+                description: $sheetDescription,
+                uploadAmount: $sheetUploadAmount,
+                showTitleField: true,
+                showDescriptionField: true,
+                onStartWork: { photos, title, desc in
                     Task {
-                        await viewModel.updateStatus(to: "8e8f0a90-36eb-4a7f-aad0-ee2e59fd9b8f")
                         await viewModel.submitStartWorkProgress(
                             complaintId: complaintId,
                             userId: "2b4c59bd-0460-426b-a720-80ccd85ed5b2",
-                            images: photos
+                            images: photos,
+                            title: title ?? "",
+                            description: desc ?? ""
                         )
+                        await viewModel.updateStatus(to: statusId)
                     }
-                    showAcceptSheet = false
+                    showPhotoUploadSheet = false
                 },
                 onCancel: {
-                    showAcceptSheet = false
+                    showPhotoUploadSheet = false
                 }
             )
             .presentationDetents([.medium, .large])
             .presentationDragIndicator(.visible)
         }
+
+
 
         .task {
             await viewModel.loadComplaint(byId: complaintId)
@@ -172,7 +182,7 @@ struct BIComplaintDetailView: View {
         VStack(alignment: .leading, spacing: 12) {
             if let status = viewModel.selectedStatus {
                 switch status {
-                case .inProgress:
+                case .underReviewByBI:
                     HStack(spacing: 16) {
                         CustomButtonComponent(
                             text: "Reject",
@@ -187,48 +197,57 @@ struct BIComplaintDetailView: View {
                             backgroundColor: .primaryBlue,
                             textColor: .white
                         ) {
-                            showAcceptSheet = true
+                            Task{
+                                await viewModel.updateStatus(to: "6272f956-8be4-4517-8b14-5e3413b79c37")
+                            }
+                           
                         }
                     }
-                    
-                case .waitingKeyHandover:
-                    HStack(spacing: 16) {
+                case .assignToVendor:
+                    HStack {
                         CustomButtonComponent(
-                            text: "Accept Key",
-                            backgroundColor: .green,
+                            text: "Start Work",
+                            backgroundColor: .primaryBlue,
                             textColor: .white
                         ) {
-                            Task {
-                                await viewModel.updateStatus(to: "ba1b0384-9c57-4c34-a70b-2ed7e44b7ce0")
-                            }
+                            sheetTitle = "Start this Work"
+                            sheetDescription = "This will set the work status to 'In Progress'."
+                            sheetUploadAmount = 2
+                            statusId = "ba1b0384-9c57-4c34-a70b-2ed7e44b7ce0"
+                            showPhotoUploadSheet = true
+                        }
+                    }
+                case .inProgress:
+                    HStack {
+                        CustomButtonComponent(
+                            text: "Add Progress",
+                            backgroundColor: .orange,
+                            textColor: .white
+                        ) {
+                            
+                            showPhotoUploadSheet = true
+                            sheetTitle = "Add Progress"
+                            sheetDescription = "Use this to upload a progress update with photos and notes about the current work status."
+                            sheetUploadAmount = 1
                         }
                         
                         CustomButtonComponent(
-                            text: "Not Receive Key",
-                            backgroundColor: .red,
-                            textColor: .white
-                        ) {
-                            Task {
-                                await viewModel.updateStatus(to: "99d06c4a-e49f-4144-b617-2a1b6c51092f")
-                            }
-                        }
-                    }
-                    
-                case .underReview:
-                    HStack {
-                        CustomButtonComponent(
                             text: "Complete Work",
-                            backgroundColor: .primary,
+                            backgroundColor: .primaryBlue,
                             textColor: .white
                         ) {
-                            Task {
-                                await viewModel.updateStatus(to: "c6f9c80b-1d11-4e65-8f07-d94a5a6a1d2c")
-                            }
+                            
+                            showPhotoUploadSheet = true
+                            sheetTitle = "Complete Work"
+                            sheetDescription = "This will set the work status to 'Resolved'."
+                            sheetUploadAmount = 2
+                            statusId = "c1eaf31c-1140-47bc-bebe-c22c62ac45e5"
                         }
                     }
                     
-                case .open, .resolved, .rejected, .closed, .unknown:
+                case .open, .resolved, .rejected, .closed, .unknown, .underReviewbByBSC, .waitingKeyHandover:
                     EmptyView()
+                
                 }
             }
         }

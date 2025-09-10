@@ -1,25 +1,17 @@
-//
-//  ProgressAttachmentsView.swift
-//  iosda-c6-frontend
-//
-//  Created by Gabriella Natasya Pingky Davis on 02/09/25.
-//
-
-
 import SwiftUI
 
 struct ProgressAttachmentsView: View {
-    let progressFiles: [ProgressFile]
+    let progressFiles: [ProgressFile2]
     
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
             // Images Section
-            let imageFiles = progressFiles.compactMap { $0.file }.filter { $0.isImage }
+            let imageFiles = progressFiles.filter { $0.mimeType?.starts(with: "image") == true }
             if !imageFiles.isEmpty {
                 ScrollView(.horizontal, showsIndicators: false) {
                     HStack(spacing: 8) {
                         ForEach(imageFiles, id: \.id) { file in
-                            AsyncImage(url: URL(string: file.path ?? "")) { image in
+                            AsyncImage(url: URL(string: file.url ?? file.path ?? "")) { image in
                                 image
                                     .resizable()
                                     .aspectRatio(contentMode: .fill)
@@ -43,16 +35,16 @@ struct ProgressAttachmentsView: View {
             }
 
             // Non-Image Files Section
-            let nonImageFiles = progressFiles.filter { !($0.file?.isImage ?? false) }
+            let nonImageFiles = progressFiles.filter { !($0.mimeType?.starts(with: "image") ?? false) }
             if !nonImageFiles.isEmpty {
                 VStack(alignment: .leading, spacing: 4) {
-                    ForEach(nonImageFiles, id: \.id) { progressFile in
+                    ForEach(nonImageFiles, id: \.id) { file in
                         HStack {
                             Image(systemName: "doc.fill")
                                 .foregroundColor(.blue)
                                 .font(.caption)
                             
-                            Text(progressFile.file?.name ?? "Document")
+                            Text(file.name ?? "Document")
                                 .font(.caption)
                                 .foregroundColor(.primary)
                                 .lineLimit(1)
@@ -64,7 +56,7 @@ struct ProgressAttachmentsView: View {
                         .background(Color.gray.opacity(0.1))
                         .clipShape(RoundedRectangle(cornerRadius: 6))
                         .onTapGesture {
-                            if let urlString = progressFile.file?.path,
+                            if let urlString = file.url ?? file.path,
                                let url = URL(string: urlString) {
                                 UIApplication.shared.open(url)
                             }
@@ -76,36 +68,21 @@ struct ProgressAttachmentsView: View {
     }
 }
 
-
 #Preview {
     ProgressAttachmentsView(progressFiles: [
-        ProgressFile(
+        ProgressFile2(
             id: "1",
-            progressId: "101",
-            fileId: "201",
-            progress: nil,
-            file: File(
-                id: "201",
-                name: "photo1.jpg",
-                path: "https://via.placeholder.com/150",
-                mimeType: "image/jpeg",
-                otherAttributes: nil,
-                progressFiles: nil
-            )
+            name: "photo1.jpg",
+            path: "https://via.placeholder.com/150",
+            url: "https://via.placeholder.com/150",
+            mimeType: "image/jpeg"
         ),
-        ProgressFile(
+        ProgressFile2(
             id: "2",
-            progressId: "101",
-            fileId: "202",
-            progress: nil,
-            file: File(
-                id: "202",
-                name: "document.pdf",
-                path: "https://www.example.com/document.pdf",
-                mimeType: "application/pdf",
-                otherAttributes: nil,
-                progressFiles: nil
-            )
+            name: "document.pdf",
+            path: "https://www.example.com/document.pdf",
+            url: "https://www.example.com/document.pdf",
+            mimeType: "application/pdf"
         )
     ])
 }

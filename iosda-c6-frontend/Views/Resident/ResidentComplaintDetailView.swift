@@ -1,19 +1,19 @@
 import SwiftUI
-
 struct ResidentComplaintDetailView: View {
     
     let complaint: Complaint2
-    let complaintListViewModel: ComplaintListViewModel2?
+    @StateObject private var viewModel: ResidentComplaintDetailViewModel
+    
+    // Custom initializer for preview
+    init(complaint: Complaint2, firstProgressFiles: [ProgressFile2] = []) {
+        self.complaint = complaint
+        _viewModel = StateObject(wrappedValue: ResidentComplaintDetailViewModel())
+        // Directly set the files inside the viewModel after creation:
+        _viewModel.wrappedValue.firstProgressFiles = firstProgressFiles
+    }
     
     @Environment(\.dismiss) var dismiss
-    @State private var showingImageViewer = false
-    @State private var selectedImageIndex = 0
     @State private var showingProgressDetail = false
-    
-    init(complaint: Complaint2, complaintListViewModel: ComplaintListViewModel2? = nil) {
-        self.complaint = complaint
-        self.complaintListViewModel = complaintListViewModel
-    }
     
     var body: some View {
         ScrollView {
@@ -25,7 +25,6 @@ struct ResidentComplaintDetailView: View {
                         .fontWeight(.bold)
                         .multilineTextAlignment(.leading)
                     
-                    // 2. Compare handoverMethod with a String value now
                     if complaint.handoverMethod == "bring_to_mo" {
                         if let handoverDate = complaint.keyHandoverDate {
                             HStack(spacing: 6) {
@@ -53,7 +52,6 @@ struct ResidentComplaintDetailView: View {
                             .font(.title2)
                             .fontWeight(.bold)
                         
-                        // 3. Use statusName to determine the status for the badge
                         StatusBadge(status: ComplaintStatus(raw: complaint.statusName))
                         
                         Spacer()
@@ -64,18 +62,18 @@ struct ResidentComplaintDetailView: View {
                         .foregroundColor(.blue)
                     }
                     
-                    // Note: StatusProgressBar may need to be updated to accept a String
                     StatusProgressBar(currentStatusName: complaint.statusName)
                 }
                 .padding(.horizontal, 20)
                 
-                // 2. Compare handoverMethod with a String value
+                // Info about house visit if in_house method
                 if complaint.handoverMethod == "in_house" {
                     if let openDate = complaint.openTimestamp {
                         let estimatedVisitDate = Calendar.current.date(byAdding: .day, value: 3, to: openDate)!
                         
                         HStack(alignment: .top, spacing: 8) {
                             Image(systemName: "info.circle.fill")
+                                .foregroundColor(.blue)
                             
                             Text("BSC will come to your house soon, no later than ")
                                 .foregroundColor(.primary)
@@ -91,51 +89,69 @@ struct ResidentComplaintDetailView: View {
                     }
                 }
                 
-                // MARK: - Detail Section
+                // MARK: - Detail Section wrapped in GroupedCard
+                Text("Detail")
+                    .font(.title2)
+                    .fontWeight(.bold)
+                GroupedCard {
+                    
+                    VStack(alignment: .leading, spacing: 12) {
+                        
+                        VStack(alignment: .leading, spacing: 8) {
+                            DetailRow(label: "ID", value: "#\(complaint.id)")
+                            DetailRow(label: "Complain Type", value: complaint.classificationName ?? "Unknown")
+                            DetailRow(label: "Created", value: formatDateWithTime(complaint.openTimestamp ?? Date()))
+                            
+                            if let unitId = complaint.unitId {
+                                DetailRow(label: "Unit ID", value: unitId)
+                            }
+                            
+                            if let closeTimestamp = complaint.closeTimestamp {
+                                DetailRow(label: "Closed", value: formatDateWithTime(closeTimestamp))
+                            }
+                        }
+                        
+                        if !complaint.description.isEmpty {
+                            Text(complaint.description)
+                                .font(.body)
+                                .foregroundColor(.primary)
+                                .padding(.top, 8)
+                        }
+                        
+                    }
+                }
+                
                 VStack(alignment: .leading, spacing: 12) {
-                    Text("Detail")
+                    Text("Image")
                         .font(.title2)
                         .fontWeight(.bold)
                     
-                    VStack(alignment: .leading, spacing: 8) {
-                        // 4. Use flattened properties from the Complaint2 model
-                        DetailRow(label: "ID", value: "#\(complaint.id)")
-                        DetailRow(label: "Complain Type", value: complaint.classificationName ?? "Unknown")
-                        DetailRow(label: "Created", value: formatDateWithTime(complaint.openTimestamp ?? Date()))
-                        
-                        // IMPORTANT: Complaint2 only has unitId, not full unit details.
-                        // You will need a way to fetch unit details based on this ID.
-                        // For now, we'll just display the ID.
-                        if let unitId = complaint.unitId {
-                            DetailRow(label: "Unit ID", value: unitId)
+                    GroupedCard {
+                        VStack(spacing: 8) {
+                            Text("Close-up view:")
+                                .foregroundColor(.gray)
+                                .font(.system(size: 14))
+                                .frame(maxWidth: .infinity, alignment: .leading)
+                            
+                            complaintImage(url: "tes")
+                            
+                            Text("Overall view:")
+                                .foregroundColor(.gray)
+                                .font(.system(size: 14))
+                                .frame(maxWidth: .infinity, alignment: .leading)
+                            
+                            complaintImage(url: "tes")
                         }
-                        
-                        if let closeTimestamp = complaint.closeTimestamp {
-                            DetailRow(label: "Closed", value: formatDateWithTime(closeTimestamp))
-                        }
-                    }
-                    
-                    // Placeholder for images
-                    
-                    if !complaint.description.isEmpty {
-                        Text(complaint.description)
-                            .font(.body)
-                            .foregroundColor(.primary)
-                            .padding(.top, 8)
                     }
                 }
-                .padding(.horizontal, 20)
-                
-                Spacer(minLength: 100)
             }
+            .padding(.horizontal, 20)
+            Spacer(minLength: 100)
         }
         .navigationTitle("")
         .navigationBarBackButtonHidden(true)
         .navigationDestination(isPresented: $showingProgressDetail) {
-            // Updated to use the new ViewModel type
-            ResidentProgressDetailView(
-                complaintId: complaint.id, complaintListViewModel: ComplaintListViewModel2()
-            )
+            ResidentProgressDetailView(complaintId: complaint.id)
         }
         .toolbar {
             ToolbarItem(placement: .navigationBarLeading) {
@@ -149,7 +165,6 @@ struct ResidentComplaintDetailView: View {
             }
         }
         .overlay(alignment: .bottom) {
-            // 5. Update status check logic to use statusName string
             if let status = complaint.statusName?.lowercased(),
                let method = complaint.handoverMethod,
                (status == "in progress" || status == "waiting key") && method == "bring_to_mo" {
@@ -165,21 +180,72 @@ struct ResidentComplaintDetailView: View {
             }
         }
     }
-    
-    private func formatDate(_ date: Date) -> String {
-        let formatter = DateFormatter()
-        formatter.dateStyle = .long
-        return formatter.string(from: date)
-    }
-    
-    private func formatDateWithTime(_ date: Date) -> String {
-        let formatter = DateFormatter()
-        formatter.dateFormat = "d MMM yyyy; HH:mm"
-        return formatter.string(from: date)
+}
+
+private func formatDate(_ date: Date) -> String {
+    let formatter = DateFormatter()
+    formatter.dateStyle = .long
+    return formatter.string(from: date)
+}
+
+private func formatDateWithTime(_ date: Date) -> String {
+    let formatter = DateFormatter()
+    formatter.dateFormat = "d MMM yyyy; HH:mm"
+    return formatter.string(from: date)
+}
+
+// MARK: - Updated Image Component with Better Error Handling
+private func complaintImage(url: String?) -> some View {
+    if let urlString = url, let imageURL = URL(string: urlString) {
+        return AnyView(
+            AsyncImage(url: imageURL) { phase in
+                switch phase {
+                case .empty:
+                    Rectangle()
+                        .fill(Color.gray.opacity(0.3))
+                case .success(let image):
+                    image
+                        .resizable()
+                        .aspectRatio(contentMode: .fill)
+                case .failure(_):
+                    VStack {
+                        Image(systemName: "exclamationmark.triangle.fill")
+                            .font(.system(size: 40))
+                            .foregroundColor(.orange)
+                        Text("Failed to load image")
+                            .font(.system(size: 14, weight: .medium))
+                            .foregroundColor(.gray)
+                    }
+                @unknown default:
+                    Rectangle()
+                        .fill(Color.gray.opacity(0.3))
+                }
+            }
+            .frame(height: 150)
+            .frame(maxWidth: .infinity)
+            .cornerRadius(8)
+            .clipped()
+        )
+    } else {
+        return AnyView(
+            VStack {
+                Image(systemName: "camera.fill")
+                    .font(.system(size: 40))
+                    .foregroundColor(.gray)
+                Text("No Image Available")
+                    .font(.system(size: 14, weight: .medium))
+                    .foregroundColor(.black)
+            }
+            .frame(height: 150)
+            .frame(maxWidth: .infinity)
+            .background(Color.gray.opacity(0.1))
+            .cornerRadius(8)
+        )
     }
 }
 
-// DetailRow remains the same, it's a good reusable component.
+
+// DetailRow remains the same, reusable component
 struct DetailRow: View {
     let label: String
     let value: String
@@ -200,7 +266,6 @@ struct DetailRow: View {
 #Preview {
     NavigationStack {
         ResidentComplaintDetailView(
-            // Use the new Complaint2 model for the preview
             complaint: Complaint2(
                 id: "2b4c59bd-0460-426b-a720-80ccd85ed5b2",
                 unitId: "u-12345",
@@ -223,8 +288,11 @@ struct DetailRow: View {
                 statusName: "In Progress",
                 classificationName: "Plumbing"
             ),
-            // Use the new ComplaintListViewModel2 for the preview
-            complaintListViewModel: ComplaintListViewModel2()
+            firstProgressFiles: [
+                ProgressFile2(id: "1", name: "sample1.jpg", path: nil, url: "https://picsum.photos/200/150", mimeType: "image/jpeg"),
+                ProgressFile2(id: "2", name: "sample2.jpg", path: nil, url: "https://picsum.photos/200/151", mimeType: "image/jpeg"),
+                ProgressFile2(id: "3", name: "sample3.jpg", path: nil, url: "https://picsum.photos/200/152", mimeType: "image/jpeg")
+            ]
         )
     }
 }

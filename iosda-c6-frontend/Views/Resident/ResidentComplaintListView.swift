@@ -43,12 +43,12 @@ struct ResidentComplaintListView: View {
                 ScrollView {
                     VStack(spacing: 12) {
                         ForEach(viewModel.filteredComplaints) { complaint in
-                            NavigationLink(destination: ResidentComplaintDetailView(complaint: complaint, complaintListViewModel: viewModel)) {
+                            NavigationLink(destination: ResidentComplaintDetailView(complaint: complaint)) {
                                 ComplaintCard(complaint: complaint)
                             }
                             .buttonStyle(PlainButtonStyle())
-
                         }
+
                     }
                     .padding(.horizontal)
                 }

@@ -81,7 +81,7 @@ class BSCBIComplaintDetailViewModel: ObservableObject {
     func shouldShowActions(for status: ComplaintStatus?) -> Bool {
         guard let status else { return false }
         switch status {
-        case .underReview:
+        case .underReviewbByBSC:
             return true
         default:
             return false
@@ -125,7 +125,9 @@ class BSCBIComplaintDetailViewModel: ObservableObject {
     func submitStartWorkProgress(
             complaintId: String,
             userId: String,
-            images: [UIImage]
+            images: [UIImage],
+            title: String,
+            description: String
         ) async {
             isSubmitting = true
             defer { isSubmitting = false }
@@ -134,8 +136,8 @@ class BSCBIComplaintDetailViewModel: ObservableObject {
                 _ = try await progressService.uploadProgressWithFiles(
                     complaintId: complaintId,
                     userId: userId,
-                    title: "start work 2",
-                    description: nil,
+                    title: title,
+                    description: description,
                     images: images
                 )
             } catch {

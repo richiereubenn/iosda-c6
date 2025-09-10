@@ -47,7 +47,7 @@ class ComplaintListViewModel2: ObservableObject {
             
             do {
                 complaints = try await service.getComplaintsByUserId(userId)
-                applyFilters() // Apply default filters after loading
+                applyFilters()
             } catch {
                 errorMessage = "Failed to load your complaints: \(error.localizedDescription)"
             }
@@ -72,16 +72,18 @@ class ComplaintListViewModel2: ObservableObject {
         switch selectedFilter {
         case .all:
             break
-        case .underReview:
-            results = results.filter { $0.statusName?.lowercased() == "under review" }
-        case .waitingKey:
+        case .underReviewByBI:
+            results = results.filter { $0.statusName?.lowercased() == "under review by bi" }
+        case .underReviewByBSC:
+            results = results.filter { $0.statusName?.lowercased() == "under review by bsc" }
+        case .assignToVendor:
+            results = results.filter { $0.statusName?.lowercased() == "assign to vendor" }
+        case .waitingKey :
             results = results.filter { $0.statusName?.lowercased() == "waiting key handover" }
         case .inProgress:
             results = results.filter { $0.statusName?.lowercased() == "in progress" }
-        case .resolved:
-            results = results.filter { $0.statusName?.lowercased() == "resolved" }
-        case .rejected:
-            results = results.filter { $0.statusName?.lowercased() == "rejected" }
+        case .close:
+            results = results.filter { $0.statusName?.lowercased() == "resolved" || $0.statusName?.lowercased() == "rejected"}
         }
         
         if !searchText.isEmpty {
@@ -97,10 +99,11 @@ class ComplaintListViewModel2: ObservableObject {
     
     enum ComplaintFilter: String, CaseIterable {
         case all = "All"
-        case underReview = "Under Review"
-        case waitingKey = "Waiting Key Handover"
+        case underReviewByBI = "BI Review"
+        case underReviewByBSC = "BSC Review"
+        case assignToVendor = "Assign To Vendor"
+        case waitingKey = "Key Handover"
         case inProgress = "In Progress"
-        case resolved = "Resolved"
-        case rejected = "Rejected"
+        case close = "Close"
     }
 }

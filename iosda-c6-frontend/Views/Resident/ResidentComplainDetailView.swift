@@ -92,12 +92,12 @@ struct ResidentComplainDetailView: View {
 
                     GroupedCard {
                         VStack(alignment: .leading, spacing: 12) {
-                            DataRowComponent(label: "ID", value: "#\(complaint.id)")
-                            DataRowComponent(label: "Complain Type", value: complaint.classificationName ?? "Unknown")
-                            DataRowComponent(label: "Created", value: formatDate(complaint.openTimestamp ?? Date(), format: "HH:mm dd/MM/yyyy"))
+                            DataRowComponent(label: "ID:", value: "#\(complaint.id)")
+                            DataRowComponent(label: "Complain Type:", value: complaint.classificationName ?? "Unknown")
+                            DataRowComponent(label: "Created:", value: formatDate(complaint.openTimestamp ?? Date(), format: "HH:mm dd/MM/yyyy"))
                             
                             if let unitId = complaint.unitId {
-                                DataRowComponent(label: "Unit ID", value: unitId)
+                                DataRowComponent(label: "Unit ID:", value: unitId)
                             }
 
                             if let closeTimestamp = complaint.closeTimestamp {
@@ -105,7 +105,7 @@ struct ResidentComplainDetailView: View {
                             }
 
                             if !complaint.description.isEmpty {
-                                DataRowComponent(label: "Description", value: "")
+                                DataRowComponent(label: "Description:", value: "")
                                 Text(complaint.description)
                                     .font(.body)
                                     .foregroundColor(.primary)

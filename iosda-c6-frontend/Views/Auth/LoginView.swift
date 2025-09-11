@@ -2,6 +2,7 @@ import SwiftUI
 
 struct LoginView: View {
     @StateObject private var viewModel = LoginViewModel()
+    @State private var showPassword = false
     
     var body: some View {
         GeometryReader { geo in
@@ -39,22 +40,33 @@ struct LoginView: View {
                         
                         // Username TextField
                         TextField("Username / Phone Number", text: $viewModel.username)
-                            .padding(.horizontal, 14)
-                            .frame(height: 48)
+                            .padding()
+                            //.frame(height: 48)
                             .background(Color(.systemGray6))
                             .cornerRadius(8)
                             .padding(.top, 15)
-                            .padding(.horizontal, 20)
+                            .padding(.horizontal)
+                            .autocapitalization(.none)
+
                         
                         // Password SecureField
-                        SecureField("Password", text: $viewModel.password)
-                            .padding(.horizontal, 14)
-                            .frame(height: 48)
-                            .background(Color(.systemGray6))
-                            .cornerRadius(8)
-                            .padding(.top, 12)
-                            .padding(.horizontal, 20)
-                        
+                        ZStack(alignment: .trailing) {
+                            if showPassword {
+                                TextField("Password", text: $viewModel.password)
+                                    .padding().background(Color(.systemGray6)).cornerRadius(8)
+                            } else {
+                                SecureField("Password", text: $viewModel.password)
+                                    .padding().background(Color(.systemGray6)).cornerRadius(8)
+                            }
+                            
+                            Button(action: {
+                                showPassword.toggle()
+                            }) {
+                                Image(systemName: showPassword ? "eye.slash.fill" : "eye.fill")
+                                    .foregroundColor(.gray).padding(.trailing, 12)
+                            }
+                        }
+                        .padding()
                         // Show error message if any
                         if let error = viewModel.errorMessage {
                             Text(error)
@@ -112,23 +124,36 @@ struct LoginView: View {
                     get: { viewModel.loggedInUser != nil },
                     set: { _ in }
                 )) {
-                    roleBasedView(for: viewModel.loggedInUser?.role?.name)
+                    roleBasedView()
                 }
             }
         }
     }
     
     @ViewBuilder
-    func roleBasedView(for roleName: String?) -> some View {
-        switch roleName?.lowercased() {
-        case "bsc":
-            BSCContentView()
-        case "bi":
-            BIContentView()
-        case "resident":
-            ResidentContentView()
-        default:
-            Text("Unknown role.")
+    func roleBasedView() -> some View {
+        if let user = viewModel.loggedInUser,
+           let role = user.role {
+            
+            let roleName = role.name.lowercased().trimmingCharacters(in: .whitespacesAndNewlines)
+            
+            switch roleName {
+            case "bsc":
+                BSCContentView()
+            case "bi":
+                BIContentView()
+            case "resident":
+                ResidentContentView()
+            default:
+                VStack {
+                    Text("Unknown role: '\(role.name)'")
+                    Text("Role ID: \(role.id ?? "N/A")")
+                        .font(.caption)
+                        .foregroundColor(.gray)
+                }
+            }
+        } else {
+            Text("No user or role information available")
         }
     }
 }

@@ -34,7 +34,7 @@ class ProgressLogService: ProgressLogServiceProtocol {
     }
     
     func getAllProgress(complaintId: String) async throws -> [ProgressLog2] {
-        let endpoint = "/complaint/v1/complaints/\(complaintId)/progress"
+        let endpoint = "/complaint/v1/complaints/\(complaintId)/progress?page=1&limit=100"
         
         let response: APIResponse<[ProgressLog2]> = try await networkManager.request(endpoint: endpoint)
         

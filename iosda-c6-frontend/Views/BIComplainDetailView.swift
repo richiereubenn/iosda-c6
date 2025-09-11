@@ -76,22 +76,29 @@ struct BIComplaintDetailView: View {
                         
                         GroupedCard {
                             VStack(spacing: 8) {
-                                Text("Close-up view:")
-                                    .foregroundColor(.gray)
-                                    .font(.system(size: 14))
-                                    .frame(maxWidth: .infinity, alignment: .leading)
-                                
-                                complaintImage(url: "tes")
-                                
-                                Text("Overall view:")
-                                    .foregroundColor(.gray)
-                                    .font(.system(size: 14))
-                                    .frame(maxWidth: .infinity, alignment: .leading)
-                                
-                                complaintImage(url: "tes")
+                                if viewModel.firstProgressImageURLs.isEmpty {
+                                    complaintImage(url: nil) // fallback → "No Image Available"
+                                } else {
+                                    ForEach(viewModel.firstProgressImageURLs.indices, id: \.self) { index in
+                                        if index == 0 {
+                                            Text("Close-up view:")
+                                                .foregroundColor(.gray)
+                                                .font(.system(size: 14))
+                                                .frame(maxWidth: .infinity, alignment: .leading)
+                                        } else if index == 1 {
+                                            Text("Overall view:")
+                                                .foregroundColor(.gray)
+                                                .font(.system(size: 14))
+                                                .frame(maxWidth: .infinity, alignment: .leading)
+                                        }
+                                        
+                                        complaintImage(url: viewModel.firstProgressImageURLs[index])
+                                    }
+                                }
                             }
                         }
                     }
+
                     
                     VStack(alignment: .leading, spacing: 12) {
                         Text("Location/Unit Detail")

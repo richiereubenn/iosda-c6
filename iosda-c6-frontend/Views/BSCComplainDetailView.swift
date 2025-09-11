@@ -15,6 +15,9 @@ struct BSCComplainDetailView: View {
     
     @State private var garansiChecked = true
     @State private var izinRenovasiChecked = true
+    @State private var showRejectAlert = false
+    @State private var rejectionReason = ""
+
     
     private var isConfirmDisabled: Bool {
         !(garansiChecked && izinRenovasiChecked)
@@ -37,7 +40,7 @@ struct BSCComplainDetailView: View {
                                 .frame(maxWidth: .infinity, alignment: .leading)
                             detailsSection(complaint: complaint)
                             requirementsSection
-                            actionButtons
+                            actionButtons(complaint: complaint)
                         }
                         .padding(.horizontal, 20)
                     }
@@ -51,8 +54,33 @@ struct BSCComplainDetailView: View {
         .navigationBarTitleDisplayMode(.large)
         .task {
             await viewModel.loadComplaint(byId: complaintId)
+            await viewModel.loadClassifications(defaultId: "75b125fd-a656-4fd8-a500-2f051b068171")
         }
+
+
+        .alert("Do you want to reject this issue?", isPresented: $showRejectAlert) {
+                TextField("Explain why you reject this issue", text: $rejectionReason, axis: .vertical)
+                
+                Button("Cancel", role: .cancel) {
+                    rejectionReason = ""
+                }
+                
+                Button("Reject", role: .destructive) {
+                    let reason = rejectionReason.trimmingCharacters(in: .whitespacesAndNewlines)
+                    Task {
+                        await viewModel.updateStatus(to: "99d06c4a-e49f-4144-b617-2a1b6c51092f")
+                        await viewModel.submitRejectionProgress(
+                                    complaintId: complaintId,
+                                    userId: "2b4c59bd-0460-426b-a720-80ccd85ed5b2",
+                                    reason: reason
+                                )
+                    }
+                }
+            } message: {
+                Text("Explain why you reject this issue")
+            }
     }
+    
 
     
     private func headerSection(complaint: Complaint2) -> some View {
@@ -103,6 +131,10 @@ struct BSCComplainDetailView: View {
                         StatusBadge(status: viewModel.selectedStatus ?? .unknown)
                         Spacer()
                     }
+                    DataRowComponent(
+                        label: "Key Method:",
+                        value: complaint.handoverMethod ?? "-"
+                    )
                     DataRowComponent(
                         label: "Deadline:",
                         value: formatDate(complaint.deadlineDate ?? Date(), format: "HH:mm dd/MM/yyyy")
@@ -165,15 +197,67 @@ struct BSCComplainDetailView: View {
     }
     
     private func complainDetails(complaint: Complaint2) -> some View {
-        VStack(alignment: .leading, spacing: 12) {
-            DataRowComponent(label: "Kategori:", value: "–")
-            DataRowComponent(label: "Detail Kerusakan:", value: "–")
+        VStack(alignment: .leading, spacing: 5) {
+            HStack(alignment: .firstTextBaseline) {
+                Text("Kategori : ")
+                    .font(.system(size: 14))
+                    .foregroundColor(.gray)
+                
+                if viewModel.uniqueCategories.isEmpty {
+                        Text("Loading categories...")
+                            .foregroundColor(.gray)
+                    } else {
+                        Picker("Pilih Kategori", selection: $viewModel.selectedCategory) {
+                            ForEach(viewModel.uniqueCategories, id: \.self) { category in
+                                Text(category).tag(category as String?)
+                                    .font(.footnote.weight(.medium))
+                                    .minimumScaleFactor(0.8)
+                                    .lineLimit(1)
+                            }
+                        }
+                        .pickerStyle(.menu)
+                        .onChange(of: viewModel.selectedCategory) { _ in
+                            viewModel.selectedWorkDetail = nil
+                        }
+                    }
+            }
+            
+            HStack(alignment: .firstTextBaseline) {
+                Text("Detail Kerusakan : ")
+                    .font(.system(size: 14))
+                    .foregroundColor(.gray)
+                
+                if viewModel.workDetailsForSelectedCategory.isEmpty {
+                        Text("Loading categories...")
+                            .foregroundColor(.gray)
+                    } else {
+                        Picker("Pilih Detail Kerusakan", selection: $viewModel.selectedWorkDetail) {
+                            Text("Pilih Detail Kerusakan").tag(nil as String?)
+                            ForEach(viewModel.workDetailsForSelectedCategory, id: \.self) { detail in
+                                Text(detail).tag(detail as String?)
+                                    .font(.subheadline.weight(.medium))
+                                    .lineLimit(1)
+                                    .truncationMode(.tail)
+                                    .minimumScaleFactor(0.8)
+                            }
+                        }
+                        .pickerStyle(.menu)
+                        .disabled(viewModel.selectedCategory == nil)
+                        .frame(maxWidth: 200, alignment: .leading)
+                        .lineLimit(1)
+                        .truncationMode(.tail)
+                    }
+                
+                
+            }
+            
             Text(complaint.description ?? "–")
                 .font(.system(size: 14))
                 .foregroundColor(.primary)
                 .fixedSize(horizontal: false, vertical: true)
         }
     }
+
     
     private var requirementsSection: some View {
         VStack(alignment: .leading, spacing: 12) {
@@ -195,11 +279,11 @@ struct BSCComplainDetailView: View {
         }
     }
     
-    private var actionButtons: some View {
+    private func actionButtons(complaint: Complaint2) -> some View {
         VStack(alignment: .leading, spacing: 12) {
             if let status = viewModel.selectedStatus {
                 switch status {
-                case .underReviewByBI:
+                case .underReviewbByBSC:
                     CustomButtonComponent(
                         text: "Confirm",
                         backgroundColor: .primaryBlue,
@@ -208,41 +292,9 @@ struct BSCComplainDetailView: View {
                     ) {
                         Task {
                             await viewModel.updateStatus(to: "8e8f0a90-36eb-4a7f-aad0-ee2e59fd9b8f")
-                            NotificationManager.shared.sendNotification(
-                                title: "Complain Confirmed",
-                                body: "You have confirmed the complain."
-                            )
                         }
                     }
-                    
-                case .waitingKeyHandover:
-                    HStack(spacing: 12) {
-                        CustomButtonComponent(
-                            text: "Accept Key",
-                            backgroundColor: .green,
-                            textColor: .white
-                        ) {
-                            Task {
-                                await viewModel.updateStatus(to: "ba1b0384-9c57-4c34-a70b-2ed7e44b7ce0")
-                            }
-                        }
-                        
-                        CustomButtonComponent(
-                            text: "Not Receive Key",
-                            backgroundColor: .red,
-                            textColor: .white
-                        ) {
-                            Task {
-                                await viewModel.updateStatus(to: "99d06c4a-e49f-4144-b617-2a1b6c51092f")
-                            }
-                        }
-                    }
-                    
-                case .inProgress:
-                    HStack(spacing: 12) {
-                    }
-                    
-                case .open, .resolved, .rejected, .unknown, .closed, .assignToVendor, .underReviewbByBSC:
+                case .open, .resolved, .rejected, .unknown, .closed, .assignToVendor, .underReviewByBI, .waitingKeyHandover, .inProgress:
                     EmptyView()
                 }
             }

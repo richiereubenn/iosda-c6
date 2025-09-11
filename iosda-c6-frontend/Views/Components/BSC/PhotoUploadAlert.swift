@@ -26,7 +26,6 @@ struct PhotoUploadSheet: View {
             }
 
             
-            // Photo upload cards
             if uploadAmount == 1 {
                 PhotoUploadCard(
                     title: "Photo",
@@ -93,7 +92,7 @@ struct PhotoUploadSheet: View {
                     let photos = [viewModel.photo1, viewModel.photo2].compactMap { $0 }
                     onStartWork(
                         photos,
-                        showTitleField ? inputTitle.trimmingCharacters(in: .whitespacesAndNewlines) : nil,
+                        title,
                         showDescriptionField ? inputDescription.trimmingCharacters(in: .whitespacesAndNewlines) : nil
                     )
                 }

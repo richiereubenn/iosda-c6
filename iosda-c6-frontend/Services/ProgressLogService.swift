@@ -54,8 +54,7 @@ class ProgressLogService: ProgressLogServiceProtocol {
             }
             return date1 < date2
         }
-        
-        return sortedLogs.last
+        return logs.last
     }
 
     

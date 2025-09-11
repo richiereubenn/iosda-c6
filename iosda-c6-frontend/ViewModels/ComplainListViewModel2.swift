@@ -71,7 +71,7 @@ class ComplaintListViewModel2: ObservableObject {
         
         switch selectedFilter {
         case .all:
-            break
+            results = results.filter { $0.statusName?.lowercased() != "resolved" && $0.statusName?.lowercased() != "rejected"}
         case .underReviewByBI:
             results = results.filter { $0.statusName?.lowercased() == "under review by bi" }
         case .underReviewByBSC:

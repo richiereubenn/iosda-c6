@@ -12,23 +12,29 @@ import SwiftUI
 class BSCBIComplaintDetailViewModel: ObservableObject {
     @Published var selectedComplaint: Complaint2? = nil
     @Published var selectedStatus: ComplaintStatus? = nil
+    @Published var classifications: [Classification] = []
+    @Published var firstProgress: ProgressLog2? = nil
     @Published var isLoading: Bool = false
     @Published var isUpdating: Bool = false
     @Published var errorMessage: String? = nil
-    @Published var firstProgress: ProgressLog2? = nil
     @Published var isSubmitting: Bool = false
-    
+    @Published var selectedCategory: String? = nil
+    @Published var selectedWorkDetail: String? = nil
+    let defaultClassificationId = "75b125fd-a656-4fd8-a500-2f051b068171"
     private let service: ComplaintServiceProtocol2
     private let progressService: ProgressLogServiceProtocol
+    private let classificationService: ClassificationServiceProtocol
     
     private let baseURL = "https://api.kevinchr.com/complaint"
     
     init(
         service: ComplaintServiceProtocol2 = ComplaintService2(),
-        progressService: ProgressLogServiceProtocol = ProgressLogService()
+        progressService: ProgressLogServiceProtocol = ProgressLogService(),
+        classificationService: ClassificationServiceProtocol = ClassificationService()
     ) {
         self.service = service
         self.progressService = progressService
+        self.classificationService = classificationService
     }
     
     func loadComplaint(byId id: String) async {
@@ -123,28 +129,53 @@ class BSCBIComplaintDetailViewModel: ObservableObject {
     }
     
     func submitStartWorkProgress(
-            complaintId: String,
-            userId: String,
-            images: [UIImage],
-            title: String,
-            description: String
-        ) async {
-            isSubmitting = true
-            defer { isSubmitting = false }
-            
-            do {
-                _ = try await progressService.uploadProgressWithFiles(
-                    complaintId: complaintId,
-                    userId: userId,
-                    title: title,
-                    description: description,
-                    images: images
-                )
-            } catch {
-                errorMessage = "Failed to create start work progress: \(error.localizedDescription)"
-            }
+        complaintId: String,
+        userId: String,
+        images: [UIImage],
+        title: String,
+        description: String
+    ) async {
+        isSubmitting = true
+        defer { isSubmitting = false }
+        
+        do {
+            _ = try await progressService.uploadProgressWithFiles(
+                complaintId: complaintId,
+                userId: userId,
+                title: title,
+                description: description,
+                images: images
+            )
+        } catch {
+            errorMessage = "Failed to create start work progress: \(error.localizedDescription)"
         }
+    }
     
-    
+    func loadClassifications(defaultId: String? = nil) async {
+        do {
+            let fetched = try await classificationService.fetchClassification()
+            classifications = fetched
 
+            if let id = defaultId,
+               let classification = fetched.first(where: { $0.id == id }) {
+                selectedCategory = classification.name
+                selectedWorkDetail = classification.workDetail
+            }
+
+        } catch {
+            errorMessage = "Failed to load classifications: \(error.localizedDescription)"
+        }
+    }
+
+    
+    var uniqueCategories: [String] {
+        Array(Set(classifications.map { $0.name })).sorted()
+    }
+    
+    var workDetailsForSelectedCategory: [String] {
+        guard let category = selectedCategory else { return [] }
+        return classifications
+            .filter { $0.name == category }
+            .map { $0.workDetail ?? "-" }
+    }
 }

@@ -1,9 +1,13 @@
 import SwiftUI
+
 struct ResidentHomeView: View {
     
-    @ObservedObject var viewModel: ComplaintListViewModel
+    @ObservedObject var viewModel: ComplaintListViewModel2
     @ObservedObject var unitViewModel: UnitViewModel
     @State private var showingCreateView = false
+    
+    // 1. Add a userId property to accept the user's ID
+    let userId: String
     
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
@@ -74,8 +78,8 @@ struct ResidentHomeView: View {
 
                 // New Complaint Button
                 CustomButtonComponent(text: "New Complaint", action: {
-                                  showingCreateView = true
-                              })
+                                            showingCreateView = true
+                                      })
             }
             .padding(.horizontal, 20)
             .padding(.vertical, 20)
@@ -89,7 +93,11 @@ struct ResidentHomeView: View {
                     
                     Spacer()
                     
-                    NavigationLink(destination: ResidentComplaintListView(viewModel: viewModel)) {
+                    // 2. Use the new userId property for the navigation link
+                    NavigationLink(destination: ResidentComplaintListView(
+                        viewModel: ComplaintListViewModel2(),
+                        userId: userId
+                    )) {
                         Text("View All")
                             .foregroundColor(.blue)
                             .font(.body)
@@ -103,7 +111,7 @@ struct ResidentHomeView: View {
                     LazyVStack(spacing: 15) {
                         ForEach(viewModel.complaints.prefix(5)) { complaint in
                             NavigationLink(destination: ResidentComplaintDetailView(complaint: complaint)) {
-                                ResidentComplaintCardView(complaint: complaint)
+                                ComplaintCard(complaint: complaint)
                             }
                             .buttonStyle(PlainButtonStyle())
                         }
@@ -127,25 +135,28 @@ struct ResidentHomeView: View {
             }
             
             Task {
-                await viewModel.loadComplaints()
+                // 3. Call the correct function to load complaints by user ID
+                await viewModel.loadComplaints(byUserId: userId)
             }
         }
         .background(Color(.systemGroupedBackground))
-        .sheet(isPresented: $showingCreateView) {
-            ResidentAddComplaintView(
-                unitViewModel: unitViewModel, // Use same instance, not new one
-                complaintViewModel: viewModel
-            )
-        }
+//        .sheet(isPresented: $showingCreateView) {
+//            ResidentAddComplaintView(
+//                unitViewModel: unitViewModel, // Use same instance, not new one
+//                complaintViewModel: viewModel
+//            )
+//        }
     }
 }
 
 
 #Preview {
     NavigationStack {
+        // 4. Update the preview to provide a test user ID
         ResidentHomeView(
-            viewModel: ComplaintListViewModel(),
-            unitViewModel: UnitViewModel()
+            viewModel: ComplaintListViewModel2(),
+            unitViewModel: UnitViewModel(),
+            userId: "2b4c59bd-0460-426b-a720-80ccd85ed5b2"
         )
         .navigationBarHidden(true)
     }

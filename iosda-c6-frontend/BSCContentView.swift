@@ -32,7 +32,9 @@ struct BSCContentView: View {
                         BSCUnitListView()
                         
                     case "Resident View":
-                        ResidentHomeView(viewModel: ComplaintListViewModel(), unitViewModel: UnitViewModel())
+                        NavigationStack{
+                            ResidentHomeView(viewModel: ComplaintListViewModel2(), unitViewModel: UnitViewModel(), userId: "2b4c59bd-0460-426b-a720-80ccd85ed5b2")
+                        }
                         
                     case "BI View":
                         BIContentView()

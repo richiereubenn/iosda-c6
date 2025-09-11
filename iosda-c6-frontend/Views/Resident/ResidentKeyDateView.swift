@@ -2,7 +2,7 @@ import SwiftUI
 
 struct ResidentKeyDateView: View {
     var handoverMethod: String
-    var selectedUnitId: Int?
+    var selectedUnitId: String?
     var complaintTitle: String
     var complaintDetails: String
     
@@ -110,39 +110,46 @@ struct ResidentKeyDateView: View {
     // MARK: - Methods
     
     private func submitComplaint() {
-        print("PrimaryButton tapped")
-        guard let unitId = selectedUnitId else {
-            print("unitId is nil")
-            return
-        }
+            guard let unitId = selectedUnitId else {
+                print("Error: unitId is nil")
+                return
+            }
 
-        let request = CreateComplaintRequest(
-            unitId: unitId,
-            title: complaintTitle,
-            description: complaintDetails + "\nNotes: \(additionalNotes)",
-            classificationId: nil,
-            keyHandoverDate: selectedDate,
-            latitude: nil,
-            longitude: nil,
-            handoverMethod: handoverMethod
-        )
+            // --- THIS IS THE FIX ---
+            // 1. Find the selected `Unit` object using the `unitId`.
+            let selectedUnit = unitViewModel.claimedUnits.first { $0.id == unitId }
+
+            let request = CreateComplaintRequest(
+                unitId: unitId,
+                title: complaintTitle,
+                description: complaintDetails + "\n\nAdditional Notes:\n\(additionalNotes)",
+                classificationId: nil,
+                keyHandoverDate: selectedDate,
+                latitude: nil,
+                longitude: nil,
+                handoverMethod: handoverMethod
+            )
 
         Task {
-            do {
-                print("Submitting complaint...")
-                try await complaintViewModel.submitComplaint(request: request, unitViewModel: unitViewModel)
-                await MainActor.run {
-                    print("Submitted successfully")
-                    // Ensure the filter is set to open to show the new complaint
-                    //complaintViewModel.selectedFilter = .open
-                    //complaintViewModel.filterComplaints()
-                    showingSuccessAlert = true
+                    // Safely unwrap the optional 'selectedUnit' before using it.
+                    guard let unitToSubmit = selectedUnit else {
+                        print("Error: Could not find the selected unit to submit.")
+                        // TODO: Show an error alert to the user
+                        return
+                    }
+                    
+                    do {
+                        // Pass the unwrapped 'unitToSubmit' object.
+                        try await complaintViewModel.submitComplaint(request: request, selectedUnit: unitToSubmit)
+                        
+                        await MainActor.run {
+                            showingSuccessAlert = true
+                        }
+                    } catch {
+                        print("Failed to submit complaint: \(error)")
+                        // TODO: Show an error alert to the user
+                    }
                 }
-            } catch {
-                print("Failed to submit complaint: \(error)")
-                // You might want to show an error alert here too
-            }
-        }
     }
     
 }
@@ -152,7 +159,7 @@ struct ResidentKeyDateView: View {
 #Preview {
     ResidentKeyDateView(
         handoverMethod: "Bring to MO",
-        selectedUnitId: 1,
+        selectedUnitId: "1",
         complaintTitle: "Leaky Faucet",
         complaintDetails: "Water leaking from kitchen faucet.",
         unitViewModel: UnitViewModel(),

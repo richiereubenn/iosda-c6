@@ -1,9 +1,9 @@
 import Foundation
 
 struct ProgressFile: Identifiable, Codable {
-    let id: Int?
-    let progressId: Int?
-    let fileId: Int?
+    let id: String?
+    let progressId: String?
+    let fileId: String?
     
     // Navigation properties
     var progress: ProgressLog?

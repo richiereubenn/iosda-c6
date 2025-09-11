@@ -6,6 +6,7 @@
 //
 
 import Foundation
+import SwiftUICore
 
 struct Complaint2: Identifiable, Codable {
     let id: String
@@ -18,7 +19,7 @@ struct Complaint2: Identifiable, Codable {
     let openTimestamp: Date?
     let closeTimestamp: Date?
     let keyHandoverDate: Date?
-    let deadlineDate: String?
+    let deadlineDate: Date?
     let latitude: String?
     let longitude: String?
     let handoverMethod: String?

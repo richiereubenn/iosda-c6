@@ -80,12 +80,12 @@ struct ProgressAttachmentsView: View {
 #Preview {
     ProgressAttachmentsView(progressFiles: [
         ProgressFile(
-            id: 1,
-            progressId: 101,
-            fileId: 201,
+            id: "1",
+            progressId: "101",
+            fileId: "201",
             progress: nil,
             file: File(
-                id: 201,
+                id: "201",
                 name: "photo1.jpg",
                 path: "https://via.placeholder.com/150",
                 mimeType: "image/jpeg",
@@ -94,12 +94,12 @@ struct ProgressAttachmentsView: View {
             )
         ),
         ProgressFile(
-            id: 2,
-            progressId: 101,
-            fileId: 202,
+            id: "2",
+            progressId: "101",
+            fileId: "202",
             progress: nil,
             file: File(
-                id: 202,
+                id: "202",
                 name: "document.pdf",
                 path: "https://www.example.com/document.pdf",
                 mimeType: "application/pdf",

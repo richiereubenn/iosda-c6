@@ -193,7 +193,7 @@ struct BSCUnitDetailView: View {
 
 #Preview {
     let mockUnit = Unit(
-        id: 1,
+        id: "1",
         name: "Northwest Park - NA01/001",
         bscUuid: nil,
         biUuid: nil,
@@ -211,7 +211,7 @@ struct BSCUnitDetailView: View {
     let mockUserUnit = UserUnit(
         id: nil,
         userId: nil,
-        unitId: 1,
+        unitId: "1",
         ownershipType: "Owner"
     )
     

@@ -48,12 +48,12 @@ struct ResidentUnitCard: View {
 #Preview {
     ResidentUnitCard(
         unit: Unit(
-            id: 1234,
+            id: "1234",
             name: "Citraland Utara - 8/24",
             bscUuid: "2",
             biUuid: "2",
             contractorUuid: "2",
-            keyUuid: 2,
+            keyUuid: "2",
             project: "Citraland Utara",
             area: "NorthWestPark",
             block: "NA",
@@ -63,9 +63,9 @@ struct ResidentUnitCard: View {
             isApproved: true
         ),
         userUnit: UserUnit(
-            id: 1,
-            userId: 123,
-            unitId: 1234,
+            id: "1",
+            userId: "123",
+            unitId: "1234",
             ownershipType: "Owner"
         )
     )

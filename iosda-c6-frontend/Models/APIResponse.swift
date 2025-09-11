@@ -77,10 +77,10 @@ struct CreateUnitRequest: Codable {
 }
 
 struct CreateComplaintRequest: Codable {
-    let unitId: Int
+    let unitId: String
     let title: String
     let description: String
-    let classificationId: Int?
+    let classificationId: String?
     let keyHandoverDate: Date?
     let latitude: Double?
     let longitude: Double?

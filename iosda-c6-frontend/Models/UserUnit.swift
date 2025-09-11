@@ -1,9 +1,9 @@
 import Foundation
 
 struct UserUnit: Identifiable, Codable {
-    let id: Int?
-    let userId: Int?
-    let unitId: Int?
+    let id: String?
+    let userId: String?
+    let unitId: String?
     let ownershipType: String?
     
     // Navigation properties

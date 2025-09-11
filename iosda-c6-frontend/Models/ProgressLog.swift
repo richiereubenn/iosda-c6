@@ -1,9 +1,9 @@
 import Foundation
 
 struct ProgressLog: Identifiable, Codable {
-    let id: Int?
-    let userId: Int?
-    let attachmentId: Int?
+    let id: String?
+    let userId: String?
+    let attachmentId: String?
     let title: String?
     let description: String?
     let timestamp: Date?

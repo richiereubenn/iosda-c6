@@ -1,15 +1,16 @@
 import SwiftUI
 
 struct ResidentComplaintDetailView: View {
-    let complaint: Complaint
-    let complaintListViewModel: ComplaintListViewModel?
+    
+    let complaint: Complaint2
+    let complaintListViewModel: ComplaintListViewModel2?
+    
     @Environment(\.dismiss) var dismiss
     @State private var showingImageViewer = false
     @State private var selectedImageIndex = 0
     @State private var showingProgressDetail = false
     
-    
-    init(complaint: Complaint, complaintListViewModel: ComplaintListViewModel? = nil) {
+    init(complaint: Complaint2, complaintListViewModel: ComplaintListViewModel2? = nil) {
         self.complaint = complaint
         self.complaintListViewModel = complaintListViewModel
     }
@@ -17,13 +18,15 @@ struct ResidentComplaintDetailView: View {
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 20) {
-                // Header with title and estimation
+                // MARK: - Header
                 VStack(alignment: .leading, spacing: 8) {
                     Text(complaint.title)
                         .font(.largeTitle)
                         .fontWeight(.bold)
                         .multilineTextAlignment(.leading)
-                    if complaint.handoverMethod == .bringToMO{
+                    
+                    // 2. Compare handoverMethod with a String value now
+                    if complaint.handoverMethod == "bring_to_mo" {
                         if let handoverDate = complaint.keyHandoverDate {
                             HStack(spacing: 6) {
                                 Text("Key Handover Date:")
@@ -40,36 +43,34 @@ struct ResidentComplaintDetailView: View {
                             }
                         }
                     }
-                    
                 }
                 .padding(.horizontal, 20)
                 
-                // Status Section
+                // MARK: - Status Section
                 VStack(alignment: .leading, spacing: 15) {
                     HStack(spacing: 12) {
                         Text("Status")
                             .font(.title2)
                             .fontWeight(.bold)
                         
-                        if let statusID = complaint.status?.complaintStatusID {
-                            StatusBadge(statusID: statusID)
-                        }
+                        // 3. Use statusName to determine the status for the badge
+                        StatusBadge(status: ComplaintStatus(raw: complaint.statusName))
+                        
                         Spacer()
                         
                         Button("See Detail") {
                             showingProgressDetail = true
                         }
-                        
                         .foregroundColor(.blue)
-                        .font(.body)
                     }
                     
-                    // Status Progress Indicator
-                    StatusProgressBar(currentStatus: complaint.status)
+                    // Note: StatusProgressBar may need to be updated to accept a String
+                    StatusProgressBar(currentStatusName: complaint.statusName)
                 }
                 .padding(.horizontal, 20)
                 
-                if complaint.handoverMethod == .inHouse {
+                // 2. Compare handoverMethod with a String value
+                if complaint.handoverMethod == "in_house" {
                     if let openDate = complaint.openTimestamp {
                         let estimatedVisitDate = Calendar.current.date(byAdding: .day, value: 3, to: openDate)!
                         
@@ -90,20 +91,23 @@ struct ResidentComplaintDetailView: View {
                     }
                 }
                 
-                
-                // Detail Section
+                // MARK: - Detail Section
                 VStack(alignment: .leading, spacing: 12) {
                     Text("Detail")
                         .font(.title2)
                         .fontWeight(.bold)
                     
                     VStack(alignment: .leading, spacing: 8) {
-                        DetailRow(label: "ID", value: "#\(complaint.id ?? 0)")
-                        DetailRow(label: "Complain Type", value: complaint.classification?.name ?? "Unknown")
+                        // 4. Use flattened properties from the Complaint2 model
+                        DetailRow(label: "ID", value: "#\(complaint.id)")
+                        DetailRow(label: "Complain Type", value: complaint.classificationName ?? "Unknown")
                         DetailRow(label: "Created", value: formatDateWithTime(complaint.openTimestamp ?? Date()))
                         
-                        if let unit = complaint.unit {
-                            DetailRow(label: "Unit", value: unit.name)
+                        // IMPORTANT: Complaint2 only has unitId, not full unit details.
+                        // You will need a way to fetch unit details based on this ID.
+                        // For now, we'll just display the ID.
+                        if let unitId = complaint.unitId {
+                            DetailRow(label: "Unit ID", value: unitId)
                         }
                         
                         if let closeTimestamp = complaint.closeTimestamp {
@@ -111,53 +115,14 @@ struct ResidentComplaintDetailView: View {
                         }
                     }
                     
-                    // PLACEHOLDER IMAGE
-                    HStack (spacing: 0){
-                        VStack(spacing: 12) {
-                            Spacer()
-                                .frame(height: 20)
-                            
-                            
-                            Text ("Placeholder Image")
-                                .font(.subheadline)
-                            
-                            Spacer()
-                                .frame(height: 20)
-                        }
-                        .padding()
-                        .frame(maxWidth: .infinity)
-                        .background(Color(.systemBackground))
-                        .cornerRadius(15)
-                        .shadow(color: Color.black.opacity(0.15), radius: 5, x: 0, y: 3)
-                        //.padding(.horizontal)
-                        Spacer()
-                        VStack(spacing: 12) {
-                            Spacer()
-                                .frame(height: 20)
-                            
-                            Text( "Placeholder Image")
-                                .font(.subheadline)
-                            
-                            Spacer()
-                                .frame(height: 20)
-                        }
-                        .padding()
-                        .frame(maxWidth: .infinity)
-                        .background(Color(.systemBackground))
-                        .cornerRadius(15)
-                        .shadow(color: Color.black.opacity(0.15), radius: 5, x: 0, y: 3)
-                        //.padding(.horizontal)
-                        
-                    }
-                    // Description
+                    // Placeholder for images
+                    
                     if !complaint.description.isEmpty {
                         Text(complaint.description)
                             .font(.body)
                             .foregroundColor(.primary)
                             .padding(.top, 8)
                     }
-                    
-                    
                 }
                 .padding(.horizontal, 20)
                 
@@ -167,39 +132,31 @@ struct ResidentComplaintDetailView: View {
         .navigationTitle("")
         .navigationBarBackButtonHidden(true)
         .navigationDestination(isPresented: $showingProgressDetail) {
-            
-            ProgressDetailView(
-                complaintId: complaint.id ?? 0,
-                complaintListViewModel: complaintListViewModel
+            // Updated to use the new ViewModel type
+            ResidentProgressDetailView(
+                complaintId: complaint.id, complaintListViewModel: ComplaintListViewModel2()
             )
         }
         .toolbar {
             ToolbarItem(placement: .navigationBarLeading) {
-                Button(action: {
-                    dismiss()
-                }) {
+                Button(action: { dismiss() }) {
                     HStack(spacing: 5) {
                         Image(systemName: "chevron.left")
-                            .font(.body)
-                            .fontWeight(.medium)
-                        Text("Home")
-                            .font(.body)
+                        Text("Back")
                     }
                     .foregroundColor(.blue)
                 }
             }
         }
-        
         .overlay(alignment: .bottom) {
-            if let statusID = complaint.status?.complaintStatusID,
-               (statusID == .inProgress || statusID == .waitingKey),
-               complaint.handoverMethod == .bringToMO {
+            // 5. Update status check logic to use statusName string
+            if let status = complaint.statusName?.lowercased(),
+               let method = complaint.handoverMethod,
+               (status == "in progress" || status == "waiting key") && method == "bring_to_mo" {
                 VStack(spacing: 0) {
                     CustomButtonComponent(
                         text: "Submit Key Handover Evidence",
-                        action: {
-                            // Handle submit key handover evidence
-                        }
+                        action: { /* Handle submit key handover evidence */ }
                     )
                     .padding(.horizontal, 20)
                     .padding(.bottom, 20)
@@ -209,27 +166,27 @@ struct ResidentComplaintDetailView: View {
         }
     }
     
-    
     private func formatDate(_ date: Date) -> String {
         let formatter = DateFormatter()
-        formatter.dateFormat = "d MMMM yyyy"
+        formatter.dateStyle = .long
         return formatter.string(from: date)
     }
     
     private func formatDateWithTime(_ date: Date) -> String {
         let formatter = DateFormatter()
-        formatter.dateFormat = "d MMM yyyy; HH:mm:ss"
+        formatter.dateFormat = "d MMM yyyy; HH:mm"
         return formatter.string(from: date)
     }
 }
 
+// DetailRow remains the same, it's a good reusable component.
 struct DetailRow: View {
     let label: String
     let value: String
     
     var body: some View {
         HStack {
-            Text("\(label) :")
+            Text("\(label):")
                 .font(.body)
                 .foregroundColor(.secondary)
             Text(value)
@@ -243,38 +200,31 @@ struct DetailRow: View {
 #Preview {
     NavigationStack {
         ResidentComplaintDetailView(
-            complaint: Complaint(
-                id: 26082025002,
-                unitId: 1,
-                statusId: 4,
-                progressId: nil,
-                classificationId: 1,
-                title: "Anjing Masuk Rumah",
-                description: "when an unknown printer took a galley of type and scrambled it to make a type specimen book. It has survived not only five centuries, but also the leap into electronic typesetting, remaining essentially unchanged.",
+            // Use the new Complaint2 model for the preview
+            complaint: Complaint2(
+                id: "2b4c59bd-0460-426b-a720-80ccd85ed5b2",
+                unitId: "u-12345",
+                userId: "user-67890",
+                statusId: "s-4",
+                classificationId: "c-1",
+                title: "Leaking Faucet in Kitchen",
+                description: "The main kitchen faucet has been dripping constantly for the past two days, wasting water.",
                 openTimestamp: Date(),
                 closeTimestamp: nil,
-                keyHandoverDate: Calendar.current.date(byAdding: .day, value: 18, to: Date()),
-                deadlineDate: Calendar.current.date(byAdding: .day, value: 20, to: Date()),
+                keyHandoverDate: Calendar.current.date(byAdding: .day, value: 2, to: Date()),
+                deadlineDate: Date(),
                 latitude: nil,
                 longitude: nil,
-                handoverMethod: .bringToMO,
-                unit: Unit(
-                    id: 1,
-                    name: "Northwest Park - NA01/001",
-                    bscUuid: nil,
-                    biUuid: nil,
-                    contractorUuid: nil,
-                    keyUuid: nil,
-                    project: "Citraland Surabaya",
-                    area: "Northwest Park",
-                    block: "NA",
-                    unitNumber: "01/001",
-                    handoverDate: nil,
-                    renovationPermit: false,
-                    isApproved: true
-                ),
-                status: Status(id: 3, name: "")
-            )
+                handoverMethod: "in_house",
+                workDetail: nil,
+                workDuration: nil,
+                createdAt: Date(),
+                updatedAt: Date(),
+                statusName: "In Progress",
+                classificationName: "Plumbing"
+            ),
+            // Use the new ComplaintListViewModel2 for the preview
+            complaintListViewModel: ComplaintListViewModel2()
         )
     }
 }

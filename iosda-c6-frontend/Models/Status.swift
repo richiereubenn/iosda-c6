@@ -2,16 +2,16 @@ import Foundation
 import SwiftUI
 
 struct Status: Identifiable, Codable {
-    let id: Int?
+    let id: String?
     let name: String
     
-    enum ComplaintStatusID: Int, CaseIterable {
-        case open = 1
-        case underReview = 2
-        case waitingKey = 3
-        case inProgress = 4
-        case resolved = 5
-        case rejected = 6
+    enum ComplaintStatusID: String, CaseIterable {
+        case open = "1"
+        case underReview = "2"
+        case waitingKey = "3"
+        case inProgress = "4"
+        case resolved = "5"
+        case rejected = "6"
         
         var apiName: String {
             switch self {
@@ -26,12 +26,9 @@ struct Status: Identifiable, Codable {
     }
     
     var complaintStatusID: ComplaintStatusID? {
-        if let id = id {
-            return ComplaintStatusID(rawValue: id)
-        }
-        // fallback: try to find by name string
-        return ComplaintStatusID.allCases.first { $0.apiName == name.lowercased() }
-    }
+           guard let id = id else { return nil }
+           return ComplaintStatusID(rawValue: id)
+       }
     
     private enum CodingKeys: String, CodingKey {
         case id = "uuid"

@@ -7,7 +7,6 @@
 
 
 import SwiftUI
-
 @MainActor
 class LoginViewModel: ObservableObject {
     @Published var username = ""
@@ -37,9 +36,17 @@ class LoginViewModel: ObservableObject {
         
         Task {
             do {
+                print("DEBUG: Starting login process...")
                 let user = try await loginService.login(username: username, password: password)
+                
+                print("DEBUG: Login process completed")
+                print("DEBUG: User received: \(user.name)")
+                print("DEBUG: User role: \(user.role?.name ?? "No role")")
+                
                 self.loggedInUser = user
+                
             } catch {
+                print("DEBUG: Login failed with error: \(error)")
                 self.errorMessage = error.localizedDescription
             }
             self.isLoading = false

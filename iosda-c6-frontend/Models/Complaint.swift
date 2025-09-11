@@ -23,8 +23,8 @@ struct Complaint: Identifiable, Codable {
 //    var progressLogs: [ProgressLog]?
     
     enum HandoverMethod: String, Codable {
-        case inHouse = "in_house"
-        case bringToMO = "bring_to_mo"
+        case inHouse = "in house"
+        case bringToMO = "bring to mo"
     }
 
     private enum CodingKeys: String, CodingKey {

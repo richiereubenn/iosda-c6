@@ -9,6 +9,8 @@ import Foundation
 
 protocol UserServiceProtocol {
     func register(_ request: User) async throws -> User
+    func getCurrentUser() async throws -> User
+        func getUserById(_ id: String) async throws -> User
     // Add other user-related functions here, e.g., login, fetch profile, etc.
 }
 
@@ -44,4 +46,33 @@ class UserService: UserServiceProtocol {
 
         return user
     }
+    func getCurrentUser() async throws -> User {
+            let response: UserDetailResponse = try await networkManager.request(
+                endpoint: "/authN/v1/auth/me", // Adjust endpoint as needed
+                method: .GET,
+                body: nil
+            )
+            
+            guard response.success else {
+                throw NetworkError.serverError(response.code)
+            }
+            
+            return response.data
+        }
+        
+        // Get user by ID (if needed)
+        func getUserById(_ id: String) async throws -> User {
+            let response: UserDetailResponse = try await networkManager.request(
+                endpoint: "/authN/v1/users/\(id)", // Adjust endpoint as needed
+                method: .GET,
+                body: nil
+            )
+            
+            guard response.success else {
+                throw NetworkError.serverError(response.code)
+            }
+            
+            return response.data
+        }
+    
 }

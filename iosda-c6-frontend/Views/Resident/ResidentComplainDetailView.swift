@@ -192,11 +192,14 @@ struct ResidentComplainDetailView: View {
 
     private func complaintImage(url: String) -> some View {
         AsyncImage(url: URL(string: url)) { image in
-            image.resizable().aspectRatio(contentMode: .fill)
+            image
+                .resizable()
+                .aspectRatio(contentMode: .fill)
         } placeholder: {
             Rectangle().fill(Color.gray.opacity(0.3))
         }
-        .frame(width: 150, height: 100)
+        .frame(height: 150)
+        .frame(maxWidth: .infinity)
         .cornerRadius(8)
         .clipped()
     }

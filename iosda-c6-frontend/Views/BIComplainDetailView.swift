@@ -18,6 +18,9 @@ struct BIComplaintDetailView: View {
     @State private var sheetUploadAmount = 1
     @State private var statusId = ""
     @State private var showPhotoUploadSheet = false
+    @State private var showSuccessAlert = false
+    @State private var successMessage = ""
+
 
     
     @StateObject private var viewModel = BSCBIComplaintDetailViewModel()
@@ -31,7 +34,7 @@ struct BIComplaintDetailView: View {
                 VStack(alignment: .leading, spacing: 20) {
                     
                     VStack(alignment: .leading, spacing: 16) {
-                        Text("Judul Komplain")
+                        Text(complaint.title)
                             .font(.system(size: 24, weight: .bold))
                             .foregroundColor(.primary)
                         
@@ -56,6 +59,16 @@ struct BIComplaintDetailView: View {
                                     Spacer()
                                 }
                                 
+                                DataRowComponent(
+                                    label: "Kategori",
+                                    value: viewModel.classification?.name ?? "-"
+                                )
+                                
+                                DataRowComponent(
+                                    label: "Detail Kerusakan :",
+                                    value: viewModel.classification?.workDetail ?? "-"
+                                )
+                                
                                 VStack(alignment: .leading, spacing: 5) {
                                     Text("Description")
                                         .foregroundColor(.gray)
@@ -63,7 +76,7 @@ struct BIComplaintDetailView: View {
                                     
                                     Text(complaint.description ?? "-")
                                         .foregroundColor(.primary)
-                                        .font(.system(size: 14))
+                                        .font(.subheadline.weight(.medium))
                                         .multilineTextAlignment(.leading)
                                 }
                             }
@@ -77,7 +90,7 @@ struct BIComplaintDetailView: View {
                         GroupedCard {
                             VStack(spacing: 8) {
                                 if viewModel.firstProgressImageURLs.isEmpty {
-                                    complaintImage(url: nil) // fallback → "No Image Available"
+                                    complaintImage(url: nil) 
                                 } else {
                                     ForEach(viewModel.firstProgressImageURLs.indices, id: \.self) { index in
                                         if index == 0 {
@@ -127,6 +140,12 @@ struct BIComplaintDetailView: View {
         .navigationBarTitleDisplayMode(.inline)
         .navigationTitle("Detail Complain")
         .background(Color(.systemGroupedBackground))
+        .alert(successMessage, isPresented: $showSuccessAlert) {
+            Button("OK", role: .cancel) {
+                showSuccessAlert = true
+            }
+        }
+
         
         .alert("Do you want to reject this issue?", isPresented: $showRejectAlert) {
             TextField("Explain why you reject this issue", text: $rejectionReason, axis: .vertical)
@@ -167,6 +186,7 @@ struct BIComplaintDetailView: View {
                             description: desc ?? ""
                         )
                         await viewModel.updateStatus(to: statusId)
+                        showSuccessAlert = true
                     }
                     showPhotoUploadSheet = false
                 },
@@ -207,6 +227,8 @@ struct BIComplaintDetailView: View {
                             Task{
                                 await viewModel.updateStatus(to: "6272f956-8be4-4517-8b14-5e3413b79c37")
                             }
+                            successMessage = "Status updated to Assign To Vendor"
+                            showSuccessAlert = true
                            
                         }
                     }
@@ -222,6 +244,7 @@ struct BIComplaintDetailView: View {
                             sheetUploadAmount = 2
                             statusId = "ba1b0384-9c57-4c34-a70b-2ed7e44b7ce0"
                             showPhotoUploadSheet = true
+                            successMessage = "Status updated to In Progress"
                         }
                     }
                 case .inProgress:

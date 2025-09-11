@@ -14,6 +14,7 @@ class BSCBIComplaintDetailViewModel: ObservableObject {
     @Published var selectedStatus: ComplaintStatus? = nil
     @Published var classifications: [Classification] = []
     @Published var firstProgress: ProgressLog2? = nil
+    @Published var classification: Classification? = nil
     @Published var isLoading: Bool = false
     @Published var isUpdating: Bool = false
     @Published var errorMessage: String? = nil
@@ -37,6 +38,17 @@ class BSCBIComplaintDetailViewModel: ObservableObject {
         self.classificationService = classificationService
     }
     
+    var uniqueCategories: [String] {
+        Array(Set(classifications.map { $0.name })).sorted()
+    }
+    
+    var workDetailsForSelectedCategory: [String] {
+        guard let category = selectedCategory else { return [] }
+        return classifications
+            .filter { $0.name == category }
+            .map { $0.workDetail ?? "-" }
+    }
+    
     func loadComplaint(byId id: String) async {
         isLoading = true
         defer { isLoading = false }
@@ -45,6 +57,10 @@ class BSCBIComplaintDetailViewModel: ObservableObject {
             let complaint = try await service.getComplaintById(id)
             selectedComplaint = complaint
             selectedStatus = ComplaintStatus(raw: complaint.statusName)
+            
+            if let classificationId = complaint.classificationId {
+                try await loadClassificationById(classificationId)
+            }
             
             await loadFirstProgress(for: id)
         } catch {
@@ -119,7 +135,7 @@ class BSCBIComplaintDetailViewModel: ObservableObject {
             _ = try await progressService.createProgress(
                 complaintId: complaintId,
                 userId: userId,
-                title: "reject info",
+                title: "Rejection Comment",
                 description: reason,
                 files: nil
             )
@@ -155,27 +171,56 @@ class BSCBIComplaintDetailViewModel: ObservableObject {
         do {
             let fetched = try await classificationService.fetchClassification()
             classifications = fetched
-
+            
             if let id = defaultId,
                let classification = fetched.first(where: { $0.id == id }) {
                 selectedCategory = classification.name
                 selectedWorkDetail = classification.workDetail
             }
-
+            
         } catch {
             errorMessage = "Failed to load classifications: \(error.localizedDescription)"
         }
     }
-
     
-    var uniqueCategories: [String] {
-        Array(Set(classifications.map { $0.name })).sorted()
+    private func loadClassificationById(_ id: String) async {
+        do {
+            let savedclassification = try await classificationService.getClassificationById(id)
+            classification = savedclassification
+        } catch {
+            print("Failed to fetch classification by id: \(error.localizedDescription)")
+        }
     }
     
-    var workDetailsForSelectedCategory: [String] {
-        guard let category = selectedCategory else { return [] }
-        return classifications
-            .filter { $0.name == category }
-            .map { $0.workDetail ?? "-" }
+    func updateClassification() async {
+        guard let complaint = selectedComplaint else {
+            errorMessage = "No complaint selected"
+            return
+        }
+        guard let selectedDetail = selectedWorkDetail,
+              let classification = classifications.first(where: { $0.workDetail == selectedDetail }) else {
+            errorMessage = "No classification selected"
+            return
+        }
+        
+        isUpdating = true
+        defer { isUpdating = false }
+        
+        do {
+            let updatedComplaint = try await service.updateComplaint(
+                complaintId: complaint.id,
+                classificationId: classification.id ?? "-"
+            )
+            let complainDetail = try await service.getComplaintById(updatedComplaint.id)
+            selectedComplaint = complainDetail
+            
+            if let classificationId = complainDetail.classificationId {
+                await loadClassificationById(classificationId)
+            }
+            
+        } catch {
+            errorMessage = "Failed to update classification: \(error.localizedDescription)"
+        }
     }
+    
 }

@@ -9,6 +9,7 @@ import Foundation
 
 protocol ClassificationServiceProtocol {
     func fetchClassification() async throws -> [Classification]
+    func getClassificationById(_ id: String) async throws -> Classification
 }
 
 class ClassificationService: ClassificationServiceProtocol{
@@ -30,6 +31,18 @@ class ClassificationService: ClassificationServiceProtocol{
         }
 
         return classifications
+    }
+    
+    func getClassificationById(_ id: String) async throws -> Classification {
+        let endpoint = "/complaint/v1/classifications/\(id)"
+        let response: APIResponse<Classification> = try await networkManager.request(endpoint: endpoint)
+        guard response.success else {
+            throw NetworkError.serverError(response.code ?? 0)
+        }
+        guard let classification = response.data else {
+            throw NetworkError.noData
+        }
+        return classification
     }
     
 }

@@ -8,14 +8,13 @@
 import Foundation
 
 protocol ComplaintServiceProtocol2 {
-
     func getAllComplaints() async throws -> [Complaint2]
     func getComplaintsByUnitId(_ unitId: String) async throws -> [Complaint2]
     func getComplaintById(_ id: String) async throws -> Complaint2
     func updateComplaintStatus(complaintId: String, statusId: String) async throws -> Complaint2
     func getComplaintsByUserId(_ userId: String) async throws -> [Complaint2]
     func getProgressLogs(complaintId: String) async throws -> [ProgressLog]
-
+    func updateComplaint(complaintId: String, classificationId: String) async throws -> Complaint2
 }
 
 class ComplaintService2: ComplaintServiceProtocol2 {
@@ -54,6 +53,31 @@ class ComplaintService2: ComplaintServiceProtocol2 {
         }
         return complaint
     }
+    
+    func updateComplaint(complaintId: String, classificationId: String) async throws -> Complaint2 {
+            let endpoint = "/complaint/v1/complaints/\(complaintId)"
+            
+            let bodyDict: [String: Any] = [
+                "classification_id": classificationId
+            ]
+            let bodyData = try JSONSerialization.data(withJSONObject: bodyDict, options: [])
+            
+            let response: APIResponse<Complaint2> = try await networkManager.request(
+                endpoint: endpoint,
+                method: .PUT,
+                body: bodyData
+            )
+            
+            guard response.success else {
+                throw NetworkError.serverError(response.code ?? 0)
+            }
+            
+            guard let updatedComplaint = response.data else {
+                throw NetworkError.noData
+            }
+            
+            return updatedComplaint
+        }
     
     func updateComplaintStatus(complaintId: String, statusId: String) async throws -> Complaint2 {
             let endpoint = "/complaint/v1/complaints/\(complaintId)/status"
@@ -110,5 +134,7 @@ class ComplaintService2: ComplaintServiceProtocol2 {
         
         return updatedComplaint
     }
+    
+    
 }
 

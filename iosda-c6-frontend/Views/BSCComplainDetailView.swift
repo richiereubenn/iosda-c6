@@ -17,7 +17,7 @@ struct BSCComplainDetailView: View {
     @State private var izinRenovasiChecked = true
     @State private var showRejectAlert = false
     @State private var rejectionReason = ""
-
+    
     
     private var isConfirmDisabled: Bool {
         !(garansiChecked && izinRenovasiChecked)
@@ -26,7 +26,7 @@ struct BSCComplainDetailView: View {
     var body: some View {
         ZStack {
             Color(.systemGroupedBackground)
-                .ignoresSafeArea() 
+                .ignoresSafeArea()
             
             Group {
                 if viewModel.isLoading {
@@ -56,32 +56,32 @@ struct BSCComplainDetailView: View {
             await viewModel.loadComplaint(byId: complaintId)
             await viewModel.loadClassifications(defaultId: "75b125fd-a656-4fd8-a500-2f051b068171")
         }
-
-
+        
+        
         .alert("Do you want to reject this issue?", isPresented: $showRejectAlert) {
-                TextField("Explain why you reject this issue", text: $rejectionReason, axis: .vertical)
-                
-                Button("Cancel", role: .cancel) {
-                    rejectionReason = ""
-                }
-                
-                Button("Reject", role: .destructive) {
-                    let reason = rejectionReason.trimmingCharacters(in: .whitespacesAndNewlines)
-                    Task {
-                        await viewModel.updateStatus(to: "99d06c4a-e49f-4144-b617-2a1b6c51092f")
-                        await viewModel.submitRejectionProgress(
-                                    complaintId: complaintId,
-                                    userId: "2b4c59bd-0460-426b-a720-80ccd85ed5b2",
-                                    reason: reason
-                                )
-                    }
-                }
-            } message: {
-                Text("Explain why you reject this issue")
+            TextField("Explain why you reject this issue", text: $rejectionReason, axis: .vertical)
+            
+            Button("Cancel", role: .cancel) {
+                rejectionReason = ""
             }
+            
+            Button("Reject", role: .destructive) {
+                let reason = rejectionReason.trimmingCharacters(in: .whitespacesAndNewlines)
+                Task {
+                    await viewModel.updateStatus(to: "99d06c4a-e49f-4144-b617-2a1b6c51092f")
+                    await viewModel.submitRejectionProgress(
+                        complaintId: complaintId,
+                        userId: "2b4c59bd-0460-426b-a720-80ccd85ed5b2",
+                        reason: reason
+                    )
+                }
+            }
+        } message: {
+            Text("Explain why you reject this issue")
+        }
     }
     
-
+    
     
     private func headerSection(complaint: Complaint2) -> some View {
         Group {
@@ -183,8 +183,8 @@ struct BSCComplainDetailView: View {
             }
         }
     }
-
-
+    
+    
     private func complaintImage(url: String) -> some View {
         AsyncImage(url: URL(string: url)) { image in
             image.resizable().aspectRatio(contentMode: .fill)
@@ -197,37 +197,66 @@ struct BSCComplainDetailView: View {
     }
     
     private func complainDetails(complaint: Complaint2) -> some View {
-        VStack(alignment: .leading, spacing: 5) {
+        VStack(alignment: .leading, spacing: 12) {
             HStack(alignment: .firstTextBaseline) {
-                Text("Kategori : ")
-                    .font(.system(size: 14))
-                    .foregroundColor(.gray)
-                
-                if viewModel.uniqueCategories.isEmpty {
+                if complaint.statusName?.lowercased() != "under review by bsc" {
+                    if let savedClassification = viewModel.classification {
+                        DataRowComponent(
+                            label: "Kategori: ",
+                            value: savedClassification.name
+                        )
+                    } else {
+                        Text("-")
+                    }
+                } else {
+                    Text("Kategori: ")
+                        .font(.subheadline)
+                        .minimumScaleFactor(0.8)
+                        .lineLimit(1)
+                        .foregroundColor(.gray)
+
+                    if viewModel.uniqueCategories.isEmpty {
                         Text("Loading categories...")
                             .foregroundColor(.gray)
                     } else {
                         Picker("Pilih Kategori", selection: $viewModel.selectedCategory) {
                             ForEach(viewModel.uniqueCategories, id: \.self) { category in
                                 Text(category).tag(category as String?)
-                                    .font(.footnote.weight(.medium))
-                                    .minimumScaleFactor(0.8)
-                                    .lineLimit(1)
                             }
                         }
                         .pickerStyle(.menu)
+                        .scaleEffect(0.9)
+                        .accentColor(.primaryBlue)
+                        .fixedSize()
+                        .padding(.leading, -20)
+                        .padding(.bottom, -20)
+                        .padding(.top, -15)
+                        .disabled(viewModel.selectedCategory == nil)
                         .onChange(of: viewModel.selectedCategory) { _ in
                             viewModel.selectedWorkDetail = nil
                         }
                     }
+                }
             }
             
             HStack(alignment: .firstTextBaseline) {
-                Text("Detail Kerusakan : ")
-                    .font(.system(size: 14))
-                    .foregroundColor(.gray)
-                
-                if viewModel.workDetailsForSelectedCategory.isEmpty {
+                if complaint.statusName?.lowercased() != "under review by bsc" {
+                    if let savedClassification = viewModel.classification {
+                        DataRowComponent(
+                            label: "Detail Kerusakan: ",
+                            value: savedClassification.workDetail ?? "-"
+                        )
+                    } else {
+                        Text("-")
+                    }
+                } else {
+                    Text("Detail Kerusakan: ")
+                        .font(.subheadline)
+                        .minimumScaleFactor(0.8)
+                        .lineLimit(1)
+                        .foregroundColor(.gray)
+
+                    if viewModel.workDetailsForSelectedCategory.isEmpty {
                         Text("Loading categories...")
                             .foregroundColor(.gray)
                     } else {
@@ -235,29 +264,28 @@ struct BSCComplainDetailView: View {
                             Text("Pilih Detail Kerusakan").tag(nil as String?)
                             ForEach(viewModel.workDetailsForSelectedCategory, id: \.self) { detail in
                                 Text(detail).tag(detail as String?)
-                                    .font(.subheadline.weight(.medium))
-                                    .lineLimit(1)
-                                    .truncationMode(.tail)
-                                    .minimumScaleFactor(0.8)
                             }
                         }
                         .pickerStyle(.menu)
+                        .scaleEffect(0.9)
+                        .accentColor(.primaryBlue)
+                        .fixedSize()
+                        .padding(.leading, -25)
+                        .padding(.top, -15)
+                        .padding(.bottom, -15)
                         .disabled(viewModel.selectedCategory == nil)
-                        .frame(maxWidth: 200, alignment: .leading)
-                        .lineLimit(1)
-                        .truncationMode(.tail)
                     }
-                
-                
+                }
             }
             
             Text(complaint.description ?? "–")
-                .font(.system(size: 14))
+                .font(.subheadline.weight(.medium))
                 .foregroundColor(.primary)
                 .fixedSize(horizontal: false, vertical: true)
         }
     }
-
+    
+    
     
     private var requirementsSection: some View {
         VStack(alignment: .leading, spacing: 12) {
@@ -291,16 +319,20 @@ struct BSCComplainDetailView: View {
                         isDisabled: isConfirmDisabled
                     ) {
                         Task {
+                            // 1. Update classification dulu
+                            await viewModel.updateClassification()
+                            // 2. Setelah classification berhasil, update status
                             await viewModel.updateStatus(to: "8e8f0a90-36eb-4a7f-aad0-ee2e59fd9b8f")
                         }
                     }
+                    
                 case .open, .resolved, .rejected, .unknown, .closed, .assignToVendor, .underReviewByBI, .waitingKeyHandover, .inProgress:
                     EmptyView()
                 }
             }
         }
     }
-
+    
     
     private func formatDate(_ date: Date, format: String) -> String {
         let formatter = DateFormatter()

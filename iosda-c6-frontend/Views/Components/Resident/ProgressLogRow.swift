@@ -31,15 +31,13 @@ struct ProgressLogRow: View {
             VStack(alignment: .leading, spacing: 8) {
                 // Date and Time
                 HStack {
-                    Text(formatDate(progressLog.timestamp))
+                    Text(formatDateRow(progressLog.timestamp))
                         .font(.headline)
                         .fontWeight(.semibold)
                     
                     Spacer()
                     
-                    Text(formatTime(progressLog.timestamp))
-                        .font(.caption)
-                        .foregroundColor(.secondary)
+                    Text(formatDate(progressLog.timestamp ?? Date(), format: "HH:mm"))
                 }
                 
                 // Title and Description
@@ -65,19 +63,11 @@ struct ProgressLogRow: View {
         }
     }
     
-    private func formatDate(_ date: Date?) -> String {
+    private func formatDateRow(_ date: Date?) -> String {
         guard let date = date else { return "Unknown Date" }
         
         let formatter = DateFormatter()
         formatter.dateFormat = "EEEE, dd MMMM yyyy"
-        return formatter.string(from: date)
-    }
-    
-    private func formatTime(_ date: Date?) -> String {
-        guard let date = date else { return "" }
-        
-        let formatter = DateFormatter()
-        formatter.timeStyle = .medium
         return formatter.string(from: date)
     }
 }

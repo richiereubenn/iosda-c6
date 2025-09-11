@@ -169,7 +169,7 @@ struct ResidentComplainDetailView: View {
             if let complaint = viewModel.selectedComplaint,
                let status = complaint.statusName?.lowercased(),
                let method = complaint.handoverMethod,
-               (status == "in progress" || status == "waiting key") && method == "bring_to_mo" {
+               (status == "under review by bi" || status == "waiting key handover") && method == "bring_to_mo" {
                 VStack(spacing: 0) {
                     CustomButtonComponent(
                         text: "Submit Key Handover Evidence",

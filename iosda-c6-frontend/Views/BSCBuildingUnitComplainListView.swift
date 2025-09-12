@@ -70,7 +70,9 @@ struct BSCBuildingUnitComplainListView: View {
             .navigationTitle("Building Complain List")
             
         }
+        .background(Color(.systemGroupedBackground))
     }
+    
     
     private var toolbarContent: some ToolbarContent {
         ToolbarItem(placement: .navigationBarTrailing) {

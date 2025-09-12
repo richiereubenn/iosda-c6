@@ -140,11 +140,11 @@ struct BIComplaintDetailView: View {
         .navigationBarTitleDisplayMode(.inline)
         .navigationTitle("Detail Complain")
         .background(Color(.systemGroupedBackground))
-        .alert(successMessage, isPresented: $showSuccessAlert) {
-            Button("OK", role: .cancel) {
-                showSuccessAlert = true
-            }
-        }
+        .alert("Progress Updated", isPresented: $showSuccessAlert, actions: {
+            Button("OK", role: .cancel) { showSuccessAlert = true }
+        }, message: {
+            Text(successMessage)
+        })
 
         
         .alert("Do you want to reject this issue?", isPresented: $showRejectAlert) {
@@ -227,9 +227,8 @@ struct BIComplaintDetailView: View {
                             Task{
                                 await viewModel.updateStatus(to: "6272f956-8be4-4517-8b14-5e3413b79c37")
                             }
-                            successMessage = "Status updated to Assign To Vendor"
+                            successMessage = "Status updated to \"Assign To Vendor\""
                             showSuccessAlert = true
-                           
                         }
                     }
                 case .assignToVendor:
@@ -244,7 +243,7 @@ struct BIComplaintDetailView: View {
                             sheetUploadAmount = 2
                             statusId = "ba1b0384-9c57-4c34-a70b-2ed7e44b7ce0"
                             showPhotoUploadSheet = true
-                            successMessage = "Status updated to In Progress"
+                            successMessage = "Status updated to \"In Progress\""
                         }
                     }
                 case .inProgress:
@@ -254,7 +253,7 @@ struct BIComplaintDetailView: View {
                             backgroundColor: .orange,
                             textColor: .white
                         ) {
-                            
+                            successMessage = "New Progress Log Added"
                             showPhotoUploadSheet = true
                             sheetTitle = "Add Progress"
                             sheetDescription = "Use this to upload a progress update with photos and notes about the current work status."
@@ -262,11 +261,11 @@ struct BIComplaintDetailView: View {
                         }
                         
                         CustomButtonComponent(
-                            text: "Complete Work",
+                            text: "Resolved",
                             backgroundColor: .primaryBlue,
                             textColor: .white
                         ) {
-                            
+                            successMessage = "Status updated to \"Resolved\""
                             showPhotoUploadSheet = true
                             sheetTitle = "Complete Work"
                             sheetDescription = "This will set the work status to 'Resolved'."

@@ -56,8 +56,6 @@ struct BSCComplainDetailView: View {
             await viewModel.loadComplaint(byId: complaintId)
             await viewModel.loadClassifications(defaultId: "75b125fd-a656-4fd8-a500-2f051b068171")
         }
-        
-        
         .alert("Do you want to reject this issue?", isPresented: $showRejectAlert) {
             TextField("Explain why you reject this issue", text: $rejectionReason, axis: .vertical)
             

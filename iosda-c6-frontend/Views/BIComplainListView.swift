@@ -12,30 +12,34 @@ struct BIComplaintListView: View {
     
     var body: some View {
         VStack {
-            Picker("Complaint Status", selection: $viewModel.selectedFilter) {
-                ForEach(ComplaintListViewModel2.ComplaintFilter.allCases, id: \.self) { filter in
-                    Text(filter.rawValue).tag(filter)
+            // Tampilkan info filter saat ini
+            if !viewModel.isLoading {
+                HStack {
+                    Text("Filter: \(viewModel.selectedFilter.rawValue)")
+                        .font(.subheadline)
+                        .foregroundColor(.secondary)
+                    Spacer()
                 }
+                .padding(.horizontal)
             }
-            .pickerStyle(.segmented)
-            .padding()
             
             if viewModel.isLoading {
                 ProgressView("Loading...")
-                Spacer()
             } else if viewModel.filteredComplaints.isEmpty {
-                VStack(spacing: 12) {
-                    Image(systemName: "doc.text")
-                        .font(.title)
-                        .foregroundColor(.secondary)
-                    Text("No complaints found")
-                        .font(.body.weight(.medium))
-                        .foregroundColor(.secondary)
-                        .minimumScaleFactor(0.8)
-                        .lineLimit(2)
+                ZStack {
+                    Color(.systemGroupedBackground).ignoresSafeArea()
+                    
+                    VStack(spacing: 12) {
+                        Image(systemName: "doc.text")
+                            .font(.title)
+                            .foregroundColor(.secondary)
+                        Text("No complaints found")
+                            .font(.body.weight(.medium))
+                            .foregroundColor(.secondary)
+                            .minimumScaleFactor(0.8)
+                            .lineLimit(2)
+                    }
                 }
-                .padding(.top, 40)
-                Spacer()
             } else {
                 ScrollView {
                     VStack(spacing: 12) {
@@ -51,6 +55,24 @@ struct BIComplaintListView: View {
         }
         .searchable(text: $viewModel.searchText, prompt: "Search complaints...")
         .navigationTitle("Kode Rumah")
+        .toolbar {
+            ToolbarItem(placement: .navigationBarTrailing) {
+                Menu {
+                    ForEach(ComplaintListViewModel2.ComplaintFilter.allCases, id: \.self) { filter in
+                        Button {
+                            viewModel.selectedFilter = filter
+                        } label: {
+                            Label(filter.rawValue,
+                                  systemImage: viewModel.selectedFilter == filter ? "checkmark" : "")
+                        }
+                    }
+                } label: {
+                    Image(systemName: "line.3.horizontal.decrease.circle")
+                        .font(.title2)
+                        .foregroundColor(.blue)
+                }
+            }
+        }
         .task {
             await viewModel.loadComplaints(byUnitId: "103e4567-e89b-12d3-a456-426614174000")
         }
@@ -62,6 +84,7 @@ struct BIComplaintListView: View {
         .background(Color(.systemGroupedBackground))
     }
 }
+
 
 
 

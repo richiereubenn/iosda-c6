@@ -18,18 +18,18 @@ struct LoginView: View {
                     
                     VStack(alignment: .leading, spacing: 0) {
                         // Back button
-                        HStack {
-                            Button(action: {
-                                // dismiss or pop action if needed
-                            }) {
-                                Image(systemName: "chevron.left")
-                                    .font(.system(size: 18, weight: .medium))
-                                    .foregroundColor(.black)
-                            }
-                            Spacer()
-                        }
-                        .padding(.top, 12)
-                        .padding(.leading, 24)
+//                        HStack {
+//                            Button(action: {
+//                                // dismiss or pop action if needed
+//                            }) {
+//                                Image(systemName: "chevron.left")
+//                                    .font(.system(size: 18, weight: .medium))
+//                                    .foregroundColor(.black)
+//                            }
+//                            Spacer()
+//                        }
+//                        .padding(.top, 12)
+//                        .padding(.leading, 24)
                         
                         // Title
                         Text("Login to Ciputra Help")
@@ -125,6 +125,7 @@ struct LoginView: View {
                     set: { _ in }
                 )) {
                     roleBasedView()
+                        .navigationBarBackButtonHidden(true)
                 }
             }
         }

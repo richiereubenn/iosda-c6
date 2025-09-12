@@ -47,18 +47,27 @@ class UserService: UserServiceProtocol {
         return user
     }
     func getCurrentUser() async throws -> User {
-            let response: UserDetailResponse = try await networkManager.request(
-                endpoint: "/authN/v1/auth/me", // Adjust endpoint as needed
-                method: .GET,
-                body: nil
-            )
-            
-            guard response.success else {
-                throw NetworkError.serverError(response.code)
-            }
-            
-            return response.data
+        let response: APIResponse<MeResponse> = try await networkManager.request(
+            endpoint: "/authN/v1/auth/me",
+            method: .GET
+        )
+        
+        guard response.success else {
+            throw NetworkError.serverError(response.code ?? -1)
         }
+        
+        // Safely unwrap response.data before accessing user and roles
+        guard let meResponse = response.data else {
+            throw NetworkError.decodingError
+        }
+        
+        var user = meResponse.user
+        user.role = meResponse.roles.first
+        
+        return user
+    }
+
+
         
         // Get user by ID (if needed)
         func getUserById(_ id: String) async throws -> User {

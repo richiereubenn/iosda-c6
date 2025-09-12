@@ -44,6 +44,11 @@ class LoginViewModel: ObservableObject {
                 print("DEBUG: User role: \(user.role?.name ?? "No role")")
                 
                 self.loggedInUser = user
+                if let userId = NetworkManager.shared.getUserIdFromToken() {
+                    print("✅ Logged in user ID: \(userId)")
+                } else {
+                    print("⚠️ Failed to decode user ID from token")
+                }
                 
             } catch {
                 print("DEBUG: Login failed with error: \(error)")

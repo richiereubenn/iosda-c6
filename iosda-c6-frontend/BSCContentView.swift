@@ -14,44 +14,44 @@ struct BSCContentView: View {
         NavigationSplitView {
             SidebarView(selection: $selection)
         } detail: {
-                if let selection {
-                    switch selection.title {
-                    case "Dashboard":
-                       Text("Dashboard")
-                        
-                    case "Building":
-                        BSCBuildingUnitComplainListView()
-                        
-                    case "Land":
-                        Text("Land")
-                        
-                    case "Other":
-                        //Text("Other")
-                        LoginView()
-                        
-                    case "Unit":
-                        BSCUnitListView()
-                        
-                    case "Resident View":
-                        NavigationStack{
-                            ResidentHomeView(viewModel: ResidentComplaintListViewModel(), unitViewModel: UnitViewModel(), userId: "2b4c59bd-0460-426b-a720-80ccd85ed5b2")
-                        }
-                        
-                    case "BI View":
-                        BIContentView()
-                        
-                    default:
-                        BSCBuildingUnitComplainListView()
+            if let selection {
+                switch selection.title {
+                case "Dashboard":
+                    Text("Dashboard")
+                    
+                case "Building":
+                    BSCBuildingUnitComplainListView()
+                    
+                case "Land":
+                    Text("Land")
+                    
+                case "Other":
+                    //Text("Other")
+                    LoginView()
+                    
+                case "Unit":
+                    BSCUnitListView()
+                    
+                case "Resident View":
+                    NavigationStack{
+                        ResidentHomeView(viewModel: ResidentComplaintListViewModel(), unitViewModel: UnitViewModel(), userId: "2b4c59bd-0460-426b-a720-80ccd85ed5b2")
                     }
-                } else {
+                    
+                case "BI View":
+                    BIContentView()
+                    
+                default:
                     BSCBuildingUnitComplainListView()
                 }
+            } else {
+                BSCBuildingUnitComplainListView()
+            }
             
         }
     }
 }
 
-#Preview {
-    BSCContentView()
-}
+//#Preview {
+//    BSCContentView(complaintId: complaintId)
+//}
 

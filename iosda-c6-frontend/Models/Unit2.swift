@@ -9,17 +9,17 @@ import Foundation
 
 struct Unit2: Codable, Identifiable {
     let id: String
-    let unitCodeId: String
+    let unitCodeId: String?
     let contractorId: String?
-    let name: String
-    let unitNumber: String
+    let name: String?
+    let unitNumber: String?
     let handoverDate: Date?
-    let box: String?
-    let renovationPermit: Bool
+    let box: Int?               
+    let renovationPermit: Bool?
     let keyHandoverDate: Date?
     let keyHandoverNote: String?
-    let createdAt: Date
-    let updatedAt: Date
+    let createdAt: Date?
+    let updatedAt: Date?
     let deletedAt: Date?
     let residentId: String?
     let bscId: String?
@@ -44,3 +44,4 @@ struct Unit2: Codable, Identifiable {
         case biId = "bi_id"
     }
 }
+

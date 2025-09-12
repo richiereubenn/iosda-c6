@@ -53,14 +53,14 @@ struct BIComplaintDetailView: View {
                                 HStack {
                                     Text("Status :")
                                         .foregroundColor(.gray)
-                                        .font(.system(size: 14))
+                                        .font(.subheadline)
                                     
                                     StatusBadge(status: viewModel.selectedStatus ?? .unknown)
                                     Spacer()
                                 }
                                 
                                 DataRowComponent(
-                                    label: "Kategori",
+                                    label: "Kategori :",
                                     value: viewModel.classification?.name ?? "-"
                                 )
                                 
@@ -72,7 +72,7 @@ struct BIComplaintDetailView: View {
                                 VStack(alignment: .leading, spacing: 5) {
                                     Text("Description")
                                         .foregroundColor(.gray)
-                                        .font(.system(size: 14))
+                                        .font(.subheadline)
                                     
                                     Text(complaint.description ?? "-")
                                         .foregroundColor(.primary)

@@ -34,6 +34,8 @@ class LoginService: LoginServiceProtocol {
         
         print("DEBUG: Login successful, got tokens")
         
+        networkManager.bearerToken = loginResponse.data.accessToken
+        
         // Step 2: Store tokens (you might want to save these to Keychain/UserDefaults)
         // For now, we'll assume NetworkManager handles token storage
         

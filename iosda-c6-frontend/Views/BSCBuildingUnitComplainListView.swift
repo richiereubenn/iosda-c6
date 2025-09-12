@@ -8,96 +8,95 @@
 import SwiftUI
 
 struct BSCBuildingUnitComplainListView: View {
-    @StateObject private var viewModel = BuildingListViewModel()
+    @StateObject private var viewModel = BSCBuildingUnitComplainListViewModel()
     
     var body: some View {
         NavigationStack{
-            let filteredUnits = viewModel.getFilteredAndSortedUnits()
-            
             VStack(spacing: 16) {
-                let summaryCardsHStack = HStack(spacing: 16) {
-                    let newComplaintCard = SummaryComplaintCard(
+                
+                HStack(spacing: 16) {
+                    SummaryComplaintCard(
                         title: "New Complaint",
                         unitCount: 13,
                         complaintCount: 20,
                         backgroundColor: Color.blue
                     )
                     
-                    let progressCard = SummaryComplaintCard(
+                    SummaryComplaintCard(
                         title: "On Progress",
                         unitCount: 2,
                         complaintCount: 5,
                         backgroundColor: Color.green
                     )
-                    
-                    newComplaintCard
-                    progressCard
                 }
-                summaryCardsHStack
                 
-                let scrollableContent = ScrollView {
-                    LazyVStack(spacing: 12) {
-                        ForEach(filteredUnits, id: \.unitCode) { unit in
-                            let destinationView = BSCComplaintListView(
-                                viewModel: ComplaintListViewModel2()
-                            )
-                            
-                            let unitCard = UnitComplainCard(
-                                unitCode: unit.unitCode,
-                                latestComplaintDate: unit.latestComplaintDate,
-                                totalComplaints: unit.totalComplaints,
-                                completedComplaints: unit.completedComplaints
-                            )
-                            
-                            let navigationLink = NavigationLink(destination: destinationView) {
-                                unitCard
-                            }
-                            .buttonStyle(PlainButtonStyle())
-                            
-                            navigationLink
-                        }
-                    }
-                }
-                scrollableContent
+                unitListScrollView()
+                
             }
             .padding(.horizontal)
-            .background(Color(.systemGroupedBackground))
             .padding(.top)
-            .toolbar {
-                toolbarContent
-            }
+            .background(Color(.systemGroupedBackground))
             .searchable(text: $viewModel.searchText)
             .navigationTitle("Building Complain List")
-            
-        }
-        .background(Color(.systemGroupedBackground))
-    }
-    
-    
-    private var toolbarContent: some ToolbarContent {
-        ToolbarItem(placement: .navigationBarTrailing) {
-            let menuContent = Menu {
-                let latestButton = Button(action: { viewModel.sortOption = .latest }) {
-                    let latestLabel = Label("Tanggal Terbaru", systemImage: viewModel.sortOption == .latest ? "checkmark" : "")
-                    latestLabel
-                }
-                
-                let oldestButton = Button(action: { viewModel.sortOption = .oldest }) {
-                    let oldestLabel = Label("Tanggal Terlama", systemImage: viewModel.sortOption == .oldest ? "checkmark" : "")
-                    oldestLabel
-                }
-                
-                latestButton
-                oldestButton
-            } label: {
-                let menuIcon = Image(systemName: "line.3.horizontal.decrease.circle")
-                    .font(.title2)
-                    .foregroundColor(Color.primaryBlue)
-                menuIcon
+            .task {
+                await viewModel.fetchUnits()
             }
-            menuContent
+            
+            .background(Color(.systemGroupedBackground))
         }
     }
+    
+    @ViewBuilder
+    private func unitListScrollView() -> some View {
+        let units = viewModel.getFilteredAndSortedUnits()
+        
+        ScrollView {
+            LazyVStack(spacing: 12) {
+                ForEach(units) { unit in
+                    let summary = viewModel.getComplaintCounts(for: unit.id)
+                    
+                    NavigationLink(destination: BSCComplaintListView(unitId: unit.id)) {
+                        UnitComplainCard(
+                            unitCode: unit.name ?? "Unknown",
+                            latestComplaintDate: formatDate(unit.createdAt!, format: "dd MMM yyyy | HH:mm:ss"),
+                            totalComplaints: summary.total,
+                            completedComplaints: summary.completed
+                        )
+                    }
+                    .contentShape(Rectangle())
+                }
+
+            }
+        }
+        
+    }
+    
+    
+    
+    //    private var toolbarContent: some ToolbarContent {
+    //        ToolbarItem(placement: .navigationBarTrailing) {
+    //            let menuContent = Menu {
+    //                let latestButton = Button(action: { viewModel.sortOption = .latest }) {
+    //                    let latestLabel = Label("Tanggal Terbaru", systemImage: viewModel.sortOption == .latest ? "checkmark" : "")
+    //                    latestLabel
+    //                }
+    //
+    //                let oldestButton = Button(action: { viewModel.sortOption = .oldest }) {
+    //                    let oldestLabel = Label("Tanggal Terlama", systemImage: viewModel.sortOption == .oldest ? "checkmark" : "")
+    //                    oldestLabel
+    //                }
+    //
+    //                latestButton
+    //                oldestButton
+    //            } label: {
+    //                let menuIcon = Image(systemName: "line.3.horizontal.decrease.circle")
+    //                    .font(.title2)
+    //                    .foregroundColor(Color.primaryBlue)
+    //                menuIcon
+    //            }
+    //            menuContent
+    //        }
+    //    }
 }
 
 #Preview {

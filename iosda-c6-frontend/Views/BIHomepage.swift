@@ -79,7 +79,7 @@ struct BIHomepage: View {
             ScrollView {
                 LazyVStack(spacing: 12) {
                     ForEach(viewModel.getFilteredAndSortedUnits(), id: \.unitCode) { unit in
-                        NavigationLink(destination: BIComplaintListView(viewModel: ComplaintListViewModel2())) {
+                        NavigationLink(destination: BIComplaintListView()) {
                             UnitComplainCard(
                                 unitCode: unit.unitCode,
                                 latestComplaintDate: unit.latestComplaintDate,

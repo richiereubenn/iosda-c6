@@ -8,6 +8,7 @@
 import SwiftUI
 
 struct BSCComplaintListView: View {
+    let unitId : String
     @StateObject var viewModel = ComplaintListViewModel2()
     
     var body: some View {
@@ -52,7 +53,7 @@ struct BSCComplaintListView: View {
         .searchable(text: $viewModel.searchText, prompt: "Search complaints...")
         .navigationTitle("Kode Rumah")
         .task {
-            await viewModel.loadComplaints(byUnitId: "103e4567-e89b-12d3-a456-426614174000")
+            await viewModel.loadComplaints(byUnitId: unitId)
         }
         .alert("Error", isPresented: .constant(viewModel.errorMessage != nil)) {
             Button("OK") { viewModel.errorMessage = nil }
@@ -65,13 +66,13 @@ struct BSCComplaintListView: View {
 
 
 
-#Preview {
-    Group {
-        NavigationStack {
-            BSCComplaintListView(viewModel: ComplaintListViewModel2())
-        }
-        .environment(\.sizeCategory, .medium)
-        
-    }
-}
-
+//#Preview {
+//    Group {
+//        NavigationStack {
+//            BSCComplaintListView(viewModel: ComplaintListViewModel2(unit))
+//        }
+//        .environment(\.sizeCategory, .medium)
+//        
+//    }
+//}
+//

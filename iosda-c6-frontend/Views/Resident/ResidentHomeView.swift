@@ -166,12 +166,17 @@ struct ResidentHomeView: View {
             }
         }
         .background(Color(.systemGroupedBackground))
-//        .sheet(isPresented: $showingCreateView) {
-//            ResidentAddComplaintView(
-//                unitViewModel: unitViewModel, // Use same instance, not new one
-//                complaintViewModel: viewModel
-//            )
-//        }
+        .sheet(isPresented: $showingCreateView) {
+            ResidentAddComplaintView(
+                unitViewModel: unitViewModel,
+                complaintViewModel: ResidentAddComplaintViewModel(),
+                classificationId: "75b125fd-a656-4fd8-a500-2f051b068171",
+                latitude: 0.0,
+                longitude: 0.0
+            )
+        }
+
+
     }
 }
 

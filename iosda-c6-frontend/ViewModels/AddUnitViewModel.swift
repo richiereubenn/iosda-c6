@@ -65,6 +65,7 @@ class AddUnitViewModel: ObservableObject {
         }
         
         let constructedName = "\(areaName) - \(unitCodeName)"
+        self.name = constructedName
         let unitNumber = unitCodeName
         
         isLoading = true

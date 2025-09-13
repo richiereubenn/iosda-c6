@@ -1,13 +1,24 @@
 import SwiftUI
 
 struct ResidentKeyDateView: View {
-    var handoverMethod: String
+    var handoverMethod: HandoverMethod
     var selectedUnitId: String?
     var complaintTitle: String
     var complaintDetails: String
+    @State private var userId: String? = nil
     
-    @ObservedObject var unitViewModel: UnitViewModel
-    @ObservedObject var complaintViewModel: ComplaintListViewModel
+
+    var classificationId: String
+    var latitude: Double? = nil
+    var longitude: Double? = nil
+
+    
+//    @ObservedObject var unitViewModel: UnitViewModel
+    @ObservedObject var unitViewModel: ResidentUnitListViewModel
+
+//    @ObservedObject var complaintViewModel: ComplaintListViewModel
+    @ObservedObject var complaintViewModel: ResidentAddComplaintViewModel
+
     
     var onComplaintSubmitted: () -> Void
     
@@ -18,6 +29,30 @@ struct ResidentKeyDateView: View {
     
     private let dayAfterTomorrow = Calendar.current.date(byAdding: .day, value: 1, to: Calendar.current.startOfDay(for: Date()))!
     
+    init(
+        handoverMethod: HandoverMethod,
+        selectedUnitId: String?,
+        complaintTitle: String,
+        complaintDetails: String,
+        classificationId: String,
+        latitude: Double? = nil,
+        longitude: Double? = nil,
+        unitViewModel: ResidentUnitListViewModel,
+        complaintViewModel: ResidentAddComplaintViewModel,
+        onComplaintSubmitted: @escaping () -> Void
+    ) {
+        self.handoverMethod = handoverMethod
+        self.selectedUnitId = selectedUnitId
+        self.complaintTitle = complaintTitle
+        self.complaintDetails = complaintDetails
+        self.classificationId = classificationId
+        self.latitude = latitude
+        self.longitude = longitude
+        self.unitViewModel = unitViewModel
+        self.complaintViewModel = complaintViewModel
+        self.onComplaintSubmitted = onComplaintSubmitted
+    }
+
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 10) {
@@ -29,6 +64,9 @@ struct ResidentKeyDateView: View {
             }
             .padding()
             .frame(maxWidth: .infinity, alignment: .leading)
+        }
+        .onAppear {
+            userId = NetworkManager.shared.getUserIdFromToken()
         }
         .navigationTitle("Key Handover")
         .navigationBarTitleDisplayMode(.inline)
@@ -60,7 +98,7 @@ struct ResidentKeyDateView: View {
         HStack {
             Text("Selected Method:")
                 .font(.headline)
-            Text(handoverMethod)
+            Text(handoverMethod.displayName)
                 .padding(.horizontal, 8)
                 .padding(.vertical, 4)
                 .background(Color(.systemGray5))
@@ -110,47 +148,52 @@ struct ResidentKeyDateView: View {
     // MARK: - Methods
     
     private func submitComplaint() {
-            guard let unitId = selectedUnitId else {
-                print("Error: unitId is nil")
+        guard let unitId = selectedUnitId else {
+            print("Error: unitId is nil")
+            return
+        }
+        
+        guard let userId = userId else {
+            print("Error: userId is nil")
+            return
+        }
+        
+        let selectedUnit = unitViewModel.claimedUnits.first { $0.id == unitId }
+        
+        // Hardcoded fixed statusId:
+        let fixedStatusId = "661a5a05-730b-4dc3-a924-251a1db7a2d7"
+        
+        let request = CreateComplaintRequest2(
+            unitId: unitId,
+            userId: userId,
+            statusId: fixedStatusId,
+            classificationId: classificationId,
+            title: complaintTitle,
+            description: complaintDetails + "\n\nAdditional Notes:\n\(additionalNotes)",
+            latitude: latitude,
+            longitude: longitude,
+            handoverMethod: handoverMethod,
+            keyHandoverDate: selectedDate,
+            keyHandoverNote: additionalNotes.isEmpty ? nil : additionalNotes
+        )
+
+        Task {
+            guard let unitToSubmit = selectedUnit else {
+                print("Error: Could not find the selected unit to submit.")
                 return
             }
 
-            // --- THIS IS THE FIX ---
-            // 1. Find the selected `Unit` object using the `unitId`.
-            let selectedUnit = unitViewModel.claimedUnits.first { $0.id == unitId }
-
-            let request = CreateComplaintRequest(
-                unitId: unitId,
-                title: complaintTitle,
-                description: complaintDetails + "\n\nAdditional Notes:\n\(additionalNotes)",
-                classificationId: nil,
-                keyHandoverDate: selectedDate,
-                latitude: nil,
-                longitude: nil,
-                handoverMethod: handoverMethod
-            )
-
-        Task {
-                    // Safely unwrap the optional 'selectedUnit' before using it.
-                    guard let unitToSubmit = selectedUnit else {
-                        print("Error: Could not find the selected unit to submit.")
-                        // TODO: Show an error alert to the user
-                        return
-                    }
-                    
-                    do {
-                        // Pass the unwrapped 'unitToSubmit' object.
-                        try await complaintViewModel.submitComplaint(request: request, selectedUnit: unitToSubmit)
-                        
-                        await MainActor.run {
-                            showingSuccessAlert = true
-                        }
-                    } catch {
-                        print("Failed to submit complaint: \(error)")
-                        // TODO: Show an error alert to the user
-                    }
+            do {
+                try await complaintViewModel.submitComplaint(request: request, selectedUnit: unitToSubmit)
+                await MainActor.run {
+                    showingSuccessAlert = true
                 }
+            } catch {
+                print("Failed to submit complaint: \(error)")
+            }
+        }
     }
+
     
 }
 
@@ -158,12 +201,14 @@ struct ResidentKeyDateView: View {
 
 #Preview {
     ResidentKeyDateView(
-        handoverMethod: "Bring to MO",
+        handoverMethod: .bringToMO,
         selectedUnitId: "1",
         complaintTitle: "Leaky Faucet",
         complaintDetails: "Water leaking from kitchen faucet.",
-        unitViewModel: UnitViewModel(),
-        complaintViewModel: ComplaintListViewModel(),
+        classificationId: "class1",
+        unitViewModel: ResidentUnitListViewModel(),
+        complaintViewModel: ResidentAddComplaintViewModel(),
         onComplaintSubmitted: { print("Complaint submitted callback") }
     )
 }
+

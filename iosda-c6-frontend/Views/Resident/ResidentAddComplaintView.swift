@@ -4,19 +4,24 @@ struct ResidentAddComplaintView: View {
     @Environment(\.presentationMode) var presentationMode
     @Environment(\.dismiss) private var dismiss
     
-    @ObservedObject var unitViewModel: UnitViewModel
-    @ObservedObject var complaintViewModel: ComplaintListViewModel
+    @ObservedObject var unitViewModel: ResidentUnitListViewModel
+    @ObservedObject var complaintViewModel: ResidentAddComplaintViewModel
     
     @State private var complaintTitle: String = ""
     @State private var complaintDetails: String = ""
-    @State private var handoverMethod: Complaint.HandoverMethod? = nil
     
-    // 1. FIX: Changed selectedUnitId from Int? to String?
     @State private var selectedUnitId: String? = nil
-    
     @State private var navigateToKeyDate = false
     
-    var handoverOptions: [Complaint.HandoverMethod] = [.bringToMO, .inHouse]
+    @State private var userId: String? = nil
+    
+    @State private var handoverMethod: HandoverMethod? = nil
+    var handoverOptions: [HandoverMethod] = [.bringToMO, .inHouse]
+    
+    
+    var classificationId: String
+    var latitude: Double = 0.0
+    var longitude: Double = 0.0
     
     var body: some View {
         VStack(spacing: 10) {
@@ -43,12 +48,12 @@ struct ResidentAddComplaintView: View {
                     }
                 }
                 .navigationDestination(isPresented: $navigateToKeyDate) {
-                    // This view would also need to be updated to accept a String ID
                     ResidentKeyDateView(
-                        handoverMethod: handoverMethod?.rawValue ?? "",
+                        handoverMethod: handoverMethod ?? .bringToMO,
                         selectedUnitId: selectedUnitId,
                         complaintTitle: complaintTitle,
                         complaintDetails: complaintDetails,
+                        classificationId: classificationId,
                         unitViewModel: unitViewModel,
                         complaintViewModel: complaintViewModel,
                         onComplaintSubmitted: {
@@ -64,7 +69,9 @@ struct ResidentAddComplaintView: View {
                         selectedUnitId = unitViewModel.claimedUnits.first?.id
                     }
                 }
+                userId = NetworkManager.shared.getUserIdFromToken()
             }
+            
         }
     }
     
@@ -101,7 +108,7 @@ struct ResidentAddComplaintView: View {
                 label: nil,
                 placeholder: "Select House Unit",
                 selection: unitBinding,
-                options: unitViewModel.claimedUnits.map { $0.name }
+                options: unitViewModel.claimedUnits.map { $0.name ?? "Unnamed Unit" }
             )
         }
     }
@@ -206,9 +213,8 @@ struct ResidentAddComplaintView: View {
     private var unitBinding: Binding<String> {
         Binding<String>(
             get: {
-                // This logic is now correct with String IDs
                 guard let selected = unitViewModel.claimedUnits.first(where: { $0.id == selectedUnitId }) else { return "" }
-                return selected.name
+                return selected.name ?? ""
             },
             set: { newValue in
                 if let selected = unitViewModel.claimedUnits.first(where: { $0.name == newValue }) {
@@ -227,33 +233,43 @@ struct ResidentAddComplaintView: View {
     
     // MARK: - Functions
     private func submitInHouseComplaint() {
-        guard let unitId = selectedUnitId,
+        guard let userId = userId,
+              let unitId = selectedUnitId,
               let method = handoverMethod,
               let selectedUnit = unitViewModel.claimedUnits.first(where: { $0.id == unitId }) else {
             return
         }
-
+        
         Task {
             do {
                 try await complaintViewModel.submitInHouseComplaint(
                     title: complaintTitle,
                     description: complaintDetails,
                     unitId: unitId,
+                    userId: userId,
+                    statusId: "661a5a05-730b-4dc3-a924-251a1db7a2d7", // Pass fixed status here
+                    classificationId: classificationId,
+                    latitude: latitude,
+                    longitude: longitude,
                     handoverMethod: method,
-                    unitViewModel: unitViewModel
+                    selectedUnit: selectedUnit
                 )
-
-                dismiss() // 
+                
+                dismiss()
             } catch {
                 print("Error submitting in-house complaint: \(error)")
                 // TODO: Show an error alert to the user
             }
         }
     }
-
 }
 
 #Preview {
-    ResidentAddComplaintView(unitViewModel: UnitViewModel(),
-                             complaintViewModel: ComplaintListViewModel())
+    ResidentAddComplaintView(
+        unitViewModel: ResidentUnitListViewModel(),
+        complaintViewModel: ResidentAddComplaintViewModel(),
+        classificationId: "classA",
+        latitude: 0.0,
+        longitude: 0.0
+    )
 }

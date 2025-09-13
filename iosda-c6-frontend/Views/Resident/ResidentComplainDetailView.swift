@@ -25,7 +25,7 @@ struct ResidentComplainDetailView: View {
                             .frame(maxWidth: .infinity, alignment: .leading)
 
                         // Key handover method
-                        if complaint.handoverMethod == "bring_to_mo",
+                        if complaint.handoverMethod == .bringToMO,
                            let handoverDate = complaint.keyHandoverDate {
                             HStack(spacing: 6) {
                                 Text("Key Handover Date:")
@@ -65,22 +65,21 @@ struct ResidentComplainDetailView: View {
                     .padding(.horizontal, 20)
 
                     // Info if in_house
-                    if complaint.handoverMethod == "in_house",
+                    if complaint.handoverMethod == .inHouse,
                        let openDate = complaint.openTimestamp {
                         let estimatedVisitDate = Calendar.current.date(byAdding: .day, value: 3, to: openDate)!
-                        HStack(alignment: .top, spacing: 8) {
-                            Image(systemName: "info.circle.fill")
-                                .foregroundColor(.blue)
-                            Text("BSC will come to your house soon, no later than ")
-                                .foregroundColor(.primary)
-                            + Text(formatDate(estimatedVisitDate, format: "dd MMM yyyy"))
-                                .bold()
-                        }
-                        .font(.subheadline)
-                        .padding()
-                        .background(Color(.systemGray6))
-                        .cornerRadius(8)
-                        .padding(.horizontal, 20)
+                        GroupedCard {
+                               HStack(alignment: .top, spacing: 8) {
+                                   Image(systemName: "info.circle.fill")
+                                       .foregroundColor(.blue)
+                                   Text("BSC will come to your house soon, no later than ")
+                                       .foregroundColor(.primary)
+                                   + Text(formatDate(estimatedVisitDate, format: "dd MMM yyyy"))
+                                       .bold()
+                               }
+                               .font(.subheadline)
+                           }
+                           .padding(.horizontal, 20)
                     }
 
                     // Detail Section
@@ -169,7 +168,7 @@ struct ResidentComplainDetailView: View {
             if let complaint = viewModel.selectedComplaint,
                let status = complaint.statusName?.lowercased(),
                let method = complaint.handoverMethod,
-               (status == "under review by bi" || status == "waiting key handover") && method == "bring_to_mo" {
+               (status == "under review by bi" || status == "waiting key handover") && method == .bringToMO {
                 VStack(spacing: 0) {
                     CustomButtonComponent(
                         text: "Submit Key Handover Evidence",

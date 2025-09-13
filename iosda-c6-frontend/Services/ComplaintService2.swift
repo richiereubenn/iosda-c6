@@ -15,6 +15,7 @@ protocol ComplaintServiceProtocol2 {
     func getComplaintsByUserId(_ userId: String) async throws -> [Complaint2]
     func getProgressLogs(complaintId: String) async throws -> [ProgressLog]
     func updateComplaint(complaintId: String, classificationId: String) async throws -> Complaint2
+    func submitComplaint(request: CreateComplaintRequest2) async throws -> Complaint2
 }
 
 class ComplaintService2: ComplaintServiceProtocol2 {
@@ -134,6 +135,26 @@ class ComplaintService2: ComplaintServiceProtocol2 {
         return updatedComplaint
     }
     
-    
+    func submitComplaint(request: CreateComplaintRequest2) async throws -> Complaint2 {
+        let endpoint = "/complaint/v1/complaints"
+        let bodyData = try JSONEncoder().encode(request)
+        
+        let response: APIResponse<Complaint2> = try await networkManager.request(
+            endpoint: endpoint,
+            method: .POST,
+            body: bodyData
+        )
+        
+        guard response.success else {
+            throw NetworkError.serverError(response.code ?? 0)
+        }
+        
+        guard let complaint = response.data else {
+            throw NetworkError.noData
+        }
+        
+        return complaint
+    }
+
 }
 

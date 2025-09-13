@@ -107,7 +107,34 @@ struct CreateComplaintRequest: Codable {
     }
 }
 
-
 struct UserDetailData: Codable {
     let user: User
+}
+
+struct CreateComplaintRequest2: Codable {
+    let unitId: String
+    let userId: String
+    let statusId: String
+    let classificationId: String
+    let title: String
+    let description: String
+    let latitude: Double?
+    let longitude: Double?
+    let handoverMethod: HandoverMethod
+    let keyHandoverDate: Date?        // Added
+    let keyHandoverNote: String?      // Added
+    
+    enum CodingKeys: String, CodingKey {
+        case unitId = "unit_id"
+        case userId = "user_id"
+        case statusId = "status_id"
+        case classificationId = "classification_id"
+        case title
+        case description
+        case latitude
+        case longitude
+        case handoverMethod = "handover_method"
+        case keyHandoverDate = "key_handover_date"
+        case keyHandoverNote = "key_handover_note"
+    }
 }

@@ -3,7 +3,9 @@ import SwiftUI
 struct ResidentHomeView: View {
     
     @ObservedObject var viewModel: ResidentComplaintListViewModel
-    @ObservedObject var unitViewModel: UnitViewModel
+//    @ObservedObject var unitViewModel: UnitViewModel
+    @ObservedObject var unitViewModel: ResidentUnitListViewModel
+
     @State private var showingCreateView = false
     
     // 1. Add a userId property to accept the user's ID
@@ -36,24 +38,37 @@ struct ResidentHomeView: View {
             .padding(.top, 10)
             
             VStack(alignment: .leading, spacing: 15) {
-                if let claimedUnit = unitViewModel.selectedUnit {
+                if let claimedUnit = unitViewModel.claimedUnits.first {
                     HStack {
                         VStack(alignment: .leading) {
-                            Text(claimedUnit.name)
-                                .font(.body)
-                                .fontWeight(.medium)
-                            if let project = claimedUnit.project {
-                                Text(project)
-                                    .font(.caption)
-                                    .foregroundColor(.gray)
+//                            Text(claimedUnit.name ?? "Unknown Unit")
+//                                .font(.body)
+//                                .fontWeight(.medium)
+                            let unitToShow = unitViewModel.selectedUnit ?? unitViewModel.claimedUnits.first
+
+                            if let unit = unitToShow {
+                                Text(unit.name ?? "Unknown Unit")
+                                    .font(.body)
+                                    .fontWeight(.medium)
+                                if let projectName = unitViewModel.getProjectName(for: unit) {
+                                            Text(projectName)
+                                                .font(.caption)
+                                                .foregroundColor(.gray)
+                                        }
+                            } else {
+                                Text("No units have been claimed yet")
+                                    .font(.body)
+                                    .fontWeight(.medium)
                             }
+
                         }
                         Spacer()
 
-                        NavigationLink(destination: ResidentMyUnitView(viewModel: unitViewModel)) {
+                        NavigationLink(destination: ResidentMyUnitView(viewModel: unitViewModel, userId: userId)) {
                             Image(systemName: "arrow.up.arrow.down")
                                 .foregroundColor(.blue)
                         }
+
                     }
                     .padding()
                     .background(Color.cardBackground)
@@ -66,7 +81,7 @@ struct ResidentHomeView: View {
 
                         Spacer()
 
-                        NavigationLink(destination: ResidentMyUnitView(viewModel: unitViewModel)) {
+                        NavigationLink(destination: ResidentMyUnitView(viewModel: ResidentUnitListViewModel(), userId: userId)) {
                             Image(systemName: "arrow.up.arrow.down")
                                 .foregroundColor(.blue)
                         }
@@ -124,11 +139,21 @@ struct ResidentHomeView: View {
             
             Spacer()
         }
+        .alert("Error", isPresented: .constant(viewModel.errorMessage != nil)) {
+            Button("OK") {
+                viewModel.errorMessage = nil
+            }
+        } message: {
+            Text(viewModel.errorMessage ?? "")
+        }
         .onAppear {
             // Load units only once, don't override selectedUnit
-            if unitViewModel.units.isEmpty {
-                unitViewModel.loadUnits()
+            if unitViewModel.claimedUnits.isEmpty && unitViewModel.waitingUnits.isEmpty {
+                Task {
+                    await unitViewModel.loadUnits()
+                }
             }
+
             
             // Only set default selectedUnit on first load when no unit is selected
             if unitViewModel.selectedUnit == nil && !unitViewModel.claimedUnits.isEmpty {
@@ -156,8 +181,8 @@ struct ResidentHomeView: View {
         // 4. Update the preview to provide a test user ID
         ResidentHomeView(
             viewModel: ResidentComplaintListViewModel(),
-            unitViewModel: UnitViewModel(),
-            userId: "2b4c59bd-0460-426b-a720-80ccd85ed5b2"
+            unitViewModel: ResidentUnitListViewModel(),
+            userId: "2b4fa7fe-0858-4365-859f-56d77ba53764"
         )
         .navigationBarHidden(true)
     }

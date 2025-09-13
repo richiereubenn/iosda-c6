@@ -74,7 +74,7 @@ struct ResidentComplaintListView: View {
     NavigationStack {
         ResidentComplaintListView(
             viewModel: ResidentComplaintListViewModel(),
-            userId: "2b4c59bd-0460-426b-a720-80ccd85ed5b2" // Replace with your test user ID
+            userId: "2b4fa7fe-0858-4365-859f-56d77ba53764" // Replace with your test user ID
         )
     }
 }

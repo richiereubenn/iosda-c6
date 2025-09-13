@@ -58,6 +58,7 @@ extension Complaint2 {
     var residentStatus: ComplaintStatus {
         switch ComplaintStatus(raw: statusName) {
         case .assignToVendor: return .inProgress
+        case .underReviewByBI: return .inProgress
         default: return ComplaintStatus(raw: statusName)
         }
     }

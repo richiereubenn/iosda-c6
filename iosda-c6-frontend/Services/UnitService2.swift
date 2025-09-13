@@ -14,6 +14,7 @@ protocol UnitServiceProtocol2 {
     func getUnitsByBIId() async throws -> [Unit2]
     func getUnitById(_ id: String) async throws -> Unit2
     func createUnit(name: String, resident_id: String, bsc_id: String?, bi_id: String?, unitCode_id: String, unit_number: String) async throws -> Unit2
+    func updateUnit(unitId: String, bscId: String) async throws -> Unit2
 
 }
 
@@ -121,6 +122,31 @@ class UnitService2: UnitServiceProtocol2 {
         
         return unit
     }
+    
+    func updateUnit(unitId: String, bscId: String) async throws -> Unit2 {
+            let endpoint = "/property/v1/units/\(unitId)"
+            
+            let bodyDict: [String: Any] = [
+                "bsc_id": bscId
+            ]
+            let bodyData = try JSONSerialization.data(withJSONObject: bodyDict, options: [])
+            
+            let response: APIResponse<Unit2> = try await networkManager.request(
+                endpoint: endpoint,
+                method: .PUT,
+                body: bodyData
+            )
+            
+            guard response.success else {
+                throw NetworkError.serverError(response.code ?? 0)
+            }
+            
+            guard let updatedUnit = response.data else {
+                throw NetworkError.noData
+            }
+            
+            return updatedUnit
+        }
     
 //    func getClaimedUnits() async throws -> [Unit2] {
 //        let units = try await getUnitsByResidentId()

@@ -29,7 +29,6 @@ struct BIComplaintDetailView: View {
         ScrollView {
             if viewModel.isLoading {
                 ProgressView("Loading...")
-                    .padding()
             } else if let complaint = viewModel.selectedComplaint {
                 VStack(alignment: .leading, spacing: 20) {
                     

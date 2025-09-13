@@ -432,7 +432,7 @@ struct CustomPicker: View {
         userId: "2b4fa7fe-0858-4365-859f-56d77ba53764",
         selectedAreaName: $selectedAreaName,
         selectedUnitCodeName: $selectedUnitCodeName,
-        selectedUnitCodeId: $selectedUnitCodeId,
+        selectedUnitCodeId: $selectedUnitCodeId
     )
 }
 

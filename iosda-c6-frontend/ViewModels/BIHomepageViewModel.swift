@@ -8,7 +8,7 @@
 import Foundation
 
 @MainActor
-class BSCBuildingUnitComplainListViewModel: ObservableObject {
+class BIHomepageViewModel: ObservableObject {
     @Published var units: [Unit2] = []
     @Published var isLoading = false
     @Published var errorMessage: String?
@@ -16,7 +16,6 @@ class BSCBuildingUnitComplainListViewModel: ObservableObject {
     @Published var totalActiveUnits: Int = 0
     @Published var totalActiveComplaints: Int = 0
     
-    // Menyimpan jumlah complaint per unit
     @Published var complaintsSummary: [String: (total: Int, completed: Int)] = [:]
     
     private let unitService: UnitServiceProtocol2
@@ -38,7 +37,7 @@ class BSCBuildingUnitComplainListViewModel: ObservableObject {
         errorMessage = nil
         
         do {
-            let result = try await unitService.getUnitsByBSCId()
+            let result = try await unitService.getUnitsByBIId()
             self.units = result
             await getComplaintsSummary(for: result)
             
@@ -83,7 +82,7 @@ class BSCBuildingUnitComplainListViewModel: ObservableObject {
     
     func fetchSummary() async {
         do {
-            let units = try await unitService.getUnitsByBSCId()
+            let units = try await unitService.getUnitsByBIId()
             
             var activeComplaintsCount = 0
             var activeUnitIds: Set<String> = []

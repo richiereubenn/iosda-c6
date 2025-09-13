@@ -8,6 +8,7 @@
 import SwiftUI
 
 struct BIComplaintListView: View {
+    let unitId : String
     @StateObject var viewModel = ComplaintListViewModel2()
     
     var body: some View {
@@ -74,7 +75,7 @@ struct BIComplaintListView: View {
             }
         }
         .task {
-            await viewModel.loadComplaints(byUnitId: "103e4567-e89b-12d3-a456-426614174000")
+            await viewModel.loadComplaints(byUnitId: unitId)
         }
         .alert("Error", isPresented: .constant(viewModel.errorMessage != nil)) {
             Button("OK") { viewModel.errorMessage = nil }
@@ -88,13 +89,13 @@ struct BIComplaintListView: View {
 
 
 
-#Preview {
-    Group {
-        NavigationStack {
-            BIComplaintListView(viewModel: ComplaintListViewModel2())
-        }
-        .environment(\.sizeCategory, .medium)
-        
-    }
-}
-
+//#Preview {
+//    Group {
+//        NavigationStack {
+//            BIComplaintListView(unitId: unitId, viewModel: ComplaintListViewModel2())
+//        }
+//        .environment(\.sizeCategory, .medium)
+//        
+//    }
+//}
+//

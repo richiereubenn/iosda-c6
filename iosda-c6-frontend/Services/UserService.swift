@@ -67,21 +67,18 @@ class UserService: UserServiceProtocol {
         return user
     }
 
+    func getUserById(_ id: String) async throws -> User {
+        let endpoint = "/authN/v1/users/\(id)"
+        let response: APIResponse<UserDetailData> = try await networkManager.request(endpoint: endpoint)
+        
+        guard response.success else {
+            throw NetworkError.serverError(response.code!)
+        }
+        
+        return response.data!.user
+    }
+
 
         
-        // Get user by ID (if needed)
-        func getUserById(_ id: String) async throws -> User {
-            let response: UserDetailResponse = try await networkManager.request(
-                endpoint: "/authN/v1/users/\(id)", // Adjust endpoint as needed
-                method: .GET,
-                body: nil
-            )
-            
-            guard response.success else {
-                throw NetworkError.serverError(response.code)
-            }
-            
-            return response.data
-        }
     
 }

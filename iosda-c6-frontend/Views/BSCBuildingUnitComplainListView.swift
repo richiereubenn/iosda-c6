@@ -16,17 +16,19 @@ struct BSCBuildingUnitComplainListView: View {
                 
                 HStack(spacing: 16) {
                     SummaryComplaintCard(
-                        title: "New Complaint",
-                        unitCount: 13,
-                        complaintCount: 20,
-                        backgroundColor: Color.blue
+                        title: "Total Units",
+                        count: viewModel.totalActiveUnits,
+                        category: " Complaint",
+                        backgroundColor: Color.blue,
+                        icon: "building.2.fill"
                     )
                     
                     SummaryComplaintCard(
-                        title: "On Progress",
-                        unitCount: 2,
-                        complaintCount: 5,
-                        backgroundColor: Color.green
+                        title: "Total Complaints",
+                        count: viewModel.totalActiveComplaints,
+                        category: " Unit",
+                        backgroundColor: Color.red,
+                        icon: "building.2.fill"
                     )
                 }
                 
@@ -40,6 +42,7 @@ struct BSCBuildingUnitComplainListView: View {
             .navigationTitle("Building Complain List")
             .task {
                 await viewModel.fetchUnits()
+                await viewModel.fetchSummary()
             }
             
             .background(Color(.systemGroupedBackground))

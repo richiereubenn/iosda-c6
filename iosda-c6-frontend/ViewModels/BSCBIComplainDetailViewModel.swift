@@ -21,21 +21,30 @@ class BSCBIComplaintDetailViewModel: ObservableObject {
     @Published var isSubmitting: Bool = false
     @Published var selectedCategory: String? = nil
     @Published var selectedWorkDetail: String? = nil
+    @Published var unit: Unit2? = nil
+    @Published var resident: User? = nil
     let defaultClassificationId = "75b125fd-a656-4fd8-a500-2f051b068171"
     private let service: ComplaintServiceProtocol2
     private let progressService: ProgressLogServiceProtocol
     private let classificationService: ClassificationServiceProtocol
+    private let unitService: UnitServiceProtocol2
+    private let userService: UserServiceProtocol
     
     private let baseURL = "https://api.kevinchr.com/complaint"
+    
     
     init(
         service: ComplaintServiceProtocol2 = ComplaintService2(),
         progressService: ProgressLogServiceProtocol = ProgressLogService(),
-        classificationService: ClassificationServiceProtocol = ClassificationService()
+        classificationService: ClassificationServiceProtocol = ClassificationService(),
+        unitService: UnitServiceProtocol2 = UnitService2(),
+        userService: UserServiceProtocol = UserService()
     ) {
         self.service = service
         self.progressService = progressService
         self.classificationService = classificationService
+        self.unitService = unitService
+        self.userService = userService
     }
     
     var uniqueCategories: [String] {
@@ -58,13 +67,31 @@ class BSCBIComplaintDetailViewModel: ObservableObject {
             selectedComplaint = complaint
             selectedStatus = ComplaintStatus(raw: complaint.statusName)
             
+            await loadFirstProgress(for: id)
+            
             if let classificationId = complaint.classificationId {
                 try await loadClassificationById(classificationId)
             }
             
-            await loadFirstProgress(for: id)
+            if let unitId = complaint.unitId {
+                try await loadUnitAndResident(unitId: unitId)
+            }
+            
         } catch {
             errorMessage = "Failed to load complaint \(id): \(error.localizedDescription)"
+        }
+    }
+    
+    private func loadUnitAndResident(unitId: String) async throws {
+        let units = try await unitService.getAllUnits()
+        if let foundUnit = units.first(where: { $0.id == unitId }) {
+            self.unit = foundUnit
+            if let residentId = foundUnit.residentId {
+                print("resident", residentId)
+                let user = try await userService.getUserById(residentId)
+                print("resident", user.name)
+                self.resident = user
+            }
         }
     }
     

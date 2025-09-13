@@ -98,3 +98,7 @@ struct CreateComplaintRequest: Codable {
     }
 }
 
+
+struct UserDetailData: Codable {
+    let user: User
+}

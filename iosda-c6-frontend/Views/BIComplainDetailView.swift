@@ -168,7 +168,6 @@ struct BIComplaintDetailView: View {
         } message: {
             Text("Explain why you reject this issue")
         }
-        
         .sheet(isPresented: $showPhotoUploadSheet) {
             PhotoUploadSheet(
                 title: $sheetTitle,
@@ -180,13 +179,15 @@ struct BIComplaintDetailView: View {
                     Task {
                         await viewModel.submitStartWorkProgress(
                             complaintId: complaintId,
-                            userId: "2b4c59bd-0460-426b-a720-80ccd85ed5b2",
+                            userId: "fed2ef1c-4c39-4643-9207-63a201dc8562",
                             images: photos,
                             title: title ?? "",
                             description: desc ?? ""
                         )
                         await viewModel.updateStatus(to: statusId)
                         showSuccessAlert = true
+                        
+                        print("id complain", complaintId)
                     }
                     showPhotoUploadSheet = false
                 },

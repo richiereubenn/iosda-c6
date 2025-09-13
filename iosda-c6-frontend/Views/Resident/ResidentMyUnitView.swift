@@ -1,37 +1,54 @@
-// SOLUTION 1: Fix ResidentMyUnitView - Make sure only claimed units can be selected
 import SwiftUI
 
 struct ResidentMyUnitView: View {
     @Environment(\.dismiss) var dismiss
-    @ObservedObject var viewModel: UnitViewModel // Remove = UnitViewModel() - use injected one
+    @ObservedObject var viewModel: ResidentUnitListViewModel
+    
+    let userId: String
+    
     @State private var searchText: String = ""
+    @State private var selectedSegment: Int = 0 // 0 = Claimed, 1 = Waiting
+    @State private var isPresentingAddUnit = false
+    
+    @State private var selectedAreaName: String = ""
+    @State private var selectedUnitCodeName: String = ""
+    @State private var selectedUnitCodeId: String = ""
+
+
+    var filteredUnits: [Unit2] {
+        let units = selectedSegment == 0 ? viewModel.claimedUnits : viewModel.waitingUnits
+        if searchText.isEmpty {
+            return units
+        } else {
+            return units.filter { ($0.name ?? "").localizedCaseInsensitiveContains(searchText) }
+        }
+    }
     
     var body: some View {
         VStack(spacing: 8) {
-            // Segmented Control
-            Picker("Unit Status", selection: $viewModel.selectedSegment) {
+            // Segmented control
+            Picker("Unit Status", selection: $selectedSegment) {
                 Text("Claimed").tag(0)
                 Text("Waiting").tag(1)
             }
             .pickerStyle(SegmentedPickerStyle())
             .padding(.horizontal)
             
-            // Content
             if viewModel.isLoading {
                 ProgressView("Loading units...")
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
             } else {
-                let displayUnits = viewModel.searchUnits(with: searchText)
+                let displayUnits = filteredUnits
                 
                 if displayUnits.isEmpty {
                     VStack(spacing: 16) {
-                        Image(systemName: viewModel.selectedSegment == 0 ? "checkmark.circle" : "clock")
+                        Image(systemName: selectedSegment == 0 ? "checkmark.circle" : "clock")
                             .font(.system(size: 60))
                             .foregroundColor(.gray)
-                        Text(viewModel.selectedSegment == 0 ? "No claimed units" : "No waiting units")
+                        Text(selectedSegment == 0 ? "No claimed units" : "No waiting units")
                             .font(.title2)
                             .foregroundColor(.gray)
-                        Text(viewModel.selectedSegment == 0 ? "Approved units will appear here" : "Units you submit will appear here")
+                        Text(selectedSegment == 0 ? "Approved units will appear here" : "Units you submit will appear here")
                             .foregroundColor(.secondary)
                     }
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -39,26 +56,29 @@ struct ResidentMyUnitView: View {
                     ScrollView {
                         LazyVStack(spacing: 12) {
                             ForEach(displayUnits) { unit in
-                                if let userUnit = viewModel.getUserUnit(for: unit) {
-                                    Button(action: {
-                                        // Only allow selection of claimed units
-                                        if unit.isApproved == true {
-                                            print("Selecting unit: \(unit.name)") // Debug log
-                                            viewModel.selectedUnit = unit
-                                            dismiss()
-                                        }
-                                    }) {
-                                        ResidentUnitCard(unit: unit, userUnit: userUnit)
+                                Button(action: {
+                                    if selectedSegment == 0 {
+                                        viewModel.selectedUnit = unit  // ← Set selected unit here
+                                        dismiss()
                                     }
-                                    .disabled(unit.isApproved != true) // Disable waiting units
+                                }) {
+                                    ResidentUnitCard(
+                                        unit: unit,
+                                        isClaimed: selectedSegment == 0,
+                                        viewModel: viewModel
+                                    )
                                 }
+                                .disabled(selectedSegment != 0)
+
                             }
+
                         }
                         .padding(.horizontal)
                         .padding(.top, 8)
                     }
                 }
             }
+            
             Spacer()
         }
         .navigationTitle("My Unit")
@@ -66,7 +86,7 @@ struct ResidentMyUnitView: View {
         .toolbar {
             ToolbarItem(placement: .navigationBarTrailing) {
                 Button(action: {
-                    viewModel.showingAddUnit = true
+                    isPresentingAddUnit = true
                 }) {
                     Image(systemName: "plus")
                         .foregroundColor(Color(.blue))
@@ -74,9 +94,6 @@ struct ResidentMyUnitView: View {
             }
         }
         .searchable(text: $searchText)
-        .sheet(isPresented: $viewModel.showingAddUnit) {
-            ResidentAddUnitView(viewModel: viewModel)
-        }
         .alert("Error", isPresented: .constant(viewModel.errorMessage != nil)) {
             Button("OK") {
                 viewModel.errorMessage = nil
@@ -85,12 +102,36 @@ struct ResidentMyUnitView: View {
             Text(viewModel.errorMessage ?? "")
         }
         .onAppear {
-            viewModel.loadUnits()
+            if viewModel.claimedUnits.isEmpty && viewModel.waitingUnits.isEmpty {
+                Task {
+                    await viewModel.loadUnits()
+                }
+            }
         }
+
+        .sheet(isPresented: $isPresentingAddUnit, onDismiss: {
+            Task {
+                await viewModel.loadUnits()
+            }
+        }) {
+            ResidentAddUnitView(
+                viewModel: AddUnitViewModel(),
+                userId: userId,
+                selectedAreaName: $selectedAreaName,
+                selectedUnitCodeName: $selectedUnitCodeName,
+                selectedUnitCodeId: $selectedUnitCodeId
+            )
+        }
+
+
+
+
     }
 }
+
 #Preview {
     NavigationStack {
-        ResidentMyUnitView(viewModel: UnitViewModel())
+        ResidentMyUnitView(viewModel: ResidentUnitListViewModel(),
+        userId: "2b4fa7fe-0858-4365-859f-56d77ba53764")
     }
 }

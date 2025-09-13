@@ -50,6 +50,8 @@ class UnitService: UnitServiceProtocol {
 
         return unit
     }
+    
+    
 
     func deleteUnit(id: String) async throws {
            try await networkManager.requestEmpty(endpoint: "/units/\(id)", method: .DELETE)

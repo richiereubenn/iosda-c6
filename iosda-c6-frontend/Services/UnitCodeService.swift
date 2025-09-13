@@ -20,7 +20,7 @@ class UnitCodeService: UnitCodeServiceProtocol {
     }
     
     func getAllUnitCodes() async throws -> [UnitCode] {
-        let response: APIResponse<[UnitCode]> = try await networkManager.request(endpoint: "/property/v1/unit-codes")
+        let response: APIResponse<[UnitCode]> = try await networkManager.request(endpoint: "/property/v1/unit-codes?page=1&per_page=100")
         
         guard response.success else {
             throw NetworkError.serverError(0)

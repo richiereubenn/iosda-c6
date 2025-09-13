@@ -76,6 +76,15 @@ struct CreateUnitRequest: Codable {
     }
 }
 
+struct CreateUnitRequest2: Codable {
+    let name: String
+    let resident_id: String
+    let bsc_id: String?
+    let bi_id: String?
+    let unit_code_id: String
+    let unit_number: String
+}
+
 struct CreateComplaintRequest: Codable {
     let unitId: String
     let title: String

@@ -9,10 +9,10 @@ import Foundation
 
 protocol UnitServiceProtocol2 {
     func getAllUnits() async throws -> [Unit2]
-    func getUnitsByResidentId() async throws -> [Unit2]
+    func getUnitsByResidentId(residentId: String) async throws -> [Unit2]
     func getUnitsByBSCId() async throws -> [Unit2]
     func getUnitsByBIId() async throws -> [Unit2]
-    func createUnit(name: String, resident_id: String, bsc_id: String, bi_id: String) async throws -> Unit2
+    func createUnit(name: String, resident_id: String, bsc_id: String?, bi_id: String?, unitCode_id: String, unit_number: String) async throws -> Unit2
 }
 
 class UnitService2: UnitServiceProtocol2 {
@@ -36,7 +36,7 @@ class UnitService2: UnitServiceProtocol2 {
         return units
     }
     
-    func getUnitsByResidentId() async throws -> [Unit2] {
+    func getUnitsByResidentId(residentId: String) async throws -> [Unit2] {
         guard let residentId = networkManager.getUserIdFromToken() else {
             throw NetworkError.noData
         }
@@ -72,19 +72,27 @@ class UnitService2: UnitServiceProtocol2 {
         return response.data ?? []
     }
     
-    func createUnit(name: String, resident_id: String,bsc_id: String, bi_id: String) async throws -> Unit2 {
-        
+    func createUnit(
+        name: String,
+        resident_id: String,
+        bsc_id: String?,
+        bi_id: String?,
+        unitCode_id: String,
+        unit_number: String
+    ) async throws -> Unit2 {
         let endpoint = "/property/v1/units"
         
-        //kalo require masukin sini, tambahin lagi yg perlu di create datanya apa
-        var bodyDict: [String: Any] = [
-            "name": name,
-            "resident_id": resident_id,
-            "bsc_id": bsc_id,
-            "bi_id": bi_id
-        ]
+        // Use Codable struct instead of dictionary for better type safety
+        let unitRequest = CreateUnitRequest2(
+            name: name,
+            resident_id: resident_id,
+            bsc_id: bsc_id,
+            bi_id: bi_id,
+            unit_code_id: unitCode_id,
+            unit_number: unit_number
+        )
         
-        let body = try JSONSerialization.data(withJSONObject: bodyDict)
+        let body = try JSONEncoder().encode(unitRequest)
         
         let response: APIResponse<Unit2> = try await networkManager.request(
             endpoint: endpoint,
@@ -92,11 +100,27 @@ class UnitService2: UnitServiceProtocol2 {
             body: body
         )
         
-        guard response.success, let progress = response.data else {
+        guard response.success, let unit = response.data else {
             throw NetworkError.serverError(response.code ?? 0)
         }
         
-        return progress
+        return unit
     }
+    
+//    func getClaimedUnits() async throws -> [Unit2] {
+//        let units = try await getUnitsByResidentId()
+//        return units.filter { unit in
+//            guard let bscId = unit.bscId else { return false }
+//            return !bscId.isEmpty
+//        }
+//    }
+//    
+//    func getWaitingUnits() async throws -> [Unit2] {
+//        let units = try await getUnitsByResidentId()
+//        return units.filter { unit in
+//            guard let bscId = unit.bscId else { return true }
+//            return bscId.isEmpty
+//        }
+//    }
 }
 

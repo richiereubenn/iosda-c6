@@ -19,18 +19,19 @@ class BSCBuildingUnitComplainListViewModel: ObservableObject {
     // Menyimpan jumlah complaint per unit
     @Published var complaintsSummary: [String: (total: Int, completed: Int)] = [:]
     
+    
     private let unitService: UnitServiceProtocol2
-    private let complaintService: ComplaintServiceProtocol2
-    private let networkManager: NetworkManager
+    let complaintService: ComplaintServiceProtocol2
+    let classificationService: ClassificationServiceProtocol
     
     init(
         unitService: UnitServiceProtocol2 = UnitService2(),
         complaintService: ComplaintServiceProtocol2 = ComplaintService2(),
-        networkManager: NetworkManager = .shared
+        classificationService: ClassificationServiceProtocol = ClassificationService()
     ) {
         self.unitService = unitService
         self.complaintService = complaintService
-        self.networkManager = networkManager
+        self.classificationService = classificationService
     }
     
     func fetchUnits() async {
@@ -40,6 +41,8 @@ class BSCBuildingUnitComplainListViewModel: ObservableObject {
         do {
             let result = try await unitService.getUnitsByBSCId()
             self.units = result
+            
+            await checkWarrantyAndRenovation(for: result)
             await getComplaintsSummary(for: result)
             
         } catch {
@@ -107,10 +110,55 @@ class BSCBuildingUnitComplainListViewModel: ObservableObject {
             self.totalActiveComplaints = 0
         }
     }
-
+    
     
     private func isActiveComplaint(_ complaint: Complaint2) -> Bool {
         let status = complaint.statusName?.lowercased() ?? ""
         return status != "resolved" && status != "rejected"
+    }
+    
+    private func checkWarrantyAndRenovation(for units: [Unit2]) async {
+        for unit in units {
+            do {
+                let complaints = try await complaintService.getComplaintsByUnitId(unit.id)
+                for complaint in complaints {
+                    var classification: Classification? = nil
+                    if let classificationId = complaint.classificationId {
+                        classification = try? await classificationService.getClassificationById(classificationId)
+                    }
+                    
+                    let warrantyValid = isWarrantyValid(for: complaint, unit: unit, classification: classification)
+                    let renovationValid = unit.renovationPermit ?? false
+                    
+                    if !warrantyValid || !renovationValid {
+                        // Update status complaint jadi rejected
+                        try await complaintService.updateComplaintStatus(
+                            complaintId: complaint.id,
+                            statusId: "99d06c4a-e49f-4144-b617-2a1b6c51092f" // rejected
+                        )
+                    }
+                }
+            } catch {
+                print("Failed to check warranty/renovation: \(error.localizedDescription)")
+            }
+        }
+    }
+    
+    func isWarrantyValid(for complaint: Complaint2, unit: Unit2?, classification: Classification?) -> Bool {
+        guard let unit = unit, let handoverDate = unit.handoverDate, let complaintDate = complaint.createdAt else { return false }
+        
+        let calendar = Calendar.current
+        let monthsToAdd: Int
+        if classification?.workDetail?.lowercased() == "atap bocor" {
+            monthsToAdd = 12
+        } else {
+            monthsToAdd = 3
+        }
+        
+        if let warrantyEndDate = calendar.date(byAdding: .month, value: monthsToAdd, to: handoverDate) {
+            return complaintDate <= warrantyEndDate
+        }
+        
+        return false
     }
 }

@@ -119,11 +119,12 @@ struct BIComplaintDetailView: View {
                         
                         GroupedCard {
                             VStack(alignment: .leading, spacing: 8) {
-                                DataRowComponent(label: "Project :", value: "-")
-                                DataRowComponent(label: "Area :", value: "-")
-                                DataRowComponent(label: "Block :", value: "-")
-                                DataRowComponent(label: "Unit :", value: "-")
-                                DataRowComponent(label: "Coordinates :", value: "-")
+                                DataRowComponent(label: "Project :", value: viewModel.projectName)
+                                DataRowComponent(label: "Area :", value: viewModel.areaName)
+                                DataRowComponent(label: "Block :", value: viewModel.blockName)
+                                DataRowComponent(label: "Unit :", value: viewModel.unitName)
+                                DataRowComponent(label: "Coordinates :", value: (viewModel.selectedComplaint?.latitude)!) // nanti bisa tambahkan jika ada data
+
                             }
                         }
                     }

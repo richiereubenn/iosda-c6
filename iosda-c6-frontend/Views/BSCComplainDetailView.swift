@@ -136,7 +136,7 @@ struct BSCComplainDetailView: View {
                 VStack(spacing: 5) {
                     DataRowComponent(
                         label: "Tanggal Masuk:",
-                        value: formatDate(complaint.openTimestamp ?? Date(), format: "HH:mm dd/MM/yyyy")
+                        value: formatDate(complaint.createdAt ?? Date(), format: "HH:mm dd/MM/yyyy")
                     )
                     HStack {
                         Text("Status:")
@@ -308,12 +308,19 @@ struct BSCComplainDetailView: View {
                 VStack(spacing: 5) {
                     RequirementsCheckbox(
                         text: "Garansi",
-                        isChecked: garansiChecked,
+                        isChecked: viewModel.selectedComplaint != nil ?
+                            viewModel.unit != nil && viewModel.classification != nil ?
+                                BSCBuildingUnitComplainListViewModel().isWarrantyValid(
+                                    for: viewModel.selectedComplaint!,
+                                    unit: viewModel.unit,
+                                    classification: viewModel.classification
+                                ) : false
+                            : false,
                         onToggle: { garansiChecked.toggle() }
                     )
                     RequirementsCheckbox(
                         text: "Izin Renovasi",
-                        isChecked: izinRenovasiChecked,
+                        isChecked: viewModel.unit?.renovationPermit ?? false,
                         onToggle: { izinRenovasiChecked.toggle() }
                     )
                 }

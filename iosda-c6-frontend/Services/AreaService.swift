@@ -20,7 +20,7 @@ class AreaService: AreaServiceProtocol {
     }
     
     func getAllAreas() async throws -> [Area] {
-        let response: APIResponse<[Area]> = try await networkManager.request(endpoint: "/property/v1/areas")
+        let response: APIResponse<[Area]> = try await networkManager.request(endpoint: "/property/v1/areas?page=1&per_page=100")
         
         guard response.success else {
             throw NetworkError.serverError(0)

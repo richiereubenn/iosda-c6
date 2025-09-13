@@ -20,7 +20,7 @@ class BlockService: BlockServiceProtocol {
     }
     
     func getAllBlocks() async throws -> [Block] {
-        let response: APIResponse<[Block]> = try await networkManager.request(endpoint: "/property/v1/blocks")
+        let response: APIResponse<[Block]> = try await networkManager.request(endpoint: "/property/v1/blocks?page=1&per_page=100")
         
         guard response.success else {
             throw NetworkError.serverError(0)

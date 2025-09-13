@@ -1,53 +1,33 @@
-//
-//  UnitRequestCard.swift
-//  iosda-c6-frontend
-//
-//  Created by Richie Reuben Hermanto on 02/09/25.
-//
-
 import SwiftUI
 
 struct UnitRequestCard: View {
-    let unit: Unit
-    let userUnit: UserUnit?
+    let unit: Unit2
+    let resident: User?
     
-    init(unit: Unit, userUnit: UserUnit? = nil) {
-        self.unit = unit
-        self.userUnit = userUnit
-    }
-    
-    private var statusText: String {
-        unit.isApproved == true ? "Approved" : "Pending"
-    }
-    
-    private var statusColor: Color {
-        unit.isApproved == true ? .green : .orange
-    }
+    private var statusText: String { unit.bscId != nil ? "Approved" : "Pending" }
+    private var statusColor: Color { unit.bscId != nil ? .green : .orange }
     
     private var displayDate: String {
+        guard let createdAt = unit.createdAt else { return "-" }
         let formatter = DateFormatter()
         formatter.dateFormat = "dd/MM/yyyy"
-        return formatter.string(from: unit.handoverDate ?? Date())
+        return formatter.string(from: createdAt)
     }
+
+    
+    private var unitCodeName: String { unit.name ?? "-" }
     
     var body: some View {
         HStack(spacing: 12) {
             VStack(alignment: .leading, spacing: 4) {
-                Text(unit.name)
+                Text(unit.name!)
                     .font(.headline)
                     .fontWeight(.semibold)
-                    .foregroundColor(.primary)
                     .lineLimit(2)
                 
-                if let ownershipType = userUnit?.ownershipType {
-                    Text("Requester: \(ownershipType)")
-                        .font(.subheadline)
-                        .foregroundColor(.secondary)
-                } else {
-                    Text("Unknown Requester")
-                        .font(.subheadline)
-                        .foregroundColor(.secondary)
-                }
+                Text("Requester: \(resident?.name ?? "Unknown")")
+                    .font(.subheadline)
+                    .foregroundColor(.secondary)
             }
             
             Spacer()
@@ -58,7 +38,7 @@ struct UnitRequestCard: View {
                     .fontWeight(.medium)
                     .foregroundColor(.white)
                     .padding(.horizontal, 8)
-                    .padding(.vertical, 4)
+                    .padding(.vertical, 6)
                     .background(statusColor)
                     .cornerRadius(6)
                 

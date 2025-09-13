@@ -9,9 +9,10 @@ import SwiftUI
 
 struct SummaryComplaintCard: View {
     var title: String
-    var unitCount: Int
-    var complaintCount: Int
+    var count: Int
+    var category: String
     var backgroundColor: Color
+    var icon: String
 
     @Environment(\.horizontalSizeClass) var horizontalSizeClass
     @Environment(\.verticalSizeClass) var verticalSizeClass
@@ -28,7 +29,7 @@ struct SummaryComplaintCard: View {
         VStack(spacing: isVeryCompact ? 8 : isCompact ? 12 : 16) {
             HStack(spacing: isCompact ? 8 : 12) {
                 Text(title)
-                    .font(.headline) 
+                    .font(isVeryCompact ? .subheadline : isCompact ? .headline : .title) 
                     .fontWeight(.semibold)
                     .foregroundColor(.white)
                     .multilineTextAlignment(.leading)
@@ -38,29 +39,16 @@ struct SummaryComplaintCard: View {
             
             VStack(spacing: isVeryCompact ? 6 : isCompact ? 8 : 12) {
                 HStack {
-                    Image(systemName: "building.2.fill")
-                        .font(.body)
+                    Image(systemName: icon)
+                        .font(.system(size: isVeryCompact ? 10 : 20))
                         .foregroundColor(.white)
-                        .frame(width: isVeryCompact ? 20 : 24)
+                        .frame(width: isVeryCompact ? 20 : 30)
                     
-                    Text("\(String(format: "%02d", unitCount)) Unit")
-                        .font(.title)
+                    Text("\(count)\(category)")
+                        .font(isVeryCompact ? .subheadline : isCompact ? .headline : .title)
                         .fontWeight(.bold)
                         .foregroundColor(.white)
                         .minimumScaleFactor(0.7)
-                }
-                
-                HStack {
-                    Image(systemName: "list.bullet.clipboard.fill")
-                        .font(.body)
-                        .foregroundColor(.white)
-                        .frame(width: isVeryCompact ? 20 : 24)
-                    
-                    Text("\(String(format: "%03d", complaintCount)) Complaint")
-                        .font(.subheadline)
-                        .fontWeight(.medium)
-                        .foregroundColor(.white)
-                        .minimumScaleFactor(0.8)
                 }
             }
             .padding(.horizontal, isCompact ? 2 : 4)

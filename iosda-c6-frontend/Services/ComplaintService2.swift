@@ -104,7 +104,6 @@ class ComplaintService2: ComplaintServiceProtocol2 {
 
     
     func getProgressLogs(complaintId: String) async throws -> [ProgressLog] {
-            // Define the endpoint for fetching progress logs for a specific complaint
             let endpoint = "/complaint/v1/complaints/\(complaintId)/progress"
             
             let response: APIResponse<[ProgressLog]> = try await networkManager.request(endpoint: endpoint)

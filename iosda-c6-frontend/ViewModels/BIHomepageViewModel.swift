@@ -8,7 +8,7 @@
 import Foundation
 
 @MainActor
-class BSCBuildingUnitComplainListViewModel: ObservableObject {
+class BIHomepageViewModel: ObservableObject {
     @Published var units: [Unit2] = []
     @Published var isLoading = false
     @Published var errorMessage: String?
@@ -16,22 +16,20 @@ class BSCBuildingUnitComplainListViewModel: ObservableObject {
     @Published var totalActiveUnits: Int = 0
     @Published var totalActiveComplaints: Int = 0
     
-    // Menyimpan jumlah complaint per unit
     @Published var complaintsSummary: [String: (total: Int, completed: Int)] = [:]
     
-    
     private let unitService: UnitServiceProtocol2
-    let complaintService: ComplaintServiceProtocol2
-    let classificationService: ClassificationServiceProtocol
+    private let complaintService: ComplaintServiceProtocol2
+    private let networkManager: NetworkManager
     
     init(
         unitService: UnitServiceProtocol2 = UnitService2(),
         complaintService: ComplaintServiceProtocol2 = ComplaintService2(),
-        classificationService: ClassificationServiceProtocol = ClassificationService()
+        networkManager: NetworkManager = .shared
     ) {
         self.unitService = unitService
         self.complaintService = complaintService
-        self.classificationService = classificationService
+        self.networkManager = networkManager
     }
     
     func fetchUnits() async {
@@ -39,10 +37,8 @@ class BSCBuildingUnitComplainListViewModel: ObservableObject {
         errorMessage = nil
         
         do {
-            let result = try await unitService.getUnitsByBSCId()
+            let result = try await unitService.getUnitsByBIId()
             self.units = result
-            
-            await checkWarrantyAndRenovation(for: result)
             await getComplaintsSummary(for: result)
             
         } catch {
@@ -86,7 +82,7 @@ class BSCBuildingUnitComplainListViewModel: ObservableObject {
     
     func fetchSummary() async {
         do {
-            let units = try await unitService.getUnitsByBSCId()
+            let units = try await unitService.getUnitsByBIId()
             
             var activeComplaintsCount = 0
             var activeUnitIds: Set<String> = []
@@ -110,55 +106,10 @@ class BSCBuildingUnitComplainListViewModel: ObservableObject {
             self.totalActiveComplaints = 0
         }
     }
-    
+
     
     private func isActiveComplaint(_ complaint: Complaint2) -> Bool {
         let status = complaint.statusName?.lowercased() ?? ""
         return status != "resolved" && status != "rejected"
-    }
-    
-    private func checkWarrantyAndRenovation(for units: [Unit2]) async {
-        for unit in units {
-            do {
-                let complaints = try await complaintService.getComplaintsByUnitId(unit.id)
-                for complaint in complaints {
-                    var classification: Classification? = nil
-                    if let classificationId = complaint.classificationId {
-                        classification = try? await classificationService.getClassificationById(classificationId)
-                    }
-                    
-                    let warrantyValid = isWarrantyValid(for: complaint, unit: unit, classification: classification)
-                    let renovationValid = unit.renovationPermit ?? false
-                    
-                    if !warrantyValid || !renovationValid {
-                        // Update status complaint jadi rejected
-                        try await complaintService.updateComplaintStatus(
-                            complaintId: complaint.id,
-                            statusId: "99d06c4a-e49f-4144-b617-2a1b6c51092f" // rejected
-                        )
-                    }
-                }
-            } catch {
-                print("Failed to check warranty/renovation: \(error.localizedDescription)")
-            }
-        }
-    }
-    
-    func isWarrantyValid(for complaint: Complaint2, unit: Unit2?, classification: Classification?) -> Bool {
-        guard let unit = unit, let handoverDate = unit.handoverDate, let complaintDate = complaint.createdAt else { return false }
-        
-        let calendar = Calendar.current
-        let monthsToAdd: Int
-        if classification?.workDetail?.lowercased() == "atap bocor" {
-            monthsToAdd = 12
-        } else {
-            monthsToAdd = 3
-        }
-        
-        if let warrantyEndDate = calendar.date(byAdding: .month, value: monthsToAdd, to: handoverDate) {
-            return complaintDate <= warrantyEndDate
-        }
-        
-        return false
     }
 }

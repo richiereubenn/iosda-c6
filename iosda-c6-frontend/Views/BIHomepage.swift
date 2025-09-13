@@ -8,11 +8,13 @@
 import SwiftUI
 
 struct BIHomepage: View {
-    @StateObject private var viewModel = BuildingListViewModel()
+    @StateObject private var viewModel = BIHomepageViewModel()
+    
     var body: some View {
         VStack(spacing: 16) {
+            // Header
             HStack {
-                Text("Hello, Richie")
+                Text("Hello, Richie") // nanti bisa ambil dari token kalau mau
                     .font(.largeTitle)
                     .fontWeight(.bold)
                     .accessibilityAddTraits(.isHeader)
@@ -36,28 +38,32 @@ struct BIHomepage: View {
                 }
             }
             
+            // Summary Cards ambil dari ViewModel
             HStack(spacing: 16) {
                 SummaryComplaintCard(
-                    title: "New Complaint",
-                    unitCount: 13,
-                    complaintCount: 20,
-                    backgroundColor: .blue
+                    title: "Total Units Complaint",
+                    count: viewModel.totalActiveUnits,
+                    category: " Complaint",
+                    backgroundColor: Color.blue,
+                    icon: "building.2.fill"
                 )
                 .accessibilityElement(children: .combine)
                 .accessibilityLabel("New Complaint")
-                .accessibilityValue("13 units, 20 complaints")
+                .accessibilityValue("\(viewModel.totalActiveUnits) units")
                 
                 SummaryComplaintCard(
-                    title: "On Progress",
-                    unitCount: 2,
-                    complaintCount: 5,
-                    backgroundColor: .green
+                    title: "Total Complaints",
+                    count: viewModel.totalActiveComplaints,
+                    category: " Complaint",
+                    backgroundColor: Color.red,
+                    icon: "exclamationmark.bubble.fill"
                 )
                 .accessibilityElement(children: .combine)
                 .accessibilityLabel("On Progress")
-                .accessibilityValue("2 units, 5 complaints")
+                .accessibilityValue("\(viewModel.totalActiveComplaints) complaints")
             }
             
+            // Latest Complaints header
             HStack {
                 Text("Latest Complaints from Units")
                     .font(.system(size: 20, weight: .bold))
@@ -76,21 +82,24 @@ struct BIHomepage: View {
                 .accessibilityHint("Shows all complaints")
             }
             
+            // Unit List ambil dari ViewModel
             ScrollView {
                 LazyVStack(spacing: 12) {
-                    ForEach(viewModel.getFilteredAndSortedUnits(), id: \.unitCode) { unit in
-                        NavigationLink(destination: BIComplaintListView()) {
+                    ForEach(viewModel.getFilteredAndSortedUnits(), id: \.id) { unit in
+                        let summary = viewModel.getComplaintCounts(for: unit.id)
+                        
+                        NavigationLink(destination: BIComplaintListView(unitId: unit.id)) {
                             UnitComplainCard(
-                                unitCode: unit.unitCode,
-                                latestComplaintDate: unit.latestComplaintDate,
-                                totalComplaints: unit.totalComplaints,
-                                completedComplaints: unit.completedComplaints
+                                unitCode: unit.name ?? "Unknown",
+                                latestComplaintDate: formatDate(unit.createdAt ?? Date(), format: "dd MMM yyyy | HH:mm:ss"),
+                                totalComplaints: summary.total,
+                                completedComplaints: summary.completed
                             )
                         }
                         .buttonStyle(PlainButtonStyle())
                         .accessibilityElement(children: .combine)
-                        .accessibilityLabel("Unit \(unit.unitCode)")
-                        .accessibilityValue("\(unit.totalComplaints) complaints, \(unit.completedComplaints) completed. Latest complaint on \(unit.latestComplaintDate ?? "unknown date").")
+                        .accessibilityLabel("Unit \(unit.name ?? "Unknown")")
+                        .accessibilityValue("\(summary.total) complaints, \(summary.completed) completed. Latest complaint on \(formatDate(unit.createdAt ?? Date(), format: "dd MMM yyyy"))")
                         .accessibilityHint("Double tap to view complaints for this unit")
                     }
                 }
@@ -98,9 +107,12 @@ struct BIHomepage: View {
             
             Spacer()
         }
-        
         .padding(.horizontal)
         .background(Color(.systemGroupedBackground))
+        .task {
+            await viewModel.fetchUnits()
+            await viewModel.fetchSummary()
+        }
     }
 }
 

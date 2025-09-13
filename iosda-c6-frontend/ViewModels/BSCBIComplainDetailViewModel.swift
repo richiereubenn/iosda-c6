@@ -21,22 +21,50 @@ class BSCBIComplaintDetailViewModel: ObservableObject {
     @Published var isSubmitting: Bool = false
     @Published var selectedCategory: String? = nil
     @Published var selectedWorkDetail: String? = nil
+    @Published var unit: Unit2? = nil
+    @Published var resident: User? = nil
+    @Published var projectName: String = "-"
+    @Published var areaName: String = "-"
+    @Published var blockName: String = "-"
+    @Published var unitName: String = "-"
+
     let defaultClassificationId = "75b125fd-a656-4fd8-a500-2f051b068171"
     private let service: ComplaintServiceProtocol2
     private let progressService: ProgressLogServiceProtocol
     private let classificationService: ClassificationServiceProtocol
+    private let unitService: UnitServiceProtocol2
+    private let userService: UserServiceProtocol
+    private let unitCodeService: UnitCodeServiceProtocol
+    private let blockService: BlockServiceProtocol
+    private let areaService: AreaServiceProtocol
+    private let projectService: ProjectServiceProtocol
+    
     
     private let baseURL = "https://api.kevinchr.com/complaint"
+    
     
     init(
         service: ComplaintServiceProtocol2 = ComplaintService2(),
         progressService: ProgressLogServiceProtocol = ProgressLogService(),
-        classificationService: ClassificationServiceProtocol = ClassificationService()
+        classificationService: ClassificationServiceProtocol = ClassificationService(),
+        unitService: UnitServiceProtocol2 = UnitService2(),
+        userService: UserServiceProtocol = UserService(),
+        unitCodeService: UnitCodeServiceProtocol = UnitCodeService(),
+        blockService: BlockServiceProtocol = BlockService(),
+        areaService: AreaServiceProtocol = AreaService(),
+        projectService: ProjectServiceProtocol = ProjectService()
     ) {
         self.service = service
         self.progressService = progressService
         self.classificationService = classificationService
+        self.unitService = unitService
+        self.userService = userService
+        self.unitCodeService = unitCodeService
+        self.blockService = blockService
+        self.areaService = areaService
+        self.projectService = projectService
     }
+
     
     var uniqueCategories: [String] {
         Array(Set(classifications.map { $0.name })).sorted()
@@ -58,13 +86,87 @@ class BSCBIComplaintDetailViewModel: ObservableObject {
             selectedComplaint = complaint
             selectedStatus = ComplaintStatus(raw: complaint.statusName)
             
+            await loadFirstProgress(for: id)
+            
             if let classificationId = complaint.classificationId {
-                try await loadClassificationById(classificationId)
+                await loadClassificationById(classificationId)
             }
             
-            await loadFirstProgress(for: id)
+            if let unitId = complaint.unitId {
+                await loadUnitHierarchy(unitId: unitId) 
+                try await loadUnitAndResident(unitId: unitId)
+            }
+
+            
         } catch {
             errorMessage = "Failed to load complaint \(id): \(error.localizedDescription)"
+        }
+    }
+    
+    private func loadUnitHierarchy(unitId: String) async {
+        do {
+            let unit = try await unitService.getUnitById(unitId)
+            self.unitName = unit.name ?? "-"
+            
+            guard let unitCodeId = unit.unitCodeId else {
+                print("Unit has no unitCodeId")
+                return
+            }
+            
+            let unitCode = try await unitCodeService.getUnitCodeById(unitCodeId)
+            print("unitCode loaded:", unitCode)
+            
+            let block = try await blockService.getBlockById(unitCode.blockId)
+            print("block loaded:", block)
+            self.blockName = block.name
+            
+            let area = try await areaService.getAreaById(block.areaId)
+            print("area loaded:", area)
+            self.areaName = area.name
+            
+            let project = try await projectService.getProjectById(area.projectId)
+            print("project loaded:", project)
+            self.projectName = project.name
+            
+        } catch {
+            print("Failed to load hierarchy:", error.localizedDescription)
+        }
+    }
+
+//    private func loadUnitHierarchy(unitId: String) async {
+//        do {
+//            if let unit = try await unitService.getAllUnits().first(where: { $0.id == unitId }) {
+//                self.unitName = unit.name!
+//
+//                let unitCode = try await unitCodeService.getUnitCodeById(unit.unitCodeId!)
+//                
+//                let block = try await blockService.getBlockById(unitCode.blockId)
+//                self.blockName = block.name
+//                print("Blockname", blockName)
+//                
+//                let area = try await areaService.getAreaById(block.areaId)
+//                self.areaName = area.name
+//                print("Area", areaName)
+//                
+//                let project = try await projectService.getProjectById(area.projectId)
+//                self.projectName = project.name
+//            }
+//        } catch {
+//            print("Failed to load hierarchy: \(error.localizedDescription)")
+//        }
+//    }
+
+    
+    private func loadUnitAndResident(unitId: String) async throws {
+        let units = try await unitService.getAllUnits()
+        if let foundUnit = units.first(where: { $0.id == unitId }) {
+            self.unit = foundUnit
+            if let residentId = foundUnit.residentId {
+                print("resident", residentId)
+                let user = try await userService.getUserById(residentId)
+                print("resident", user.name)
+                self.resident = user
+            }
         }
     }
     

@@ -12,7 +12,9 @@ protocol UnitServiceProtocol2 {
     func getUnitsByResidentId(residentId: String) async throws -> [Unit2]
     func getUnitsByBSCId() async throws -> [Unit2]
     func getUnitsByBIId() async throws -> [Unit2]
+    func getUnitById(_ id: String) async throws -> Unit2
     func createUnit(name: String, resident_id: String, bsc_id: String?, bi_id: String?, unitCode_id: String, unit_number: String) async throws -> Unit2
+
 }
 
 class UnitService2: UnitServiceProtocol2 {
@@ -70,6 +72,19 @@ class UnitService2: UnitServiceProtocol2 {
             throw NetworkError.serverError(response.code ?? 0)
         }
         return response.data ?? []
+    }
+    
+
+    func getUnitById(_ id: String) async throws -> Unit2 {
+        let endpoint = "/property/v1/units/\(id)"
+        let response: APIResponse<Unit2> = try await networkManager.request(endpoint: endpoint)
+        guard response.success else {
+            throw NetworkError.serverError(response.code ?? 0)
+        }
+        guard let unit = response.data else {
+            throw NetworkError.noData
+        }
+        return unit
     }
     
     func createUnit(

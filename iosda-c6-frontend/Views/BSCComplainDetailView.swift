@@ -103,10 +103,26 @@ struct BSCComplainDetailView: View {
                 .font(.headline)
             GroupedCard {
                 VStack(spacing: 5) {
-                    DataRowComponent(label: "Nama:", value: "–")
-                    DataRowComponent(label: "Nomor HP:", value: "–")
-                    DataRowComponent(label: "Kode Rumah:", value: "–")
-                    DataRowComponent(label: "Tanggal ST:", value: "-")
+                    DataRowComponent(
+                    label: "Nama:",
+                    value: viewModel.resident?.name ?? "–"
+                )
+                DataRowComponent(
+                    label: "Nomor HP:",
+                    value: viewModel.resident?.phone ?? "–"
+                )
+                DataRowComponent(
+                    label: "Kode Rumah:",
+                    value: viewModel.unit?.unitNumber ?? "–"
+                )
+                DataRowComponent(
+                    label: "Tanggal ST:",
+                    value: viewModel.unit?.handoverDate.map {
+                        formatDate($0, format: "dd/MM/yyyy")
+                    } ?? "-"
+                )
+
+
                 }
             }
         }
@@ -120,7 +136,7 @@ struct BSCComplainDetailView: View {
                 VStack(spacing: 5) {
                     DataRowComponent(
                         label: "Tanggal Masuk:",
-                        value: formatDate(complaint.openTimestamp ?? Date(), format: "HH:mm dd/MM/yyyy")
+                        value: formatDate(complaint.createdAt ?? Date(), format: "HH:mm dd/MM/yyyy")
                     )
                     HStack {
                         Text("Status:")
@@ -292,12 +308,19 @@ struct BSCComplainDetailView: View {
                 VStack(spacing: 5) {
                     RequirementsCheckbox(
                         text: "Garansi",
-                        isChecked: garansiChecked,
+                        isChecked: viewModel.selectedComplaint != nil ?
+                            viewModel.unit != nil && viewModel.classification != nil ?
+                                BSCBuildingUnitComplainListViewModel().isWarrantyValid(
+                                    for: viewModel.selectedComplaint!,
+                                    unit: viewModel.unit,
+                                    classification: viewModel.classification
+                                ) : false
+                            : false,
                         onToggle: { garansiChecked.toggle() }
                     )
                     RequirementsCheckbox(
                         text: "Izin Renovasi",
-                        isChecked: izinRenovasiChecked,
+                        isChecked: viewModel.unit?.renovationPermit ?? false,
                         onToggle: { izinRenovasiChecked.toggle() }
                     )
                 }
@@ -317,9 +340,7 @@ struct BSCComplainDetailView: View {
                         isDisabled: isConfirmDisabled
                     ) {
                         Task {
-                            // 1. Update classification dulu
                             await viewModel.updateClassification()
-                            // 2. Setelah classification berhasil, update status
                             await viewModel.updateStatus(to: "8e8f0a90-36eb-4a7f-aad0-ee2e59fd9b8f")
                         }
                     }

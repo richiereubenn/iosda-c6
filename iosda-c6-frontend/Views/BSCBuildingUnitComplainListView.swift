@@ -11,40 +11,55 @@ struct BSCBuildingUnitComplainListView: View {
     @StateObject private var viewModel = BSCBuildingUnitComplainListViewModel()
     
     var body: some View {
-        NavigationStack{
-            VStack(spacing: 16) {
-                
-                HStack(spacing: 16) {
-                    SummaryComplaintCard(
-                        title: "New Complaint",
-                        unitCount: 13,
-                        complaintCount: 20,
-                        backgroundColor: Color.blue
-                    )
-                    
-                    SummaryComplaintCard(
-                        title: "On Progress",
-                        unitCount: 2,
-                        complaintCount: 5,
-                        backgroundColor: Color.green
-                    )
+            NavigationStack {
+                Group {
+                    if viewModel.isLoading {
+                        // Loading screen bawaan Apple
+                        VStack {
+                            ProgressView()
+                                .progressViewStyle(CircularProgressViewStyle())
+                                .scaleEffect(1.5)
+                            Text("Loading...")
+                                .font(.headline)
+                                .padding(.top, 8)
+                        }
+                        .frame(maxWidth: .infinity, maxHeight: .infinity)
+                    } else {
+                        // Konten utama
+                        VStack(spacing: 16) {
+                            HStack(spacing: 16) {
+                                SummaryComplaintCard(
+                                    title: "Total Units",
+                                    count: viewModel.totalActiveUnits,
+                                    category: " Complaint",
+                                    backgroundColor: Color.blue,
+                                    icon: "building.2.fill"
+                                )
+                                
+                                SummaryComplaintCard(
+                                    title: "Total Complaints",
+                                    count: viewModel.totalActiveComplaints,
+                                    category: " Unit",
+                                    backgroundColor: Color.red,
+                                    icon: "building.2.fill"
+                                )
+                            }
+                            
+                            unitListScrollView()
+                        }
+                        .padding(.horizontal)
+                        .padding(.top)
+                        .background(Color(.systemGroupedBackground))
+                        .searchable(text: $viewModel.searchText)
+                    }
                 }
-                
-                unitListScrollView()
-                
+                .navigationTitle("Building Complain List")
+                .task {
+                    await viewModel.fetchUnits()
+                    await viewModel.fetchSummary()
+                }
             }
-            .padding(.horizontal)
-            .padding(.top)
-            .background(Color(.systemGroupedBackground))
-            .searchable(text: $viewModel.searchText)
-            .navigationTitle("Building Complain List")
-            .task {
-                await viewModel.fetchUnits()
-            }
-            
-            .background(Color(.systemGroupedBackground))
         }
-    }
     
     @ViewBuilder
     private func unitListScrollView() -> some View {

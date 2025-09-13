@@ -119,11 +119,12 @@ struct BIComplaintDetailView: View {
                         
                         GroupedCard {
                             VStack(alignment: .leading, spacing: 8) {
-                                DataRowComponent(label: "Project :", value: "-")
-                                DataRowComponent(label: "Area :", value: "-")
-                                DataRowComponent(label: "Block :", value: "-")
-                                DataRowComponent(label: "Unit :", value: "-")
-                                DataRowComponent(label: "Coordinates :", value: "-")
+                                DataRowComponent(label: "Project :", value: viewModel.projectName)
+                                DataRowComponent(label: "Area :", value: viewModel.areaName)
+                                DataRowComponent(label: "Block :", value: viewModel.blockName)
+                                DataRowComponent(label: "Unit :", value: viewModel.unitName)
+                                DataRowComponent(label: "Coordinates :", value: (viewModel.selectedComplaint?.latitude)!) // nanti bisa tambahkan jika ada data
+
                             }
                         }
                     }
@@ -168,7 +169,6 @@ struct BIComplaintDetailView: View {
         } message: {
             Text("Explain why you reject this issue")
         }
-        
         .sheet(isPresented: $showPhotoUploadSheet) {
             PhotoUploadSheet(
                 title: $sheetTitle,
@@ -180,13 +180,15 @@ struct BIComplaintDetailView: View {
                     Task {
                         await viewModel.submitStartWorkProgress(
                             complaintId: complaintId,
-                            userId: "2b4c59bd-0460-426b-a720-80ccd85ed5b2",
+                            userId: "fed2ef1c-4c39-4643-9207-63a201dc8562",
                             images: photos,
                             title: title ?? "",
                             description: desc ?? ""
                         )
                         await viewModel.updateStatus(to: statusId)
                         showSuccessAlert = true
+                        
+                        print("id complain", complaintId)
                     }
                     showPhotoUploadSheet = false
                 },

@@ -82,6 +82,7 @@ struct ResidentAddComplaintView: View {
                         classificationId: classificationId,
                         unitViewModel: unitViewModel,
                         complaintViewModel: complaintViewModel,
+                        complaintListViewModel: complaintListViewModel, // Add this line
                         onComplaintSubmitted: {
                             dismiss()
                         }

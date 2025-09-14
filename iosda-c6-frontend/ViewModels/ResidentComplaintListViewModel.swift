@@ -153,4 +153,25 @@ class ResidentComplaintListViewModel: ObservableObject {
         }
 
     }
+    
+    func updateUnitKeyDate(unitId: String, newKeyDate: Date?) async {
+        do {
+            // Get the unit first
+            let unit = try await unitService.getUnitById(unitId)
+            
+            // Update the unit's key handover date
+            let updatedUnit = try await unitService.updateUnitKeyOptional(
+                unit,
+                keyDate: newKeyDate,
+                note: nil
+            )
+            
+            print("✅ Successfully updated unit key date for unit \(unitId)")
+            print("✅ New key date: \(String(describing: newKeyDate))")
+            
+        } catch {
+            print("❌ Failed to update unit key date for unit \(unitId): \(error)")
+            errorMessage = "Failed to update key handover date: \(error.localizedDescription)"
+        }
+    }
 }

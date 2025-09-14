@@ -295,29 +295,29 @@ class ResidentAddComplaintViewModel: ObservableObject {
         return ordered
     }
     
-    func updateComplaintsAndUnitForNewMethod(unitId: String, newMethod: HandoverMethod) async throws {
-        // 1. Get complaints for this unit
-        let complaints = try await complaintService.getComplaintsByUnitId(unitId)
-        
-        // 2. Filter only "under review by bsc"
-        let underReviewComplaints = complaints.filter {
-            $0.statusName?.lowercased() == "under review by bsc"
-        }
-        
-        // 3. Update their handover method
-        for complaint in underReviewComplaints {
-            try await complaintService.updateComplaintHandoverMethod(
-                complaintId: complaint.id,
-                newMethod: newMethod
-            )
-        }
-        
-        // 4. Reset unit key handover date
-        // 4. Reset unit key handover date
-        try await unitListViewModel.resetKeyHandoverDate(unitId: unitId)
-
-    }
-
-    
+//    func updateComplaintsAndUnitForNewMethod(unitId: String, newMethod: HandoverMethod) async throws {
+//        // 1. Get complaints for this unit
+//        let complaints = try await complaintService.getComplaintsByUnitId(unitId)
+//        
+//        // 2. Filter only "under review by bsc"
+//        let underReviewComplaints = complaints.filter {
+//            $0.statusName?.lowercased() == "under review by bsc"
+//        }
+//        
+//        // 3. Update their handover method
+//        for complaint in underReviewComplaints {
+//            try await complaintService.updateComplaintHandoverMethod(
+//                complaintId: complaint.id,
+//                newMethod: newMethod
+//            )
+//        }
+//        
+//        // 4. Reset unit key handover date
+//        // 4. Reset unit key handover date
+//        try await unitListViewModel.resetKeyHandoverDate(unitId: unitId)
+//
+//    }
+//
+//    
     
 }

@@ -41,6 +41,10 @@ class ResidentUnitListViewModel: ObservableObject {
         return NetworkManager.shared.getUserIdFromToken()
     }
     
+    func getUnitById(_ id: String) async throws -> Unit2 {
+        return try await unitService.getUnitById(id)
+    }
+    
     func loadUnits() async {
         guard let residentId = residentId else {
             errorMessage = "User not logged in"

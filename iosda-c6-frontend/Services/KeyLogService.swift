@@ -50,7 +50,7 @@ class KeyLogService: KeyLogServiceProtocol {
     
     func createKeyLog(unitId: String, userId: String, detail: String) async throws -> KeyLog {
         
-        let endpoint = "property/v1/key-logs/\(unitId)/progress"
+        let endpoint = "/property/v1/key-logs"
         
         var bodyDict: [String: Any] = [
             "user_id": userId,

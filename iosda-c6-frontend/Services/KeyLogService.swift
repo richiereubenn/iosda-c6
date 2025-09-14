@@ -23,7 +23,7 @@ class KeyLogService: KeyLogServiceProtocol {
     }
     
     func getAllKeyLog(unitId: String) async throws -> [KeyLog] {
-        let endpoint = "/property/v1/key-logs/progress?unit_id=\(unitId)"
+        let endpoint = "/property/v1/key-logs?unit_id=\(unitId)"
         
         let response: APIResponse<[KeyLog]> = try await networkManager.request(endpoint: endpoint)
         
@@ -72,6 +72,4 @@ class KeyLogService: KeyLogServiceProtocol {
         
         return keyLog
     }
-
-    
 }

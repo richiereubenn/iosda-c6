@@ -5,8 +5,9 @@ struct ResidentAddComplaintView: View {
     @Environment(\.presentationMode) var presentationMode
     @Environment(\.dismiss) private var dismiss
     
-    @ObservedObject var unitViewModel: ResidentUnitListViewModel
-    @ObservedObject var complaintViewModel: ResidentAddComplaintViewModel
+    @StateObject var unitViewModel: ResidentUnitListViewModel
+    @StateObject var complaintViewModel: ResidentAddComplaintViewModel
+    @StateObject var complaintListViewModel: ResidentComplaintListViewModel
     
     @State private var complaintTitle: String = ""
     @State private var complaintDetails: String = ""
@@ -18,7 +19,11 @@ struct ResidentAddComplaintView: View {
     
     @State private var handoverMethod: HandoverMethod? = nil
     var handoverOptions: [HandoverMethod] = [.bringToMO, .inHouse]
+    @State private var isHandoverMethodLocked = false
     
+    @State private var showHandoverConflictAlert = false
+    @State private var pendingHandoverMethod: HandoverMethod? = nil
+
     
     @State private var closeUpImage: UIImage? = nil
     @State private var overallImage: UIImage? = nil
@@ -31,7 +36,7 @@ struct ResidentAddComplaintView: View {
     
     @State private var isSubmitting: Bool = false
     @State private var showSuccessAlert = false
-
+    
     var onComplaintSubmitted: (() -> Void)? = nil
     
     
@@ -50,18 +55,13 @@ struct ResidentAddComplaintView: View {
                         unitSelectionSection
                         detailsSection
                         imageSection
-                        handoverSection
-                        submitButton
+                        if isHandoverMethodLocked {
+                            lockedHandoverSection
+                        } else {
+                            handoverSection
+                        }
                         
-//                        if isSubmitting {
-//                            HStack {
-//                                Spacer()
-//                                ProgressView("Submitting...")
-//                                    .progressViewStyle(CircularProgressViewStyle())
-//                                Spacer()
-//                            }
-//                            .padding(.top)
-//                        }
+                        submitButton
                     }
                     .padding()
                     .frame(maxWidth: .infinity, alignment: .leading)
@@ -82,9 +82,17 @@ struct ResidentAddComplaintView: View {
                         classificationId: classificationId,
                         unitViewModel: unitViewModel,
                         complaintViewModel: complaintViewModel,
+                        complaintListViewModel: complaintListViewModel, // Add this line
                         onComplaintSubmitted: {
-                            dismiss()
-                        }
+                               Task {
+                                   if let userId = NetworkManager.shared.getUserIdFromToken() {
+                                       await complaintListViewModel.loadComplaints(byUserId: userId) // 👈 refresh with correct user
+                                       await MainActor.run {
+                                           dismiss() // 👈 close KeyDateView after refresh
+                                       }
+                                   }
+                               }
+                           }
                     )
                 }
                 .alert(isPresented: Binding<Bool>(
@@ -102,27 +110,102 @@ struct ResidentAddComplaintView: View {
                     )
                 }
                 .alert("Success", isPresented: $showSuccessAlert, actions: {
-                            Button("OK") {
-                                dismiss()
-                                onComplaintSubmitted?()
-                            }
-                        }, message: {
-                            Text("Your complaint was submitted successfully.")
-                        })
+                    Button("OK") {
+                        dismiss()
+                        onComplaintSubmitted?()
+                    }
+                }, message: {
+                    Text("Your complaint was submitted successfully.")
+                })
+                .alert("Different handover method detected",
+                       isPresented: $showHandoverConflictAlert) {
+                    Button("Cancel", role: .cancel) {
+                        print("🚫 User cancelled handover conflict resolution")
+                    }
+                    Button("Proceed") {
+                        Task {
+                            if let unitId = selectedUnitId,
+                               let newMethod = pendingHandoverMethod {
+                                await complaintListViewModel.resolveHandoverConflict(
+                                    unitId: unitId,
+                                    newMethod: newMethod
+                                )
 
-            }
-            .onAppear {
-                Task {
-                    await unitViewModel.loadUnits()
-                    if selectedUnitId == nil {
-                        selectedUnitId = unitViewModel.claimedUnits.first?.id
+                                // 🔥 Don’t reload here
+                                isHandoverMethodLocked = complaintListViewModel.isHandoverMethodLocked(for: unitId)
+                                handoverMethod = newMethod
+                            }
+                        }
+                    }
+                } message: {
+                    Text("There are complaints under review by BSC with a different handover method. Do you want to update them and reset the unit's key handover date?")
+                }
+                .onAppear {
+                    Task {
+                        await unitViewModel.loadUnits()
+                        if selectedUnitId == nil {
+                            selectedUnitId = unitViewModel.selectedUnit?.id
+
+                        }
+                        if let unitId = selectedUnitId {
+                            await complaintListViewModel.loadComplaints(byUnitId: unitId)
+                            isHandoverMethodLocked = complaintListViewModel.isHandoverMethodLocked(for: unitId)
+                            if isHandoverMethodLocked {
+                                handoverMethod = nil
+                            }
+                        }
+                        userId = NetworkManager.shared.getUserIdFromToken()
                     }
                 }
-                userId = NetworkManager.shared.getUserIdFromToken()
+                .onChange(of: selectedUnitId) { newUnitId in
+                    guard let unitId = newUnitId else { return }
+                    Task {
+                        await complaintListViewModel.loadComplaints(byUnitId: unitId)
+                        isHandoverMethodLocked = complaintListViewModel.isHandoverMethodLocked(for: unitId)
+                        if isHandoverMethodLocked {
+                            handoverMethod = nil
+                        }
+                    }
+                }
             }
-            
         }
     }
+    
+    @ViewBuilder
+    private var unitSelectionSection: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Text("House Unit")
+                .font(.headline)
+            
+            LabeledDropdownPicker(
+                label: nil,
+                placeholder: "Select House Unit",
+                selection: unitNameBinding,
+                options: unitViewModel.claimedUnits.map { $0.name ?? "Unnamed Unit" }
+            )
+        }
+    }
+    private var unitNameBinding: Binding<String> {
+        Binding<String>(
+            get: {
+                // Convert selectedUnitId -> unit name
+                guard let selectedId = selectedUnitId,
+                      let unit = unitViewModel.claimedUnits.first(where: { $0.id == selectedId }) else {
+                    return ""
+                }
+                return unit.name ?? ""
+            },
+            set: { newName in
+                // Convert selected name -> selectedUnitId
+                if let selected = unitViewModel.claimedUnits.first(where: { $0.name == newName }) {
+                    selectedUnitId = selected.id
+                } else {
+                    selectedUnitId = nil
+                }
+            }
+        )
+    }
+    
     
     // MARK: - View Components
     
@@ -148,19 +231,6 @@ struct ResidentAddComplaintView: View {
         }
     }
     
-    @ViewBuilder
-    private var unitSelectionSection: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            Text("House Unit")
-                .font(.headline)
-            LabeledDropdownPicker(
-                label: nil,
-                placeholder: "Select House Unit",
-                selection: unitBinding,
-                options: unitViewModel.claimedUnits.map { $0.name ?? "Unnamed Unit" }
-            )
-        }
-    }
     
     @ViewBuilder
     private var detailsSection: some View {
@@ -247,7 +317,25 @@ struct ResidentAddComplaintView: View {
                 .foregroundColor(.gray)
             
             ForEach(handoverOptions, id: \.self) { option in
-                Button(action: { handoverMethod = option }) {
+                Button(action: {
+                    if let unitId = selectedUnitId {
+                        // Check for conflict
+                        let hasConflict = complaintListViewModel.complaints.contains {
+                            $0.unitId == unitId &&
+                            $0.statusName?.lowercased() == "under review by bsc" &&
+                            $0.handoverMethod != option
+                        }
+                        
+                        if hasConflict {
+                            pendingHandoverMethod = option
+                            showHandoverConflictAlert = true
+                        } else {
+                            handoverMethod = option
+                        }
+                    } else {
+                        handoverMethod = option
+                    }
+                }) {
                     HStack {
                         Image(systemName: handoverMethod == option ? "largecircle.fill.circle" : "circle")
                             .foregroundColor(.accentColor)
@@ -258,6 +346,7 @@ struct ResidentAddComplaintView: View {
                     .background(Color(uiColor: .secondarySystemBackground))
                     .cornerRadius(8)
                 }
+
                 .buttonStyle(.plain)
             }
         }
@@ -268,13 +357,34 @@ struct ResidentAddComplaintView: View {
         ZStack {
             CustomButtonComponent(
                 text: isSubmitting ? "Submitting..." : "Submit Complaint",
+                backgroundColor: .primaryBlue,
                 isDisabled: !isFormValid || isSubmitting,
                 action: {
-                    submitInHouseComplaint()
+                    guard let selectedUnit = unitViewModel.selectedUnit else { return }
+                    
+                    Task {
+                        let methodToCheck = handoverMethod ?? .inHouse
+                        let hasConflict = await checkForHandoverConflicts(
+                            unitId: selectedUnit.id,
+                            newMethod: methodToCheck
+                        )
+                        
+                        if hasConflict {
+                            pendingHandoverMethod = methodToCheck
+                            print("🔥 Set pendingHandoverMethod to: \(pendingHandoverMethod)")
+                            showHandoverConflictAlert = true
+                        } else {
+                            if handoverMethod == .bringToMO {
+                                navigateToKeyDate = true
+                            } else {
+                                await submitInHouseComplaint()
+                            }
+                        }
+                    }
                 }
             )
             .opacity(isSubmitting ? 0.5 : 1)
-            
+
             if isSubmitting {
                 ProgressView()
                     .progressViewStyle(CircularProgressViewStyle())
@@ -285,6 +395,8 @@ struct ResidentAddComplaintView: View {
 
 
     
+    
+    
     private var closeButton: some View {
         Button(action: { presentationMode.wrappedValue.dismiss() }) {
             Image(systemName: "xmark.circle.fill")
@@ -292,6 +404,61 @@ struct ResidentAddComplaintView: View {
                 .foregroundColor(.gray.opacity(0.5))
         }
     }
+    
+    private var lockedHandoverText: String {
+        guard let unitId = selectedUnitId else {
+            print("🐛 No selectedUnitId")
+            return HandoverMethod.handoverLocked.displayName
+        }
+        
+        print("🐛 Checking complaints for unitId: \(unitId)")
+        print("🐛 Total complaints: \(complaintListViewModel.complaints.count)")
+        
+        // Debug: Print all complaints for this unit
+        let unitComplaints = complaintListViewModel.complaints.filter { $0.unitId == unitId }
+        print("🐛 Unit complaints:")
+        for complaint in unitComplaints {
+            let status = ComplaintStatus(raw: complaint.statusName)
+            print("   - Status: \(complaint.statusName) -> \(status.displayName), isLocking: \(status.isLockingStatus)")
+        }
+        
+        guard !complaintListViewModel.complaints.isEmpty,
+              let activeComplaint = complaintListViewModel.complaints.first(where: {
+                  $0.unitId == unitId &&
+                  ComplaintStatus(raw: $0.statusName).isLockingStatus
+              }) else {
+            print("🐛 No active complaint found, returning fallback")
+            return HandoverMethod.handoverLocked.displayName
+        }
+        
+        print("🐛 Found active complaint with status: \(activeComplaint.statusName)")
+        return ComplaintStatus(raw: activeComplaint.statusName).displayName
+    }
+    
+    
+    
+    private var lockedHandoverSection: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Text("Key Handover Method")
+                .font(.headline)
+            Text("This handover method is locked because another complaint for this unit is already in progress.")
+                .font(.subheadline)
+                .foregroundColor(.gray)
+            
+            HStack {
+                Image(systemName: "lock.fill")
+                    .foregroundColor(.accentColor)
+                Text(lockedHandoverText) // 👈 Dynamic display based on status
+                    .fontWeight(.medium)
+            }
+            .padding()
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .background(Color(uiColor: .secondarySystemBackground))
+            .cornerRadius(8)
+        }
+    }
+    
+    
     
     // MARK: - Helper Views
     
@@ -345,60 +512,90 @@ struct ResidentAddComplaintView: View {
         !complaintTitle.trimmingCharacters(in: .whitespaces).isEmpty &&
         !complaintDetails.trimmingCharacters(in: .whitespaces).isEmpty &&
         selectedUnitId != nil &&
-        handoverMethod != nil &&
         complaintViewModel.getImage(for: .closeUp) != nil &&
-        complaintViewModel.getImage(for: .overall) != nil
+        complaintViewModel.getImage(for: .overall) != nil &&
+        (isHandoverMethodLocked || handoverMethod != nil)
     }
-
+    
+    
+    
     
     // MARK: - Functions
     private func submitInHouseComplaint() {
-            guard let userId = userId,
-                  let unitId = selectedUnitId,
-                  let method = handoverMethod,
-                  let selectedUnit = unitViewModel.claimedUnits.first(where: { $0.id == unitId }) else {
-                return
-            }
-            
-            isSubmitting = true
-
-            Task {
-                do {
-                    try await complaintViewModel.submitInHouseComplaint(
-                        title: complaintTitle,
-                        description: complaintDetails,
-                        unitId: unitId,
-                        userId: userId,
-                        statusId: "661a5a05-730b-4dc3-a924-251a1db7a2d7",
-                        classificationId: classificationId,
-                        latitude: latitude,
-                        longitude: longitude,
-                        handoverMethod: method,
-                        selectedUnit: selectedUnit
-                    )
-                    
-                    print("✅ Complaint submitted successfully")
-                    
-                    await MainActor.run {
-                        isSubmitting = false
-                        showSuccessAlert = true
-                    }
-                } catch {
-                    print("❌ Error submitting in-house complaint: \(error)")
-                    await MainActor.run {
-                        isSubmitting = false
-                        complaintViewModel.errorMessage = error.localizedDescription
-                    }
+        guard let userId = userId,
+              let unitId = selectedUnitId,
+              let selectedUnit = unitViewModel.claimedUnits.first(where: { $0.id == unitId }) else {
+            return
+        }
+        
+        let methodToUse: HandoverMethod = isHandoverMethodLocked ? .handoverLocked : (handoverMethod ?? .inHouse)
+        
+        
+        
+        isSubmitting = true
+        
+        Task {
+            do {
+                try await complaintViewModel.submitInHouseComplaint(
+                    title: complaintTitle,
+                    description: complaintDetails,
+                    unitId: unitId,
+                    userId: userId,
+                    statusId: "661a5a05-730b-4dc3-a924-251a1db7a2d7",
+                    classificationId: classificationId,
+                    latitude: latitude,
+                    longitude: longitude,
+                    handoverMethod: methodToUse,
+                    selectedUnit: selectedUnit
+                )
+                
+                
+                print("✅ Complaint submitted successfully")
+                if let unitId = selectedUnitId {
+                            await complaintListViewModel.loadComplaints(byUnitId: unitId)
+                        }
+                
+                await MainActor.run {
+                    isSubmitting = false
+                    showSuccessAlert = true
+                }
+            } catch {
+                print("❌ Error submitting in-house complaint: \(error)")
+                await MainActor.run {
+                    isSubmitting = false
+                    complaintViewModel.errorMessage = error.localizedDescription
                 }
             }
         }
+    }
+    
+    func isHandoverMethodLocked(for unitId: String) -> Bool {
+        return complaintListViewModel.complaints.contains {
+            $0.unitId == unitId &&
+            ComplaintStatus(raw: $0.statusName).isLockingStatus
+        }
+    }
+    private func checkForHandoverConflicts(unitId: String, newMethod: HandoverMethod) async -> Bool {
+        // Refresh complaints data first
+        await complaintListViewModel.loadComplaints(byUnitId: unitId)
         
+        return complaintListViewModel.complaints.contains {
+            $0.unitId == unitId &&
+            $0.statusName?.lowercased() == "under review by bsc" &&
+            $0.handoverMethod != newMethod
+        }
+    }
+    
+    
+    
+    
 }
 
 #Preview {
     ResidentAddComplaintView(
         unitViewModel: ResidentUnitListViewModel(),
         complaintViewModel: ResidentAddComplaintViewModel(),
+        complaintListViewModel: ResidentComplaintListViewModel(),
         classificationId: "classA",
         latitude: 0.0,
         longitude: 0.0

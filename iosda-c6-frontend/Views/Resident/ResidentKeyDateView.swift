@@ -6,19 +6,14 @@ struct ResidentKeyDateView: View {
     var complaintTitle: String
     var complaintDetails: String
     @State private var userId: String? = nil
-    
 
     var classificationId: String
     var latitude: Double? = nil
     var longitude: Double? = nil
 
-    
-//    @ObservedObject var unitViewModel: UnitViewModel
     @ObservedObject var unitViewModel: ResidentUnitListViewModel
-
-//    @ObservedObject var complaintViewModel: ComplaintListViewModel
     @ObservedObject var complaintViewModel: ResidentAddComplaintViewModel
-
+    @ObservedObject var complaintListViewModel: ResidentComplaintListViewModel
     
     var onComplaintSubmitted: () -> Void
     
@@ -28,6 +23,10 @@ struct ResidentKeyDateView: View {
     @State private var showingSuccessAlert = false
     
     private let dayAfterTomorrow = Calendar.current.date(byAdding: .day, value: 1, to: Calendar.current.startOfDay(for: Date()))!
+    
+    @State private var showKeyDateConflictAlert = false
+    @State private var pendingKeyDate: Date? = nil
+    @State private var existingKeyDate: Date? = nil
     
     init(
         handoverMethod: HandoverMethod,
@@ -39,6 +38,7 @@ struct ResidentKeyDateView: View {
         longitude: Double? = nil,
         unitViewModel: ResidentUnitListViewModel,
         complaintViewModel: ResidentAddComplaintViewModel,
+        complaintListViewModel: ResidentComplaintListViewModel,
         onComplaintSubmitted: @escaping () -> Void
     ) {
         self.handoverMethod = handoverMethod
@@ -50,6 +50,7 @@ struct ResidentKeyDateView: View {
         self.longitude = longitude
         self.unitViewModel = unitViewModel
         self.complaintViewModel = complaintViewModel
+        self.complaintListViewModel = complaintListViewModel
         self.onComplaintSubmitted = onComplaintSubmitted
     }
 
@@ -65,6 +66,42 @@ struct ResidentKeyDateView: View {
             .padding()
             .frame(maxWidth: .infinity, alignment: .leading)
         }
+        .alert("Different key handover date detected",
+               isPresented: $showKeyDateConflictAlert) {
+            Button("Cancel", role: .cancel) { }
+            Button("Update Date") {
+                Task {
+                    if let unitId = selectedUnitId,
+                       let newDate = pendingKeyDate {
+                        
+                        // ✅ use normalized UTC midnight
+                        let normalized = utcMidnightForLocalDate(newDate)
+                        
+                        await complaintListViewModel.updateUnitKeyDate(
+                            unitId: unitId,
+                            newKeyDate: normalized
+                        )
+                        
+                        guard var selectedUnit = unitViewModel.claimedUnits.first(where: { $0.id == unitId }) else {
+                            print("Error: Could not find the selected unit.")
+                            return
+                        }
+                        
+                        guard let userId = userId else {
+                            print("Error: userId is nil")
+                            return
+                        }
+                        
+                        await performComplaintSubmission(selectedUnit: &selectedUnit, unitId: unitId, userId: userId)
+                    }
+                }
+            }
+        } message: {
+            let existingDateStr = existingKeyDate?.formatted(date: .abbreviated, time: .omitted) ?? "None"
+            let newDateStr = pendingKeyDate?.formatted(date: .abbreviated, time: .omitted) ?? "None"
+            
+            return Text("There are complaints under review by BSC with a different key handover date (\(existingDateStr)). Do you want to update the unit's key handover date to \(newDateStr)?")
+        }
         .onAppear {
             userId = NetworkManager.shared.getUserIdFromToken()
         }
@@ -72,9 +109,8 @@ struct ResidentKeyDateView: View {
         .navigationBarTitleDisplayMode(.inline)
         .alert("Complaint Submitted", isPresented: $showingSuccessAlert) {
             Button("OK") {
-                onComplaintSubmitted() // Dismisses both views
+               // onComplaintSubmitted()
             }
-
         } message: {
             Text("Your complaint has been submitted successfully!")
         }
@@ -133,10 +169,11 @@ struct ResidentKeyDateView: View {
     
     private var submitButton: some View {
         CustomButtonComponent(
-                    text: "Make a Complaint",
-                    isDisabled: complaintViewModel.isLoading || !isFormValid,
-                    action: submitComplaint
-                )
+            text: "Make a Complaint",
+            backgroundColor: .primaryBlue,
+            isDisabled: complaintViewModel.isLoading || !isFormValid,
+            action: submitComplaint
+        )
     }
     
     // MARK: - Computed Properties
@@ -158,30 +195,47 @@ struct ResidentKeyDateView: View {
             return
         }
 
-        // Ensure the selectedUnit is found
         guard var selectedUnit = unitViewModel.claimedUnits.first(where: { $0.id == unitId }) else {
             print("Error: Could not find the selected unit.")
             return
         }
 
-        print("🗓️ === DATE DEBUG INFO ===")
-            print("🗓️ selectedDate from picker: \(selectedDate)")
-            print("🗓️ selectedDate ISO8601: \(selectedDate.ISO8601Format())")
-            print("🗓️ Current Date(): \(Date())")
-            print("🗓️ Current Date() ISO8601: \(Date().ISO8601Format())")
-            print("🗓️ selectedUnit.keyHandoverDate BEFORE update: \(selectedUnit.keyHandoverDate?.ISO8601Format() ?? "nil")")
+        Task {
+            let conflict = await checkForKeyDateConflict(unitId: unitId, newKeyDate: selectedDate)
             
-        // 🔧 FIX: Update the selectedUnit with the picker values BEFORE passing to ViewModel
-        selectedUnit.keyHandoverDate = selectedDate
+            if conflict.hasConflict {
+                await MainActor.run {
+                    pendingKeyDate = selectedDate
+                    existingKeyDate = conflict.existingDate
+                    showKeyDateConflictAlert = true
+                }
+            } else {
+                await performComplaintSubmission(selectedUnit: &selectedUnit, unitId: unitId, userId: userId)
+            }
+        }
+    }
+
+    private func performComplaintSubmission(selectedUnit: inout Unit2, unitId: String, userId: String) async {
+        print("🗓️ === DATE DEBUG INFO ===")
+        print("🗓️ selectedDate from picker: \(selectedDate)")
+        print("🗓️ selectedDate ISO8601: \(selectedDate.ISO8601Format())")
+
+        // ✅ normalize to midnight UTC
+        let normalizedDate = utcMidnightForLocalDate(selectedDate)
+        
+        print("🗓️ normalizedDate: \(normalizedDate)")
+        print("🗓️ normalizedDate ISO8601: \(normalizedDate.ISO8601Format())")
+        print("🗓️ Current Date(): \(Date())")
+
+        selectedUnit.keyHandoverDate = normalizedDate
         selectedUnit.keyHandoverNote = additionalNotes.isEmpty ? nil : additionalNotes
 
         print("🗓️ selectedUnit.keyHandoverDate AFTER update: \(selectedUnit.keyHandoverDate?.ISO8601Format() ?? "nil")")
-           print("📝 selectedUnit.keyHandoverNote: \(selectedUnit.keyHandoverNote ?? "nil")")
-           print("🗓️ === END DEBUG INFO ===")
+        print("📝 selectedUnit.keyHandoverNote: \(selectedUnit.keyHandoverNote ?? "nil")")
+        print("🗓️ === END DEBUG INFO ===")
 
         let fixedStatusId = "661a5a05-730b-4dc3-a924-251a1db7a2d7"
 
-        // 🔧 FIX: Remove keyHandoverDate and keyHandoverNote from request since they're handled by the unit
         let request = CreateComplaintRequest2(
             unitId: unitId,
             userId: userId,
@@ -192,26 +246,63 @@ struct ResidentKeyDateView: View {
             latitude: latitude,
             longitude: longitude,
             handoverMethod: handoverMethod,
-            keyHandoverDate: nil,  // ✅ Let the selectedUnit handle this
-            keyHandoverNote: nil   // ✅ Let the selectedUnit handle this
+            keyHandoverDate: normalizedDate,
+            keyHandoverNote: additionalNotes.isEmpty ? nil : additionalNotes
         )
 
-        Task {
-            do {
-                // Now the selectedUnit has the correct date and note
-                await complaintViewModel.submitComplaint(request: request, selectedUnit: selectedUnit)
-                await MainActor.run {
-                    showingSuccessAlert = true
-                }
-            } catch {
-                print("Failed to submit complaint: \(error)")
+        do {
+            await complaintViewModel.submitComplaint(request: request, selectedUnit: selectedUnit)
+            await MainActor.run {
+                showingSuccessAlert = true
+                onComplaintSubmitted()
             }
+        } catch {
+            print("Failed to submit complaint: \(error)")
         }
     }
     
+    private func checkForKeyDateConflict(unitId: String, newKeyDate: Date) async -> (hasConflict: Bool, existingDate: Date?) {
+        await complaintListViewModel.loadComplaints(byUnitId: unitId)
+
+        let hasUnderReviewComplaints = complaintListViewModel.complaints.contains {
+            $0.unitId == unitId && $0.statusName?.lowercased() == "under review by bsc"
+        }
+
+        guard hasUnderReviewComplaints else {
+            return (false, nil)
+        }
+
+        do {
+            let unit = try await unitViewModel.getUnitById(unitId)
+            let existingKeyDate = unit.keyHandoverDate
+            
+            if let existing = existingKeyDate {
+                let sameDay = Calendar.current.isDate(existing, inSameDayAs: newKeyDate)
+                return (!sameDay, existing)
+            } else {
+                return (false, nil)
+            }
+        } catch {
+            print("Failed to get unit for key date check: \(error)")
+            return (false, nil)
+        }
+    }
+    
+    // ✅ New helper
+    private func utcMidnightForLocalDate(_ date: Date) -> Date {
+        let localCal = Calendar.current
+        let comps = localCal.dateComponents([.year, .month, .day], from: date)
+        
+        var utcCal = Calendar(identifier: .gregorian)
+        utcCal.timeZone = TimeZone(secondsFromGMT: 0)!
+        
+        if let utcMidnight = utcCal.date(from: comps) {
+            return utcMidnight
+        } else {
+            return localCal.startOfDay(for: date)
+        }
+    }
 }
-
-
 
 #Preview {
     ResidentKeyDateView(
@@ -222,7 +313,7 @@ struct ResidentKeyDateView: View {
         classificationId: "class1",
         unitViewModel: ResidentUnitListViewModel(),
         complaintViewModel: ResidentAddComplaintViewModel(),
+        complaintListViewModel: ResidentComplaintListViewModel(),
         onComplaintSubmitted: { print("Complaint submitted callback") }
     )
 }
-

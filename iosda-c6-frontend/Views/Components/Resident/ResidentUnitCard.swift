@@ -30,6 +30,7 @@ struct ResidentUnitCard: View {
 
                 Text(unit.name ?? "Unknown Unit")
                                     .font(.headline)
+                                    //.foregroundColor(.primaryBlue)
                 // Header with status indicator
                 if let projectName = viewModel.getProjectName(for: unit) {
                                     Text(projectName)

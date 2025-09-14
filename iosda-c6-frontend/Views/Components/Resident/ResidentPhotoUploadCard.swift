@@ -11,7 +11,7 @@ struct ResidentPhotoUploadCard: View {
             ZStack {
                 RoundedRectangle(cornerRadius: 8)
                     .fill(Color.gray.opacity(0.1))
-                    .frame(height: 150)
+                    .frame(height: 250)
                     .overlay(
                         RoundedRectangle(cornerRadius: 8)
                             .stroke(Color.gray.opacity(0.3), lineWidth: 1)
@@ -39,12 +39,12 @@ struct ResidentPhotoUploadCard: View {
                     VStack(spacing: 8) {
                         ZStack {
                             Circle()
-                                .fill(Color.blue.opacity(0.1))
+                                .fill(Color.primaryBlue.opacity(0.1))
                                 .frame(width: 50, height: 50)
                             
                             Image(systemName: "camera.fill")
                                 .font(.system(size: 24))
-                                .foregroundColor(.blue)
+                                .foregroundColor(.primaryBlue)
                         }
                         
                         Text(title)

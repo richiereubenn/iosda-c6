@@ -12,8 +12,9 @@ class AddUnitViewModel: ObservableObject {
     @Published var name: String = ""
     @Published var residentId: String = ""
     @Published var bscId: String? = nil
-    @Published var biId: String? = nil
-    
+    //@Published var biId: String? = nil
+    @Published var biId: String? = "14b172e3-e33f-49b9-9178-aa0cae855e9d"
+
     
     @Published var isLoading: Bool = false
     @Published var errorMessage: String?

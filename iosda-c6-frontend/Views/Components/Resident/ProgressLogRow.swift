@@ -10,7 +10,7 @@ struct ProgressLogRow: View {
             // Timeline circle and line
             VStack(spacing: 0) {
                 Circle()
-                    .fill(isFirst ? Color.gray : Color.blue)
+                    .fill(isFirst ? Color.white : Color.primaryBlue)
                     .frame(width: 20, height: 20)
                     .overlay(
                         Image(systemName: isFirst ? "circle" : "checkmark")

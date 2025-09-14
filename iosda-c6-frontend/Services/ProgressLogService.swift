@@ -75,9 +75,10 @@ class ProgressLogService: ProgressLogServiceProtocol {
         if let description = description {
             bodyDict["description"] = description
         }
-        if let files = files {
-            bodyDict["files"] = files 
+        if let files = files, !files.isEmpty {
+            bodyDict["files"] = files.map { ["url": $0] } 
         }
+
         
         let body = try JSONSerialization.data(withJSONObject: bodyDict)
         

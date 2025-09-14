@@ -162,10 +162,14 @@ class BSCBIComplaintDetailViewModel: ObservableObject {
         if let foundUnit = units.first(where: { $0.id == unitId }) {
             self.unit = foundUnit
             if let residentId = foundUnit.residentId {
-                print("resident", residentId)
-                let user = try await userService.getUserById(residentId)
-                print("resident", user.name)
-                self.resident = user
+                print("residentIDIDID", residentId)
+                do {
+                    let user = try await userService.getUserById(residentId)
+                    print("residentNameName", user.name)
+                    self.resident = user
+                } catch {
+                    print("Failed to fetch userName:", error)
+                }
             }
         }
     }

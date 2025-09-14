@@ -56,7 +56,6 @@ class UserService: UserServiceProtocol {
             throw NetworkError.serverError(response.code ?? -1)
         }
         
-        // Safely unwrap response.data before accessing user and roles
         guard let meResponse = response.data else {
             throw NetworkError.decodingError
         }
@@ -69,13 +68,15 @@ class UserService: UserServiceProtocol {
 
     func getUserById(_ id: String) async throws -> User {
         let endpoint = "/authN/v1/users/\(id)"
-        let response: APIResponse<UserDetailData> = try await networkManager.request(endpoint: endpoint)
+        let response: APIResponse<User> = try await networkManager.request(endpoint: endpoint)
         
         guard response.success else {
-            throw NetworkError.serverError(response.code!)
+            throw NetworkError.serverError(response.code ?? 0)
         }
-        
-        return response.data!.user
+        guard let user = response.data else {
+            throw NetworkError.noData
+        }
+        return user
     }
 
 

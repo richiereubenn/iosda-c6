@@ -13,11 +13,9 @@ struct KeyFile: Codable, Identifiable {
     let path: String
     let url: String
     let mimeType: String?
-    let createdAt: Date?
 
     enum CodingKeys: String, CodingKey {
         case id, name, path, url
         case mimeType = "mime_type"
-        case createdAt = "created_at"
     }
 }

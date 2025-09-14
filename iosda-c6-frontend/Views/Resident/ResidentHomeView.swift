@@ -3,18 +3,13 @@ import SwiftUI
 struct ResidentHomeView: View {
     
     @ObservedObject var viewModel: ResidentComplaintListViewModel
-    //    @ObservedObject var unitViewModel: UnitViewModel
     @ObservedObject var unitViewModel: ResidentUnitListViewModel
     
     @State private var showingCreateView = false
     @State private var showSuccessAlert = false
-    
-    // 1. Add a userId property to accept the user's ID
     @State private var userId: String? = nil
     
     var onComplaintSubmitted: (() -> Void)? = nil
-
-    
     
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
@@ -43,69 +38,57 @@ struct ResidentHomeView: View {
             .padding(.top, 10)
             
             VStack(alignment: .leading, spacing: 15) {
-                if let claimedUnit = unitViewModel.claimedUnits.first {
-                    HStack {
-                        VStack(alignment: .leading) {
-                            //                            Text(claimedUnit.name ?? "Unknown Unit")
-                            //                                .font(.body)
-                            //                                .fontWeight(.medium)
-                            let unitToShow = unitViewModel.selectedUnit ?? unitViewModel.claimedUnits.first
-                            
-                            if let unit = unitToShow {
-                                Text(unit.name ?? "Unknown Unit")
-                                    .font(.body)
-                                    .fontWeight(.medium)
-                                if let projectName = unitViewModel.getProjectName(for: unit) {
-                                    Text(projectName)
-                                        .font(.caption)
-                                        .foregroundColor(.gray)
-                                }
-                            } else {
-                                Text("No units have been claimed yet")
-                                    .font(.body)
-                                    .fontWeight(.medium)
+                // Unit Selection Card
+                HStack {
+                    VStack(alignment: .leading) {
+                        if let selectedUnit = unitViewModel.selectedUnit {
+                            Text(selectedUnit.name ?? "Unknown Unit")
+                                .font(.body)
+                                .fontWeight(.medium)
+                            if let projectName = unitViewModel.getProjectName(for: selectedUnit) {
+                                Text(projectName)
+                                    .font(.caption)
+                                    .foregroundColor(.gray)
                             }
-                            
-                        }
-                        Spacer()
-                        
-                        if let id = userId {
-                            NavigationLink(destination: ResidentMyUnitView(viewModel: unitViewModel, userId: id)) {
-                                Image(systemName: "arrow.up.arrow.down")
-                                    .foregroundColor(.blue)
+                        } else if let firstClaimedUnit = unitViewModel.claimedUnits.first {
+                            Text(firstClaimedUnit.name ?? "Unknown Unit")
+                                .font(.body)
+                                .fontWeight(.medium)
+                            if let projectName = unitViewModel.getProjectName(for: firstClaimedUnit) {
+                                Text(projectName)
+                                    .font(.caption)
+                                    .foregroundColor(.gray)
                             }
+                        } else {
+                            Text("No units have been claimed yet")
+                                .font(.body)
+                                .fontWeight(.medium)
+                                .foregroundColor(.gray)
                         }
-                        
-                        
                     }
-                    .padding()
-                    .background(Color.cardBackground)
-                    .cornerRadius(10)
-                } else {
-                    HStack {
-                        Text("No units have been claimed yet")
-                            .foregroundColor(.gray)
-                            .font(.body)
-                        
-                        Spacer()
-                        
-                        if let id = userId {
-                            NavigationLink(destination: ResidentMyUnitView(viewModel: unitViewModel, userId: id)) {
-                                Image(systemName: "arrow.up.arrow.down")
-                                    .foregroundColor(.blue)
-                            }
+                    
+                    Spacer()
+                    
+                    if let id = userId {
+                        NavigationLink(destination: ResidentMyUnitView(viewModel: unitViewModel, userId: id)) {
+                            Image(systemName: "arrow.up.arrow.down")
+                                .foregroundColor(.blue)
                         }
-                        
                     }
-                    .padding()
-                    .background(Color.cardBackground)
-                    .cornerRadius(10)
                 }
+                .padding()
+                .background(Color.cardBackground)
+                .cornerRadius(10)
                 
                 // New Complaint Button
                 CustomButtonComponent(text: "New Complaint", action: {
+                    // Ensure a unit is selected before opening complaint creation
+                    if unitViewModel.selectedUnit == nil && !unitViewModel.claimedUnits.isEmpty {
+                        unitViewModel.selectedUnit = unitViewModel.claimedUnits.first
+                    }
                     showingCreateView = true
                 })
+                .disabled(unitViewModel.claimedUnits.isEmpty) // Disable if no units available
             }
             .padding(.horizontal, 20)
             .padding(.vertical, 20)
@@ -119,7 +102,6 @@ struct ResidentHomeView: View {
                     
                     Spacer()
                     
-                    // 2. Use the new userId property for the navigation link
                     if let id = userId {
                         NavigationLink(destination: ResidentComplaintListView(
                             viewModel: ResidentComplaintListViewModel(),
@@ -142,12 +124,10 @@ struct ResidentHomeView: View {
                                 ResidentComplaintCard(complaint: complaint)
                             }
                             .buttonStyle(PlainButtonStyle())
-                            
                         }
                     }
                     .padding(.horizontal, 20)
                 }
-                
             }
             
             Spacer()
@@ -160,29 +140,26 @@ struct ResidentHomeView: View {
             Text(viewModel.errorMessage ?? "")
         }
         .onAppear {
-            // Load units only once, don't override selectedUnit
+            // Load units only once
             if unitViewModel.claimedUnits.isEmpty && unitViewModel.waitingUnits.isEmpty {
                 Task {
                     await unitViewModel.loadUnits()
                 }
             }
             
-            
-            // Only set default selectedUnit on first load when no unit is selected
+            // Set default selectedUnit on first load when no unit is selected
             if unitViewModel.selectedUnit == nil && !unitViewModel.claimedUnits.isEmpty {
                 unitViewModel.selectedUnit = unitViewModel.claimedUnits.first
             }
             
             Task {
-                // 3. Call the correct function to load complaints by user ID
+                // Load complaints by user ID for recent complaints section
                 if let id = NetworkManager.shared.getUserIdFromToken() {
                     userId = id
                     await viewModel.loadComplaints(byUserId: id)
                 } else {
                     viewModel.errorMessage = "Unable to get user ID from token"
                 }
-                
-                
             }
         }
         .background(Color(.systemGroupedBackground))
@@ -190,8 +167,10 @@ struct ResidentHomeView: View {
             ResidentAddComplaintView(
                 unitViewModel: unitViewModel,
                 complaintViewModel: ResidentAddComplaintViewModel(),
+                complaintListViewModel: ResidentComplaintListViewModel(),
                 onComplaintSubmitted: {
                     Task {
+                        // Reload recent complaints after submitting a new one
                         if let id = userId {
                             await viewModel.loadComplaints(byUserId: id)
                         }
@@ -199,19 +178,14 @@ struct ResidentHomeView: View {
                 },
                 classificationId: "75b125fd-a656-4fd8-a500-2f051b068171",
                 latitude: 0.0,
-                longitude: 0.0,
+                longitude: 0.0
             )
         }
-
-        
-        
     }
 }
 
-
 #Preview {
     NavigationStack {
-        // 4. Update the preview to provide a test user ID
         ResidentHomeView(
             viewModel: ResidentComplaintListViewModel(),
             unitViewModel: ResidentUnitListViewModel()

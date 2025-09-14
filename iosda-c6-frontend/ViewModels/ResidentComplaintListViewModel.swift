@@ -17,9 +17,12 @@ class ResidentComplaintListViewModel: ObservableObject {
     }
     
     private let service: ComplaintServiceProtocol2
+    private let unitService: UnitServiceProtocol2
     
-    init(service: ComplaintServiceProtocol2 = ComplaintService2()) {
+    init(service: ComplaintServiceProtocol2 = ComplaintService2(),
+    unitService: UnitServiceProtocol2 = UnitService2()) {
         self.service = service
+        self.unitService = unitService
     }
     
     func loadComplaints() async {
@@ -59,6 +62,20 @@ class ResidentComplaintListViewModel: ObservableObject {
             errorMessage = "Failed to load complaints for unit \(unitId): \(error.localizedDescription)"
         }
     }
+    
+    func isHandoverMethodLocked(for unitId: String) -> Bool {
+           let inProgressStatuses = [
+               "waiting key handover",
+               "under review by bi",
+               "in progress",
+               "assign to vendor"
+           ]
+
+           return complaints.contains {
+               $0.unitId == unitId &&
+               inProgressStatuses.contains($0.statusName?.lowercased() ?? "")
+           }
+       }
     
     private func applyFilters() {
         var results = complaints
@@ -104,5 +121,36 @@ class ResidentComplaintListViewModel: ObservableObject {
         case inProgress = "In Progress"
         case done = "Done"
     }
+    
+    func resolveHandoverConflict(unitId: String, newMethod: HandoverMethod) async {
+        // 1. Update complaints
+        let conflicts = complaints.filter {
+            $0.unitId == unitId &&
+            $0.statusName?.lowercased() == "under review by bsc" &&
+            $0.handoverMethod != newMethod
+        }
 
+        for conflict in conflicts {
+            do {
+                let updated = try await service.updateComplaintHandoverMethod(
+                    complaintId: conflict.id,
+                    newMethod: newMethod
+                )
+                if let index = complaints.firstIndex(where: { $0.id == conflict.id }) {
+                    complaints[index] = updated
+                }
+            } catch {
+                print("❌ Failed to update complaint \(conflict.id): \(error)")
+            }
+        }
+        // 2. Reset unit key handover date
+        do {
+            let unit = try await unitService.getUnitById(unitId)
+            _ = try await unitService.updateUnitKeyOptional(unit, keyDate: nil, note: nil)
+            print("✅ Successfully reset key handover date for unit \(unitId)")
+        } catch {
+            print("❌ Failed to reset key handover date for unit \(unitId): \(error)")
+        }
+
+    }
 }

@@ -11,7 +11,7 @@ struct ResidentPhotoUploadCard: View {
             ZStack {
                 RoundedRectangle(cornerRadius: 8)
                     .fill(Color.gray.opacity(0.1))
-                    .frame(height: 150)
+                    .frame(height: 250)
                     .overlay(
                         RoundedRectangle(cornerRadius: 8)
                             .stroke(Color.gray.opacity(0.3), lineWidth: 1)

@@ -18,7 +18,7 @@ protocol UnitServiceProtocol2 {
     func updateUnit(unitId: String, bscId: String) async throws -> Unit2
 
     func updateUnitKey(_ unit: Unit2, keyDate: Date, note: String) async throws -> Unit2
-
+    func updateUnitKeyOptional(_ unit: Unit2, keyDate: Date?, note: String?) async throws -> Unit2
 
 }
 
@@ -189,6 +189,44 @@ class UnitService2: UnitServiceProtocol2 {
             throw NetworkError.serverError(response.code ?? 0)
         }
 
+        return updatedUnit
+    }
+    
+    func updateUnitKeyOptional(_ unit: Unit2, keyDate: Date?, note: String?) async throws -> Unit2 {
+        let endpoint = "/property/v1/units/\(unit.id)"
+        let formatter = ISO8601DateFormatter()
+        formatter.formatOptions = [.withInternetDateTime]
+        
+        let keyHandoverDateString = keyDate.map { formatter.string(from: $0) }
+        
+        print("🔧 updateUnitKeyOptional debug:")
+        print("🔧 Input keyDate: \(String(describing: keyDate))")
+        print("🔧 Formatted keyHandoverDateString: \(String(describing: keyHandoverDateString))")
+        
+        let updateRequest = UpdateUnitRequest(
+            name: unit.name ?? "",
+            unit_code_id: unit.unitCodeId ?? "",
+            unit_number: unit.unitNumber ?? "",
+            resident_id: unit.residentId ?? "",
+            bsc_id: unit.bscId,
+            bi_id: unit.biId,
+            handover_date: unit.handoverDate.map { formatter.string(from: $0) },
+            key_handover_date: keyHandoverDateString, // can be nil
+            key_handover_note: note
+        )
+        
+        let body = try JSONEncoder().encode(updateRequest)
+        
+        let response: APIResponse<Unit2> = try await networkManager.request(
+            endpoint: endpoint,
+            method: .PUT,
+            body: body
+        )
+        
+        guard response.success, let updatedUnit = response.data else {
+            throw NetworkError.serverError(response.code ?? 0)
+        }
+        
         return updatedUnit
     }
 

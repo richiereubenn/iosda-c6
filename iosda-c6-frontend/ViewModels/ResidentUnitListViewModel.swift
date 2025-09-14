@@ -148,6 +148,16 @@ class ResidentUnitListViewModel: ObservableObject {
         }
     }
     
-    
+    func resetKeyHandoverDate(unitId: String) async throws {
+        guard let index = claimedUnits.firstIndex(where: { $0.id == unitId }) else {
+            throw NSError(domain: "Unit not found", code: 404, userInfo: nil)
+        }
+        
+        var unit = claimedUnits[index]
+        
+        let updatedUnit = try await unitService.updateUnitKeyOptional(unit, keyDate: nil, note: nil)
+        claimedUnits[index] = updatedUnit
+    }
+
     
 }

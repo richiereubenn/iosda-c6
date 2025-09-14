@@ -70,4 +70,15 @@ enum ComplaintStatus: String {
             return "Closed"
         }
     }
+    
+    var isLockingStatus: Bool {
+        switch self {
+        case .waitingKeyHandover, .underReviewByBI, .inProgress, .assignToVendor:
+            return true
+        default:
+            return false
+        }
+    }
+
 }
+

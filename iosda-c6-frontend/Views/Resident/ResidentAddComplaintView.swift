@@ -1,22 +1,43 @@
 import SwiftUI
+import PhotosUI
 
 struct ResidentAddComplaintView: View {
     @Environment(\.presentationMode) var presentationMode
     @Environment(\.dismiss) private var dismiss
     
-    @ObservedObject var unitViewModel: UnitViewModel
-    @ObservedObject var complaintViewModel: ComplaintListViewModel
+    @ObservedObject var unitViewModel: ResidentUnitListViewModel
+    @ObservedObject var complaintViewModel: ResidentAddComplaintViewModel
     
     @State private var complaintTitle: String = ""
     @State private var complaintDetails: String = ""
-    @State private var handoverMethod: Complaint.HandoverMethod? = nil
     
-    // 1. FIX: Changed selectedUnitId from Int? to String?
     @State private var selectedUnitId: String? = nil
-    
     @State private var navigateToKeyDate = false
     
-    var handoverOptions: [Complaint.HandoverMethod] = [.bringToMO, .inHouse]
+    @State private var userId: String? = nil
+    
+    @State private var handoverMethod: HandoverMethod? = nil
+    var handoverOptions: [HandoverMethod] = [.bringToMO, .inHouse]
+    
+    
+    @State private var closeUpImage: UIImage? = nil
+    @State private var overallImage: UIImage? = nil
+    @State private var showingImagePicker = false
+    @State private var currentImageType: ImageType = .closeUp
+    enum ImageType {
+        case closeUp
+        case overall
+    }
+    
+    @State private var isSubmitting: Bool = false
+    @State private var showSuccessAlert = false
+
+    var onComplaintSubmitted: (() -> Void)? = nil
+    
+    
+    var classificationId: String
+    var latitude: Double = 0.0
+    var longitude: Double = 0.0
     
     var body: some View {
         VStack(spacing: 10) {
@@ -31,6 +52,16 @@ struct ResidentAddComplaintView: View {
                         imageSection
                         handoverSection
                         submitButton
+                        
+//                        if isSubmitting {
+//                            HStack {
+//                                Spacer()
+//                                ProgressView("Submitting...")
+//                                    .progressViewStyle(CircularProgressViewStyle())
+//                                Spacer()
+//                            }
+//                            .padding(.top)
+//                        }
                     }
                     .padding()
                     .frame(maxWidth: .infinity, alignment: .leading)
@@ -43,12 +74,12 @@ struct ResidentAddComplaintView: View {
                     }
                 }
                 .navigationDestination(isPresented: $navigateToKeyDate) {
-                    // This view would also need to be updated to accept a String ID
                     ResidentKeyDateView(
-                        handoverMethod: handoverMethod?.rawValue ?? "",
+                        handoverMethod: handoverMethod ?? .bringToMO,
                         selectedUnitId: selectedUnitId,
                         complaintTitle: complaintTitle,
                         complaintDetails: complaintDetails,
+                        classificationId: classificationId,
                         unitViewModel: unitViewModel,
                         complaintViewModel: complaintViewModel,
                         onComplaintSubmitted: {
@@ -56,6 +87,29 @@ struct ResidentAddComplaintView: View {
                         }
                     )
                 }
+                .alert(isPresented: Binding<Bool>(
+                    get: { complaintViewModel.errorMessage != nil },
+                    set: { newValue in
+                        if !newValue {
+                            complaintViewModel.errorMessage = nil
+                        }
+                    }
+                )) {
+                    Alert(
+                        title: Text("Upload Failed"),
+                        message: Text(complaintViewModel.errorMessage ?? "Something went wrong."),
+                        dismissButton: .default(Text("OK"))
+                    )
+                }
+                .alert("Success", isPresented: $showSuccessAlert, actions: {
+                            Button("OK") {
+                                dismiss()
+                                onComplaintSubmitted?()
+                            }
+                        }, message: {
+                            Text("Your complaint was submitted successfully.")
+                        })
+
             }
             .onAppear {
                 Task {
@@ -64,7 +118,9 @@ struct ResidentAddComplaintView: View {
                         selectedUnitId = unitViewModel.claimedUnits.first?.id
                     }
                 }
+                userId = NetworkManager.shared.getUserIdFromToken()
             }
+            
         }
     }
     
@@ -101,7 +157,7 @@ struct ResidentAddComplaintView: View {
                 label: nil,
                 placeholder: "Select House Unit",
                 selection: unitBinding,
-                options: unitViewModel.claimedUnits.map { $0.name }
+                options: unitViewModel.claimedUnits.map { $0.name ?? "Unnamed Unit" }
             )
         }
     }
@@ -132,11 +188,51 @@ struct ResidentAddComplaintView: View {
                 .foregroundColor(.gray)
             
             VStack(spacing: 16) {
-                UploadImageCard(imageType: .closeUp)
-                imageInstructionView(text: "Take a close-up photo focusing on the issue. Ensure the defect is clear and well-lit.")
+                // Close-up photo with PhotosPicker
+                VStack(spacing: 8) {
+                    PhotosPicker(
+                        selection: Binding(
+                            get: { complaintViewModel.getPhotoItem(for: .closeUp) },
+                            set: { complaintViewModel.setPhotoItem($0, for: .closeUp) }
+                        ),
+                        matching: .images
+                    ) {
+                        ResidentPhotoUploadCard(
+                            title: "Close-up Photo",
+                            image: complaintViewModel.getImage(for: .closeUp),
+                            onTap: { /* PhotosPicker handles the tap */ },
+                            onRemove: {
+                                complaintViewModel.removeImage(for: .closeUp)
+                            }
+                        )
+                    }
+                    .buttonStyle(.plain)
+                    
+                    imageInstructionView(text: "Take a close-up photo focusing on the issue. Ensure the defect is clear and well-lit.")
+                }
                 
-                UploadImageCard(imageType: .overall)
-                imageInstructionView(text: "Take a photo from a distance to show the issue in its surrounding area for context.")
+                // Overall photo with PhotosPicker
+                VStack(spacing: 8) {
+                    PhotosPicker(
+                        selection: Binding(
+                            get: { complaintViewModel.getPhotoItem(for: .overall) },
+                            set: { complaintViewModel.setPhotoItem($0, for: .overall) }
+                        ),
+                        matching: .images
+                    ) {
+                        ResidentPhotoUploadCard(
+                            title: "Overall Photo",
+                            image: complaintViewModel.getImage(for: .overall),
+                            onTap: { /* PhotosPicker handles the tap */ },
+                            onRemove: {
+                                complaintViewModel.removeImage(for: .overall)
+                            }
+                        )
+                    }
+                    .buttonStyle(.plain)
+                    
+                    imageInstructionView(text: "Take a photo from a distance to show the issue in its surrounding area for context.")
+                }
             }
         }
     }
@@ -167,20 +263,27 @@ struct ResidentAddComplaintView: View {
         }
     }
     
+    
     private var submitButton: some View {
-        CustomButtonComponent(
-            text: "Submit Complaint",
-            isDisabled: !isFormValid,
-            action: {
-                if handoverMethod == .bringToMO {
-                    navigateToKeyDate = true
-                } else if handoverMethod == .inHouse {
+        ZStack {
+            CustomButtonComponent(
+                text: isSubmitting ? "Submitting..." : "Submit Complaint",
+                isDisabled: !isFormValid || isSubmitting,
+                action: {
                     submitInHouseComplaint()
                 }
+            )
+            .opacity(isSubmitting ? 0.5 : 1)
+            
+            if isSubmitting {
+                ProgressView()
+                    .progressViewStyle(CircularProgressViewStyle())
             }
-        )
+        }
         .padding(.top, 12)
     }
+
+
     
     private var closeButton: some View {
         Button(action: { presentationMode.wrappedValue.dismiss() }) {
@@ -206,9 +309,8 @@ struct ResidentAddComplaintView: View {
     private var unitBinding: Binding<String> {
         Binding<String>(
             get: {
-                // This logic is now correct with String IDs
                 guard let selected = unitViewModel.claimedUnits.first(where: { $0.id == selectedUnitId }) else { return "" }
-                return selected.name
+                return selected.name ?? ""
             },
             set: { newValue in
                 if let selected = unitViewModel.claimedUnits.first(where: { $0.name == newValue }) {
@@ -218,42 +320,87 @@ struct ResidentAddComplaintView: View {
         )
     }
     
+    private var imageBinding: Binding<UIImage?> {
+        Binding<UIImage?>(
+            get: {
+                switch currentImageType {
+                case .closeUp:
+                    return closeUpImage
+                case .overall:
+                    return overallImage
+                }
+            },
+            set: { newValue in
+                switch currentImageType {
+                case .closeUp:
+                    closeUpImage = newValue
+                case .overall:
+                    overallImage = newValue
+                }
+            }
+        )
+    }
+    
     private var isFormValid: Bool {
         !complaintTitle.trimmingCharacters(in: .whitespaces).isEmpty &&
         !complaintDetails.trimmingCharacters(in: .whitespaces).isEmpty &&
         selectedUnitId != nil &&
-        handoverMethod != nil
+        handoverMethod != nil &&
+        complaintViewModel.getImage(for: .closeUp) != nil &&
+        complaintViewModel.getImage(for: .overall) != nil
     }
+
     
     // MARK: - Functions
     private func submitInHouseComplaint() {
-        guard let unitId = selectedUnitId,
-              let method = handoverMethod,
-              let selectedUnit = unitViewModel.claimedUnits.first(where: { $0.id == unitId }) else {
-            return
-        }
+            guard let userId = userId,
+                  let unitId = selectedUnitId,
+                  let method = handoverMethod,
+                  let selectedUnit = unitViewModel.claimedUnits.first(where: { $0.id == unitId }) else {
+                return
+            }
+            
+            isSubmitting = true
 
-        Task {
-            do {
-                try await complaintViewModel.submitInHouseComplaint(
-                    title: complaintTitle,
-                    description: complaintDetails,
-                    unitId: unitId,
-                    handoverMethod: method,
-                    unitViewModel: unitViewModel
-                )
-
-                dismiss() // 
-            } catch {
-                print("Error submitting in-house complaint: \(error)")
-                // TODO: Show an error alert to the user
+            Task {
+                do {
+                    try await complaintViewModel.submitInHouseComplaint(
+                        title: complaintTitle,
+                        description: complaintDetails,
+                        unitId: unitId,
+                        userId: userId,
+                        statusId: "661a5a05-730b-4dc3-a924-251a1db7a2d7",
+                        classificationId: classificationId,
+                        latitude: latitude,
+                        longitude: longitude,
+                        handoverMethod: method,
+                        selectedUnit: selectedUnit
+                    )
+                    
+                    print("✅ Complaint submitted successfully")
+                    
+                    await MainActor.run {
+                        isSubmitting = false
+                        showSuccessAlert = true
+                    }
+                } catch {
+                    print("❌ Error submitting in-house complaint: \(error)")
+                    await MainActor.run {
+                        isSubmitting = false
+                        complaintViewModel.errorMessage = error.localizedDescription
+                    }
+                }
             }
         }
-    }
-
+        
 }
 
 #Preview {
-    ResidentAddComplaintView(unitViewModel: UnitViewModel(),
-                             complaintViewModel: ComplaintListViewModel())
+    ResidentAddComplaintView(
+        unitViewModel: ResidentUnitListViewModel(),
+        complaintViewModel: ResidentAddComplaintViewModel(),
+        classificationId: "classA",
+        latitude: 0.0,
+        longitude: 0.0
+    )
 }

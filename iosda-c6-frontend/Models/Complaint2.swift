@@ -22,7 +22,7 @@ struct Complaint2: Identifiable, Codable {
     let deadlineDate: Date?
     let latitude: String?
     let longitude: String?
-    let handoverMethod: String?
+    let handoverMethod: HandoverMethod?
     let workDetail: String?
     let workDuration: String?
     let createdAt: Date?

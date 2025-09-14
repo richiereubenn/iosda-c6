@@ -147,7 +147,7 @@ struct BSCComplainDetailView: View {
                     }
                     DataRowComponent(
                         label: "Key Method:",
-                        value: complaint.handoverMethod ?? "-"
+                        value: complaint.handoverMethod?.displayName ?? "-"
                     )
                     DataRowComponent(
                         label: "Deadline:",

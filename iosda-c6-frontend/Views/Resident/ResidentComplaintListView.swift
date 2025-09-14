@@ -56,12 +56,17 @@ struct ResidentComplaintListView: View {
                 }
             }
         }
+        
         .searchable(text: $viewModel.searchText, prompt: "Search complaints...")
         .navigationTitle("Complaint List")
         .background(Color(.systemGroupedBackground))
         .task {
-            await viewModel.loadComplaints(byUserId: userId)
-        }
+                    if let userId = NetworkManager.shared.getUserIdFromToken() {
+                        await viewModel.loadComplaints(byUserId: userId)
+                    } else {
+                        viewModel.errorMessage = "Failed to get user ID from token"
+                    }
+                }
         .alert("Error", isPresented: .constant(viewModel.errorMessage != nil)) {
             Button("OK") { viewModel.errorMessage = nil }
         } message: {

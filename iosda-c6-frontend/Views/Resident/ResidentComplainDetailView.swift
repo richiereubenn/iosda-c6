@@ -23,65 +23,68 @@ struct ResidentComplainDetailView: View {
                             .fontWeight(.bold)
                             .multilineTextAlignment(.leading)
                             .frame(maxWidth: .infinity, alignment: .leading)
-
-                        // Key handover method
-                        if complaint.handoverMethod == "bring_to_mo",
-                           let handoverDate = complaint.keyHandoverDate {
-                            HStack(spacing: 6) {
-                                Text("Key Handover Date:")
-                                    .font(.body)
-                                    .foregroundColor(.secondary)
-                                Text(formatDate(handoverDate, format: "dd MMM yyyy"))
-                                    .font(.caption)
-                                    .foregroundColor(.primary)
-                                    .padding(.horizontal, 8)
-                                    .padding(.vertical, 4)
-                                    .background(Color(.systemGray5))
-                                    .cornerRadius(6)
+                            .padding(.horizontal)
+                        
+                            
+                            // Status Section
+                            VStack(alignment: .leading, spacing: 15) {
+                                HStack(spacing: 12) {
+                                    Text("Status")
+                                        .font(.title2)
+                                        .fontWeight(.bold)
+                                    
+                                    StatusBadge(status: complaint.residentStatus)
+                                    
+                                    Spacer()
+                                    
+                                    Button("See Detail") {
+                                        showingProgressDetail = true
+                                    }
+                                    .foregroundColor(.blue)
+                                }
+                                
+                                StatusProgressBar(currentStatusName: complaint.statusName)
                             }
+                            .padding(.horizontal, 20)
+                            
+                            // Info if in_house
+                            if complaint.handoverMethod == .inHouse,
+                               let openDate = complaint.openTimestamp {
+                                let estimatedVisitDate = Calendar.current.date(byAdding: .day, value: 3, to: openDate)!
+                                GroupedCard {
+                                    HStack(alignment: .top, spacing: 8) {
+                                        Image(systemName: "info.circle.fill")
+                                            .foregroundColor(.blue)
+                                        Text("BSC will come to your house soon, no later than ")
+                                            .foregroundColor(.primary)
+                                        + Text(formatDate(estimatedVisitDate, format: "dd MMM yyyy"))
+                                            .bold()
+                                    }
+                                    .font(.subheadline)
+                                }
+                                .padding(.horizontal, 20)
+                            }
+                            
+                            if complaint.handoverMethod == .bringToMO,
+                               let handoverDate = viewModel.selectedUnit?.keyHandoverDate {
+                                GroupedCard {
+                                    HStack(alignment: .top, spacing: 8) {
+                                        Image(systemName: "info.circle.fill")
+                                            .foregroundColor(.blue)
+                                        Text("Please hand over your key on ")
+                                            .foregroundColor(.primary)
+                                        + Text(formatDate(handoverDate, format: "dd MMM yyyy"))
+                                            .bold()
+                                        + Text(" for us to start working on the complaint.")
+                                            .foregroundColor(.primary)
+                                    }
+                                    .font(.subheadline)
+                                }
+                                .padding(.horizontal, 20)
+                            }
+
                         }
-                    }
-                    .padding(.horizontal, 20)
                     
-                    // Status Section
-                    VStack(alignment: .leading, spacing: 15) {
-                        HStack(spacing: 12) {
-                            Text("Status")
-                                .font(.title2)
-                                .fontWeight(.bold)
-
-                            StatusBadge(status: complaint.residentStatus)
-
-                            Spacer()
-
-                            Button("See Detail") {
-                                showingProgressDetail = true
-                            }
-                            .foregroundColor(.blue)
-                        }
-
-                        StatusProgressBar(currentStatusName: complaint.statusName)
-                    }
-                    .padding(.horizontal, 20)
-
-                    // Info if in_house
-                    if complaint.handoverMethod == "in_house",
-                       let openDate = complaint.openTimestamp {
-                        let estimatedVisitDate = Calendar.current.date(byAdding: .day, value: 3, to: openDate)!
-                        HStack(alignment: .top, spacing: 8) {
-                            Image(systemName: "info.circle.fill")
-                                .foregroundColor(.blue)
-                            Text("BSC will come to your house soon, no later than ")
-                                .foregroundColor(.primary)
-                            + Text(formatDate(estimatedVisitDate, format: "dd MMM yyyy"))
-                                .bold()
-                        }
-                        .font(.subheadline)
-                        .padding()
-                        .background(Color(.systemGray6))
-                        .cornerRadius(8)
-                        .padding(.horizontal, 20)
-                    }
 
                     // Detail Section
                     Text("Detail")
@@ -169,7 +172,7 @@ struct ResidentComplainDetailView: View {
             if let complaint = viewModel.selectedComplaint,
                let status = complaint.statusName?.lowercased(),
                let method = complaint.handoverMethod,
-               (status == "under review by bi" || status == "waiting key handover") && method == "bring_to_mo" {
+               (status == "under review by bi" || status == "waiting key handover") && method == .bringToMO {
                 VStack(spacing: 0) {
                     CustomButtonComponent(
                         text: "Submit Key Handover Evidence",

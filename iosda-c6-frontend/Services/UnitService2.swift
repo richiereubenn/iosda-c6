@@ -14,7 +14,11 @@ protocol UnitServiceProtocol2 {
     func getUnitsByBIId() async throws -> [Unit2]
     func getUnitById(_ id: String) async throws -> Unit2
     func createUnit(name: String, resident_id: String, bsc_id: String?, bi_id: String?, unitCode_id: String, unit_number: String) async throws -> Unit2
+
     func updateUnit(unitId: String, bscId: String) async throws -> Unit2
+
+    func updateUnitKey(_ unit: Unit2, keyDate: Date, note: String) async throws -> Unit2
+
 
 }
 
@@ -122,7 +126,7 @@ class UnitService2: UnitServiceProtocol2 {
         
         return unit
     }
-    
+
     func updateUnit(unitId: String, bscId: String) async throws -> Unit2 {
             let endpoint = "/property/v1/units/\(unitId)"
             
@@ -148,20 +152,46 @@ class UnitService2: UnitServiceProtocol2 {
             return updatedUnit
         }
     
-//    func getClaimedUnits() async throws -> [Unit2] {
-//        let units = try await getUnitsByResidentId()
-//        return units.filter { unit in
-//            guard let bscId = unit.bscId else { return false }
-//            return !bscId.isEmpty
-//        }
-//    }
-//    
-//    func getWaitingUnits() async throws -> [Unit2] {
-//        let units = try await getUnitsByResidentId()
-//        return units.filter { unit in
-//            guard let bscId = unit.bscId else { return true }
-//            return bscId.isEmpty
-//        }
-//    }
+
+    func updateUnitKey(_ unit: Unit2, keyDate: Date, note: String) async throws -> Unit2 {
+        let endpoint = "/property/v1/units/\(unit.id)"
+        let formatter = ISO8601DateFormatter()
+        formatter.formatOptions = [.withInternetDateTime]
+
+        // Format the date to the proper format for the API
+        let keyHandoverDateString = formatter.string(from: keyDate)
+        
+        print("🔧 updateUnit debug:")
+            print("🔧 Input keyDate: \(keyDate)")
+            print("🔧 Formatted keyHandoverDateString: \(keyHandoverDateString)")
+
+        let updateRequest = UpdateUnitRequest(
+            name: unit.name ?? "",
+            unit_code_id: unit.unitCodeId ?? "",
+            unit_number: unit.unitNumber ?? "",
+            resident_id: unit.residentId ?? "",
+            bsc_id: unit.bscId,
+            bi_id: unit.biId,
+            handover_date: unit.handoverDate.map { formatter.string(from: $0) },
+            key_handover_date: keyHandoverDateString,  // Using today's date here
+            key_handover_note: note
+        )
+
+        let body = try JSONEncoder().encode(updateRequest)
+
+        let response: APIResponse<Unit2> = try await networkManager.request(
+            endpoint: endpoint,
+            method: .PUT,
+            body: body
+        )
+
+        guard response.success, let updatedUnit = response.data else {
+            throw NetworkError.serverError(response.code ?? 0)
+        }
+
+        return updatedUnit
+    }
+
+
 }
 

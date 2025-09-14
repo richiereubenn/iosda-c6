@@ -27,8 +27,10 @@ struct ResidentAddComplaintView: View {
     
     @State private var closeUpImage: UIImage? = nil
     @State private var overallImage: UIImage? = nil
-    @State private var showingImagePicker = false
+    @State private var showImagePicker = false
     @State private var currentImageType: ImageType = .closeUp
+    @State private var imageSource: UIImagePickerController.SourceType = .photoLibrary
+    @State private var showImageSourceDialog = false
     enum ImageType {
         case closeUp
         case overall
@@ -168,6 +170,28 @@ struct ResidentAddComplaintView: View {
                     }
                 }
             }
+            .confirmationDialog("Choose Image Source", isPresented: $showImageSourceDialog) {
+                Button("Camera") {
+                    imageSource = .camera
+                    showImagePicker = true
+                }
+                Button("Photo Library") {
+                    imageSource = .photoLibrary
+                    showImagePicker = true
+                }
+                Button("Cancel", role: .cancel) {}
+            }
+            .sheet(isPresented: $showImagePicker) {
+                ImagePicker(sourceType: imageSource) { image in
+                    switch currentImageType {
+                    case .closeUp:
+                        complaintViewModel.closeUpImage = image
+                    case .overall:
+                        complaintViewModel.overallImage = image
+                    }
+                }
+            }
+
         }
     }
     
@@ -256,56 +280,51 @@ struct ResidentAddComplaintView: View {
             Text("Upload photos to help us understand the issue better.")
                 .font(.subheadline)
                 .foregroundColor(.gray)
-            
+
             VStack(spacing: 16) {
-                // Close-up photo with PhotosPicker
+                // Close-up photo
                 VStack(spacing: 8) {
-                    PhotosPicker(
-                        selection: Binding(
-                            get: { complaintViewModel.getPhotoItem(for: .closeUp) },
-                            set: { complaintViewModel.setPhotoItem($0, for: .closeUp) }
-                        ),
-                        matching: .images
-                    ) {
+                    Button {
+                        currentImageType = .closeUp
+                        showImageSourceDialog = true
+                    } label: {
                         ResidentPhotoUploadCard(
                             title: "Close-up Photo",
                             image: complaintViewModel.getImage(for: .closeUp),
-                            onTap: { /* PhotosPicker handles the tap */ },
+                            onTap: {},
                             onRemove: {
                                 complaintViewModel.removeImage(for: .closeUp)
                             }
                         )
                     }
                     .buttonStyle(.plain)
-                    
+
                     imageInstructionView(text: "Take a close-up photo focusing on the issue. Ensure the defect is clear and well-lit.")
                 }
-                
-                // Overall photo with PhotosPicker
+
+                // Overall photo
                 VStack(spacing: 8) {
-                    PhotosPicker(
-                        selection: Binding(
-                            get: { complaintViewModel.getPhotoItem(for: .overall) },
-                            set: { complaintViewModel.setPhotoItem($0, for: .overall) }
-                        ),
-                        matching: .images
-                    ) {
+                    Button {
+                        currentImageType = .overall
+                        showImageSourceDialog = true
+                    } label: {
                         ResidentPhotoUploadCard(
                             title: "Overall Photo",
                             image: complaintViewModel.getImage(for: .overall),
-                            onTap: { /* PhotosPicker handles the tap */ },
+                            onTap: {},
                             onRemove: {
                                 complaintViewModel.removeImage(for: .overall)
                             }
                         )
                     }
                     .buttonStyle(.plain)
-                    
+
                     imageInstructionView(text: "Take a photo from a distance to show the issue in its surrounding area for context.")
                 }
             }
         }
     }
+
     
     @ViewBuilder
     private var handoverSection: some View {

@@ -190,5 +190,36 @@ class ResidentComplaintDetailViewModel: ObservableObject {
 
         isLoading = false
     }
+    
+    func submitKeyHandoverEvidence(
+            complaintId: String,
+            userId: String,
+            description: String = "Key handover submitted"
+        ) async {
+            do {
+                print("📤 Submitting key handover evidence with description: \(description ?? "nil")")
+
+                // 1️⃣ Create progress log
+                _ = try await progressService.createProgress(
+                    complaintId: complaintId,
+                    userId: userId,
+                    title: "Submitted Key",
+                    description: description,
+                    files: nil
+                )
+
+                // 2️⃣ Update complaint status
+                await updateStatus(to: "06d2b0a3-afc8-400c-b4b4-bdcee995f35f")
+                // 🔴 replace with the real status ID for "In Progress"
+
+                // 3️⃣ Refresh logs and complaint
+                await getProgressLogs(complaintId: complaintId)
+                await loadComplaint(byId: complaintId)
+
+            } catch {
+                errorMessage = "❌ Failed to submit key handover: \(error.localizedDescription)"
+            }
+        }
 
 }
+

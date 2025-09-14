@@ -138,3 +138,15 @@ struct CreateComplaintRequest2: Codable {
         case keyHandoverNote = "key_handover_note"
     }
 }
+
+struct UpdateUnitRequest: Codable {
+    let name: String
+    let unit_code_id: String
+    let unit_number: String
+    let resident_id: String
+    let bsc_id: String?
+    let bi_id: String?
+    let handover_date: String?
+    let key_handover_date: String?
+    let key_handover_note: String?
+}

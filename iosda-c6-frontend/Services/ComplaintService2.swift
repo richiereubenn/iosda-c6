@@ -119,7 +119,7 @@ class ComplaintService2: ComplaintServiceProtocol2 {
 
     func getComplaintsByUserId(_ userId: String) async throws -> [Complaint2] {
 
-        let endpoint = "/complaint/v1/complaints?user_id=\(userId)"
+        let endpoint = "/complaint/v1/complaints?page=1&limit=100&user_id=\(userId)"
         let response: APIResponse<[Complaint2]> = try await networkManager.request(endpoint: endpoint)
         
  

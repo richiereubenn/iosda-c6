@@ -16,8 +16,8 @@ struct Unit2: Codable, Identifiable {
     let handoverDate: Date?
     let box: Int?               
     let renovationPermit: Bool?
-    let keyHandoverDate: Date?
-    let keyHandoverNote: String?
+    var keyHandoverDate: Date?
+    var keyHandoverNote: String?
     let createdAt: Date?
     let updatedAt: Date?
     let deletedAt: Date?

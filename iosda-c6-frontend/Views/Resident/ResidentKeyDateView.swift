@@ -152,17 +152,36 @@ struct ResidentKeyDateView: View {
             print("Error: unitId is nil")
             return
         }
-        
+
         guard let userId = userId else {
             print("Error: userId is nil")
             return
         }
-        
-        let selectedUnit = unitViewModel.claimedUnits.first { $0.id == unitId }
-        
-        // Hardcoded fixed statusId:
+
+        // Ensure the selectedUnit is found
+        guard var selectedUnit = unitViewModel.claimedUnits.first(where: { $0.id == unitId }) else {
+            print("Error: Could not find the selected unit.")
+            return
+        }
+
+        print("🗓️ === DATE DEBUG INFO ===")
+            print("🗓️ selectedDate from picker: \(selectedDate)")
+            print("🗓️ selectedDate ISO8601: \(selectedDate.ISO8601Format())")
+            print("🗓️ Current Date(): \(Date())")
+            print("🗓️ Current Date() ISO8601: \(Date().ISO8601Format())")
+            print("🗓️ selectedUnit.keyHandoverDate BEFORE update: \(selectedUnit.keyHandoverDate?.ISO8601Format() ?? "nil")")
+            
+        // 🔧 FIX: Update the selectedUnit with the picker values BEFORE passing to ViewModel
+        selectedUnit.keyHandoverDate = selectedDate
+        selectedUnit.keyHandoverNote = additionalNotes.isEmpty ? nil : additionalNotes
+
+        print("🗓️ selectedUnit.keyHandoverDate AFTER update: \(selectedUnit.keyHandoverDate?.ISO8601Format() ?? "nil")")
+           print("📝 selectedUnit.keyHandoverNote: \(selectedUnit.keyHandoverNote ?? "nil")")
+           print("🗓️ === END DEBUG INFO ===")
+
         let fixedStatusId = "661a5a05-730b-4dc3-a924-251a1db7a2d7"
-        
+
+        // 🔧 FIX: Remove keyHandoverDate and keyHandoverNote from request since they're handled by the unit
         let request = CreateComplaintRequest2(
             unitId: unitId,
             userId: userId,
@@ -173,18 +192,14 @@ struct ResidentKeyDateView: View {
             latitude: latitude,
             longitude: longitude,
             handoverMethod: handoverMethod,
-            keyHandoverDate: selectedDate,
-            keyHandoverNote: additionalNotes.isEmpty ? nil : additionalNotes
+            keyHandoverDate: nil,  // ✅ Let the selectedUnit handle this
+            keyHandoverNote: nil   // ✅ Let the selectedUnit handle this
         )
 
         Task {
-            guard let unitToSubmit = selectedUnit else {
-                print("Error: Could not find the selected unit to submit.")
-                return
-            }
-
             do {
-                try await complaintViewModel.submitComplaint(request: request, selectedUnit: unitToSubmit)
+                // Now the selectedUnit has the correct date and note
+                await complaintViewModel.submitComplaint(request: request, selectedUnit: selectedUnit)
                 await MainActor.run {
                     showingSuccessAlert = true
                 }
@@ -193,7 +208,6 @@ struct ResidentKeyDateView: View {
             }
         }
     }
-
     
 }
 

@@ -4,6 +4,7 @@ import SwiftUI
 @MainActor
 class ResidentComplaintDetailViewModel: ObservableObject {
     @Published var selectedComplaint: Complaint2? = nil
+    @Published var selectedUnit: Unit2? = nil
     @Published var selectedStatus: ComplaintStatus? = nil
     @Published var isLoading: Bool = false
     @Published var isUpdating: Bool = false
@@ -13,16 +14,19 @@ class ResidentComplaintDetailViewModel: ObservableObject {
     @Published var isSubmitting: Bool = false
     
     private let service: ComplaintServiceProtocol2
+    private let unitService: UnitServiceProtocol2
     private let progressService: ProgressLogServiceProtocol
     
     static let baseURL = "https://api.kevinchr.com/complaint"
     
     init(
         service: ComplaintServiceProtocol2 = ComplaintService2(),
-        progressService: ProgressLogServiceProtocol = ProgressLogService()
+        progressService: ProgressLogServiceProtocol = ProgressLogService(),
+        unitService: UnitServiceProtocol2 = UnitService2()
     ) {
         self.service = service
         self.progressService = progressService
+        self.unitService = unitService
     }
     
     func loadComplaint(byId id: String) async {
@@ -34,11 +38,29 @@ class ResidentComplaintDetailViewModel: ObservableObject {
             selectedComplaint = complaint
             selectedStatus = ComplaintStatus(raw: complaint.statusName)
             
+            if let unitId = complaint.unitId {
+                await loadUnit(byId: unitId)
+            }
+            
             await loadFirstProgress(for: id)
         } catch {
             errorMessage = "Failed to load complaint \(id): \(error.localizedDescription)"
         }
     }
+
+
+    
+    func loadUnit(byId id: String) async {
+        do {
+            let unit = try await unitService.getUnitById(id)
+            selectedUnit = unit
+        } catch {
+            errorMessage = "Failed to load unit: \(error.localizedDescription)"
+            selectedUnit = nil
+        }
+    }
+
+
     
     private func loadFirstProgress(for complaintId: String) async {
         do {

@@ -39,12 +39,12 @@ struct ResidentPhotoUploadCard: View {
                     VStack(spacing: 8) {
                         ZStack {
                             Circle()
-                                .fill(Color.blue.opacity(0.1))
+                                .fill(Color.primaryBlue.opacity(0.1))
                                 .frame(width: 50, height: 50)
                             
                             Image(systemName: "camera.fill")
                                 .font(.system(size: 24))
-                                .foregroundColor(.blue)
+                                .foregroundColor(.primaryBlue)
                         }
                         
                         Text(title)

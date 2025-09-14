@@ -23,13 +23,13 @@ struct ResidentHomeView: View {
                 HStack(spacing: 15) {
                     Button(action: {}) {
                         Image(systemName: "bell")
-                            .foregroundColor(.black)
+                            .foregroundColor(.primaryBlue)
                             .font(.title2)
                     }
                     
                     Button(action: {}) {
                         Image(systemName: "person.circle")
-                            .foregroundColor(.black)
+                            .foregroundColor(.primaryBlue)
                             .font(.title2)
                     }
                 }
@@ -45,6 +45,7 @@ struct ResidentHomeView: View {
                             Text(selectedUnit.name ?? "Unknown Unit")
                                 .font(.body)
                                 .fontWeight(.medium)
+                                .foregroundColor(.primaryBlue)
                             if let projectName = unitViewModel.getProjectName(for: selectedUnit) {
                                 Text(projectName)
                                     .font(.caption)
@@ -54,6 +55,7 @@ struct ResidentHomeView: View {
                             Text(firstClaimedUnit.name ?? "Unknown Unit")
                                 .font(.body)
                                 .fontWeight(.medium)
+                                .foregroundColor(.primaryBlue)
                             if let projectName = unitViewModel.getProjectName(for: firstClaimedUnit) {
                                 Text(projectName)
                                     .font(.caption)
@@ -72,7 +74,7 @@ struct ResidentHomeView: View {
                     if let id = userId {
                         NavigationLink(destination: ResidentMyUnitView(viewModel: unitViewModel, userId: id)) {
                             Image(systemName: "arrow.up.arrow.down")
-                                .foregroundColor(.blue)
+                                .foregroundColor(.primaryBlue)
                         }
                     }
                 }
@@ -81,11 +83,14 @@ struct ResidentHomeView: View {
                 .cornerRadius(10)
                 
                 // New Complaint Button
-                CustomButtonComponent(text: "New Complaint", action: {
-                    // Ensure a unit is selected before opening complaint creation
-                    if unitViewModel.selectedUnit == nil && !unitViewModel.claimedUnits.isEmpty {
-                        unitViewModel.selectedUnit = unitViewModel.claimedUnits.first
-                    }
+                CustomButtonComponent(
+                    text: "New Complaint",
+                    backgroundColor: .primaryBlue,
+                    action: {
+                        // Ensure a unit is selected before opening complaint creation
+                        if unitViewModel.selectedUnit == nil && !unitViewModel.claimedUnits.isEmpty {
+                            unitViewModel.selectedUnit = unitViewModel.claimedUnits.first
+                        }
                     showingCreateView = true
                 })
                 .disabled(unitViewModel.claimedUnits.isEmpty) // Disable if no units available
@@ -108,7 +113,7 @@ struct ResidentHomeView: View {
                             userId: id
                         )) {
                             Text("View All")
-                                .foregroundColor(.blue)
+                                .foregroundColor(.primaryBlue)
                                 .font(.body)
                         }
                     }
@@ -167,12 +172,11 @@ struct ResidentHomeView: View {
             ResidentAddComplaintView(
                 unitViewModel: unitViewModel,
                 complaintViewModel: ResidentAddComplaintViewModel(),
-                complaintListViewModel: ResidentComplaintListViewModel(),
+                complaintListViewModel: viewModel, // ✅ use the same one
                 onComplaintSubmitted: {
                     Task {
-                        // Reload recent complaints after submitting a new one
                         if let id = userId {
-                            await viewModel.loadComplaints(byUserId: id)
+                            await viewModel.loadComplaints(byUserId: id) // refresh Home
                         }
                     }
                 },
@@ -181,6 +185,7 @@ struct ResidentHomeView: View {
                 longitude: 0.0
             )
         }
+
     }
 }
 

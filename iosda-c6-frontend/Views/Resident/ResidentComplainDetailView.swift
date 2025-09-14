@@ -40,7 +40,7 @@ struct ResidentComplainDetailView: View {
                                     Button("See Detail") {
                                         showingProgressDetail = true
                                     }
-                                    .foregroundColor(.blue)
+                                    .foregroundColor(.primaryBlue)
                                 }
                                 
                                 StatusProgressBar(currentStatusName: complaint.statusName)
@@ -54,7 +54,7 @@ struct ResidentComplainDetailView: View {
                                 GroupedCard {
                                     HStack(alignment: .top, spacing: 8) {
                                         Image(systemName: "info.circle.fill")
-                                            .foregroundColor(.blue)
+                                            .foregroundColor(.primaryBlue)
                                         Text("BSC will come to your house soon, no later than ")
                                             .foregroundColor(.primary)
                                         + Text(formatDate(estimatedVisitDate, format: "dd MMM yyyy"))
@@ -70,7 +70,7 @@ struct ResidentComplainDetailView: View {
                                 GroupedCard {
                                     HStack(alignment: .top, spacing: 8) {
                                         Image(systemName: "info.circle.fill")
-                                            .foregroundColor(.blue)
+                                            .foregroundColor(.primaryBlue)
                                         Text("Please hand over your key on ")
                                             .foregroundColor(.primary)
                                         + Text(formatDate(handoverDate, format: "dd MMM yyyy"))
@@ -157,7 +157,7 @@ struct ResidentComplainDetailView: View {
                         Image(systemName: "chevron.left")
                         Text("Back")
                     }
-                    .foregroundColor(.blue)
+                    .foregroundColor(.primaryBlue)
                 }
             }
         }
@@ -176,6 +176,7 @@ struct ResidentComplainDetailView: View {
                 VStack(spacing: 0) {
                     CustomButtonComponent(
                         text: "Submit Key Handover Evidence",
+                        backgroundColor: .primaryBlue,
                         action: {
                             // TODO: Handle evidence submission
                         }

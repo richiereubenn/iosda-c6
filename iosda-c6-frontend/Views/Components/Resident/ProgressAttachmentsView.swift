@@ -41,7 +41,7 @@ struct ProgressAttachmentsView: View {
                     ForEach(nonImageFiles, id: \.id) { file in
                         HStack {
                             Image(systemName: "doc.fill")
-                                .foregroundColor(.blue)
+                                .foregroundColor(.primaryBlue)
                                 .font(.caption)
                             
                             Text(file.name ?? "Document")

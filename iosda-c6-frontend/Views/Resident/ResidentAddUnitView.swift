@@ -76,209 +76,187 @@ struct ResidentAddUnitView: View {
     let ownershipOptions = ["Owner", "Family", "Others"]
     
     var body: some View {
-        VStack(spacing: 20) {
-            
+        VStack{
             RoundedRectangle(cornerRadius: 3)
                 .fill(Color.gray.opacity(0.4))
                 .frame(width: 40, height: 5)
                 .padding(.top, 10)
             
-            HStack {
-                Text("Add Unit")
-                    .font(.headline)
-                Spacer()
-                Button { dismiss() } label: {
-                    Image(systemName: "xmark")
-                        .foregroundColor(.gray)
-                }
-            }
-            .padding(.horizontal)
-            
-            ScrollView {
-                VStack(alignment: .leading, spacing: 16) {
-                    
-                    Text("Unit")
-                        .font(.title)
-                        .fontWeight(.bold)
-                        .padding(.top, 4)
-                    
-                    Text("Fill in the information of the unit to be claimed")
-                        .font(.subheadline)
-                        .foregroundColor(.gray)
-                    
-                    if isLoadingProjects {
-                        ProgressView("Loading Projects...")
-                    } else if let error = projectLoadError {
-                        Text(error).foregroundColor(.red)
-                    } else {
-                        LabeledDropdownPicker(
-                            label: "Project",
-                            placeholder: "Select Project",
-                            selection: $selectedProjectName,
-                            options: projects.map { $0.name }
-                        )
-                        .onChange(of: selectedProjectName) { _, newValue in
-                            if let project = projects.first(where: { $0.name == newValue }) {
-                                selectedProjectId = project.id
-                            }
-                            // Reset area selection when project changes
-                            selectedAreaName = ""
-                            selectedAreaId = ""
-                            
-                            // Also reset dependent selections if needed
-                            selectedBlockName = ""
-                            selectedBlockId = ""
-                            selectedUnitCodeName = ""
-                            selectedUnitCodeId = ""
-                        }
-
-
-                    }
-
-                    if isLoadingAreas {
-                        ProgressView("Loading Areas...")
-                    } else if let error = areaLoadError {
-                        Text(error).foregroundColor(.red)
-                    } else {
-                        LabeledDropdownPicker(
-                            label: "Area",
-                            placeholder: "Select Area",
-                            selection: $selectedAreaName,
-                            options: filteredAreas.map { $0.name },
-                            isDisabled: selectedProjectName.isEmpty
-                        )
-                        .onChange(of: selectedAreaName) { _, newValue in
-                            if let area = allAreas.first(where: { $0.name == newValue }) {
-                                selectedAreaId = area.id
-                                // Reset block and unit code when area changes
+        NavigationStack{
+                
+                ScrollView {
+                    VStack(alignment: .leading, spacing: 16) {
+                        
+                        Text("Unit")
+                            .font(.title)
+                            .fontWeight(.bold)
+                            .padding(.top, 4)
+                        
+                        Text("Fill in the information of the unit to be claimed")
+                            .font(.subheadline)
+                            .foregroundColor(.gray)
+                        
+                        if isLoadingProjects {
+                            ProgressView("Loading Projects...")
+                        } else if let error = projectLoadError {
+                            Text(error).foregroundColor(.red)
+                        } else {
+                            LabeledDropdownPicker(
+                                label: "Project",
+                                placeholder: "Select Project",
+                                selection: $selectedProjectName,
+                                options: projects.map { $0.name }
+                            )
+                            .onChange(of: selectedProjectName) { _, newValue in
+                                if let project = projects.first(where: { $0.name == newValue }) {
+                                    selectedProjectId = project.id
+                                }
+                                // Reset area selection when project changes
+                                selectedAreaName = ""
+                                selectedAreaId = ""
+                                
+                                // Also reset dependent selections if needed
                                 selectedBlockName = ""
                                 selectedBlockId = ""
                                 selectedUnitCodeName = ""
                                 selectedUnitCodeId = ""
                             }
+                            
+                            
                         }
-                    }
-
-                    if isLoadingBlocks {
-                        ProgressView("Loading Blocks...")
-                    } else if let error = blockLoadError {
-                        Text(error).foregroundColor(.red)
-                    } else {
-                        LabeledDropdownPicker(
-                            label: "Block",
-                            placeholder: "Select Block",
-                            selection: $selectedBlockName,
-                            options: filteredBlocks.map { $0.name },
-                            isDisabled: selectedAreaName.isEmpty
-                        )
-                        .onChange(of: selectedBlockName) { _, newValue in
-                            if let block = filteredBlocks.first(where: { $0.name == newValue }) {
-                                selectedBlockId = block.id
-                                // Reset unit code when block changes
-                                selectedUnitCodeName = ""
-                                selectedUnitCodeId = ""
-                            }
-                        }
-
-                    }
-
-
-                    if isLoadingUnitCodes {
-                        ProgressView("Loading Unit Codes...")
-                    } else if let error = unitCodeLoadError {
-                        Text(error).foregroundColor(.red)
-                    } else {
-                        LabeledDropdownPicker(
-                            label: "Unit Code",
-                            placeholder: "Select Unit Code",
-                            selection: $selectedUnitCodeName,
-                            options: filteredUnitCodes.map { $0.name },
-                            isDisabled: selectedBlockName.isEmpty
-                        )
-                        .onChange(of: selectedUnitCodeName) { _, newValue in
-                            if let unitCode = filteredUnitCodes.first(where: { $0.name == newValue }) {
-                                selectedUnitCodeId = unitCode.id
-                            }
-                        }
-                    }
-
-
-                    
-                    // Ownership
-                    VStack(alignment: .leading, spacing: 8) {
-                        Text("Unit Ownership Status")
-                            .font(.headline)
                         
-                        Text("Select the ownership status of the unit to be claimed")
-                            .font(.subheadline)
-                            .foregroundColor(.gray)
-                        
-                        ForEach(ownershipOptions, id: \.self) { option in
-                            HStack {
-                                Image(systemName: ownershipStatus == option ? "largecircle.fill.circle" : "circle")
-                                    .foregroundColor(.blue)
-                                    .onTapGesture { ownershipStatus = option }
-                                Text(option)
-                                    .onTapGesture { ownershipStatus = option }
+                        if isLoadingAreas {
+                            ProgressView("Loading Areas...")
+                        } else if let error = areaLoadError {
+                            Text(error).foregroundColor(.red)
+                        } else {
+                            LabeledDropdownPicker(
+                                label: "Area",
+                                placeholder: "Select Area",
+                                selection: $selectedAreaName,
+                                options: filteredAreas.map { $0.name },
+                                isDisabled: selectedProjectName.isEmpty
+                            )
+                            .onChange(of: selectedAreaName) { _, newValue in
+                                if let area = allAreas.first(where: { $0.name == newValue }) {
+                                    selectedAreaId = area.id
+                                    // Reset block and unit code when area changes
+                                    selectedBlockName = ""
+                                    selectedBlockId = ""
+                                    selectedUnitCodeName = ""
+                                    selectedUnitCodeId = ""
+                                }
                             }
                         }
-                    }
-                    .padding(.top, 8)
-                    
-                    Button(action: {
-                        // Set userId and other values before submitting
-                        viewModel.residentId = userId
-                        viewModel.areaName = selectedAreaName
-                        viewModel.unitCodeName = selectedUnitCodeName
-                        viewModel.unitCodeId = selectedUnitCodeId
-
-                        Task {
+                        
+                        if isLoadingBlocks {
+                            ProgressView("Loading Blocks...")
+                        } else if let error = blockLoadError {
+                            Text(error).foregroundColor(.red)
+                        } else {
+                            LabeledDropdownPicker(
+                                label: "Block",
+                                placeholder: "Select Block",
+                                selection: $selectedBlockName,
+                                options: filteredBlocks.map { $0.name },
+                                isDisabled: selectedAreaName.isEmpty
+                            )
+                            .onChange(of: selectedBlockName) { _, newValue in
+                                if let block = filteredBlocks.first(where: { $0.name == newValue }) {
+                                    selectedBlockId = block.id
+                                    // Reset unit code when block changes
+                                    selectedUnitCodeName = ""
+                                    selectedUnitCodeId = ""
+                                }
+                            }
+                            
+                        }
+                        
+                        
+                        if isLoadingUnitCodes {
+                            ProgressView("Loading Unit Codes...")
+                        } else if let error = unitCodeLoadError {
+                            Text(error).foregroundColor(.red)
+                        } else {
+                            LabeledDropdownPicker(
+                                label: "Unit Code",
+                                placeholder: "Select Unit Code",
+                                selection: $selectedUnitCodeName,
+                                options: filteredUnitCodes.map { $0.name },
+                                isDisabled: selectedBlockName.isEmpty
+                            )
+                            .onChange(of: selectedUnitCodeName) { _, newValue in
+                                if let unitCode = filteredUnitCodes.first(where: { $0.name == newValue }) {
+                                    selectedUnitCodeId = unitCode.id
+                                }
+                            }
+                        }
+                        
+                        
+                        
+                        // Ownership
+                        VStack(alignment: .leading, spacing: 8) {
+                            Text("Unit Ownership Status")
+                                .font(.headline)
+                            
+                            Text("Select the ownership status of the unit to be claimed")
+                                .font(.subheadline)
+                                .foregroundColor(.gray)
+                            
+                            ForEach(ownershipOptions, id: \.self) { option in
+                                HStack {
+                                    Image(systemName: ownershipStatus == option ? "largecircle.fill.circle" : "circle")
+                                        .foregroundColor(.primaryBlue)
+                                        .onTapGesture { ownershipStatus = option }
+                                    Text(option)
+                                        .onTapGesture { ownershipStatus = option }
+                                }
+                            }
+                        }
+                        .padding(.top, 8)
+                        
+                        CustomButtonComponent(
+                            text: "Submit a Claim",
+                            backgroundColor: .primaryBlue,
+                            isDisabled: !isFormValid || viewModel.isLoading
+                        ) {
+                            // Set userId and other values before submitting
+                            viewModel.residentId = userId
+                            viewModel.areaName = selectedAreaName
+                            viewModel.unitCodeName = selectedUnitCodeName
+                            viewModel.unitCodeId = selectedUnitCodeId
+                            
+                            Task {
                                 await viewModel.submitUnitClaim {
                                     dismiss() // ✅ Dismiss sheet on success
                                 }
-
+                                
                                 // Show alert if there's an error
                                 if viewModel.errorMessage != nil {
                                     showingErrorAlert = true
                                 }
                             }
-                    }) {
-                        Text("Submit a Claim")
-                            .frame(maxWidth: .infinity)
-                            .padding()
-                            .background(isFormValid ? Color.blue : Color.gray)
-                            .foregroundColor(.white)
-                            .cornerRadius(8)
+                        }
+                        .padding(.top)
+
                     }
-                    .disabled(!isFormValid || viewModel.isLoading)
-                    .padding(.top)
-
-
-
-                    // Submit
-//                    CustomButtonComponent(
-//                                            text: "Submit a Claim",
-//                                            isDisabled: viewModel.isLoading || !isFormValid,
-//                                            action: {
-//                                                viewModel.addUnit(
-//                                                    name: selectedArea + " - " + selectedBlock + selectedUnitNumber,
-//                                                    project: selectedProjectName,
-//                                                    area: selectedArea,
-//                                                    block: selectedBlock,
-//                                                    unitNumber: selectedUnitNumber,
-//                                                    handoverDate: nil,
-//                                                    renovationPermit: false,
-//                                                    ownershipType: ownershipStatus
-//                                                )
-//                                            }
-//                                        )
-//                                        .padding(.top, 12)
-
                 }
                 
                 .padding(.horizontal)
+            
+            .navigationTitle("Add Unit")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .navigationBarTrailing) {
+                    Button { dismiss() } label: {
+                        Image(systemName: "xmark.circle.fill")
+                            .font(.title2)
+                            .foregroundColor(.gray.opacity(0.5))
+                    }
+                }
             }
         }
+    }
         .presentationDetents([.large])
         .task {
             await fetchProjects()

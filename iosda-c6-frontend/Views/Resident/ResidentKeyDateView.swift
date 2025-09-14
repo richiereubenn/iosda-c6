@@ -109,7 +109,7 @@ struct ResidentKeyDateView: View {
         .navigationBarTitleDisplayMode(.inline)
         .alert("Complaint Submitted", isPresented: $showingSuccessAlert) {
             Button("OK") {
-                onComplaintSubmitted()
+               // onComplaintSubmitted()
             }
         } message: {
             Text("Your complaint has been submitted successfully!")
@@ -170,6 +170,7 @@ struct ResidentKeyDateView: View {
     private var submitButton: some View {
         CustomButtonComponent(
             text: "Make a Complaint",
+            backgroundColor: .primaryBlue,
             isDisabled: complaintViewModel.isLoading || !isFormValid,
             action: submitComplaint
         )
@@ -253,6 +254,7 @@ struct ResidentKeyDateView: View {
             await complaintViewModel.submitComplaint(request: request, selectedUnit: selectedUnit)
             await MainActor.run {
                 showingSuccessAlert = true
+                onComplaintSubmitted()
             }
         } catch {
             print("Failed to submit complaint: \(error)")

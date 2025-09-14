@@ -47,9 +47,9 @@ struct RegisterView: View {
                     Checkbox(isOn: $viewModel.acceptedTerms)
                     (
                         Text("I Accept the ") +
-                        Text("terms and conditions").foregroundColor(.blue).underline() +
+                        Text("terms and conditions").foregroundColor(.primaryBlue).underline() +
                         Text(" as well as the ") +
-                        Text("privacy policy").foregroundColor(.blue).underline()
+                        Text("privacy policy").foregroundColor(.primaryBlue).underline()
                     )
                 }
                 .font(.system(size: 14))
@@ -63,27 +63,25 @@ struct RegisterView: View {
                 Spacer()
                 
                 // Continue Button
-                Button(action: {
-                    // Trigger the network request from the view model
-                    viewModel.registerUser()
-                }) {
-                    if viewModel.isLoading {
-                        ProgressView()
-                            .frame(maxWidth: .infinity)
-                            .padding()
-                            .background(Color.blue)
-                            .foregroundColor(.white)
-                            .cornerRadius(10)
-                    } else {
-                        Text("Continue")
-                            .frame(maxWidth: .infinity)
-                            .padding()
-                            .background(viewModel.isFormValid ? Color.blue : Color.gray.opacity(0.3))
-                            .foregroundColor(.white)
-                            .cornerRadius(10)
+                if viewModel.isLoading {
+                    ProgressView()
+                        .frame(maxWidth: .infinity)
+                        .padding()
+                        .background(Color.primaryBlue)
+                        .foregroundColor(.white)
+                        .cornerRadius(10)
+                } else {
+                    CustomButtonComponent(
+                        text: "Continue",
+                        backgroundColor: viewModel.isFormValid ? .primaryBlue : .gray.opacity(0.3),
+                        isDisabled: !viewModel.isFormValid || viewModel.isLoading
+                    ) {
+                        // Trigger the network request from the view model
+                        viewModel.registerUser()
                     }
                 }
-                .disabled(!viewModel.isFormValid || viewModel.isLoading)
+                //.disabled(!viewModel.isFormValid || viewModel.isLoading)
+
             }
             
             .padding()
@@ -105,7 +103,7 @@ struct Checkbox: View {
             isOn.toggle()
         }) {
             Image(systemName: isOn ? "checkmark.square.fill" : "square")
-                .foregroundColor(isOn ? .blue : .gray)
+                .foregroundColor(isOn ? .primaryBlue : .gray)
                 .font(.system(size: 22))
         }
         .buttonStyle(PlainButtonStyle())

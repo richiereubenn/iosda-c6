@@ -5,9 +5,9 @@ struct ResidentAddComplaintView: View {
     @Environment(\.presentationMode) var presentationMode
     @Environment(\.dismiss) private var dismiss
     
-    @ObservedObject var unitViewModel: ResidentUnitListViewModel
-    @ObservedObject var complaintViewModel: ResidentAddComplaintViewModel
-    @ObservedObject var complaintListViewModel: ResidentComplaintListViewModel
+    @StateObject var unitViewModel: ResidentUnitListViewModel
+    @StateObject var complaintViewModel: ResidentAddComplaintViewModel
+    @StateObject var complaintListViewModel: ResidentComplaintListViewModel
     
     @State private var complaintTitle: String = ""
     @State private var complaintDetails: String = ""
@@ -84,8 +84,15 @@ struct ResidentAddComplaintView: View {
                         complaintViewModel: complaintViewModel,
                         complaintListViewModel: complaintListViewModel, // Add this line
                         onComplaintSubmitted: {
-                            dismiss()
-                        }
+                               Task {
+                                   if let userId = NetworkManager.shared.getUserIdFromToken() {
+                                       await complaintListViewModel.loadComplaints(byUserId: userId) // 👈 refresh with correct user
+                                       await MainActor.run {
+                                           dismiss() // 👈 close KeyDateView after refresh
+                                       }
+                                   }
+                               }
+                           }
                     )
                 }
                 .alert(isPresented: Binding<Bool>(
@@ -116,31 +123,17 @@ struct ResidentAddComplaintView: View {
                         print("🚫 User cancelled handover conflict resolution")
                     }
                     Button("Proceed") {
-                        print("🔥 PROCEED BUTTON TAPPED") // This should print
-                        print("🔥 selectedUnitId: \(selectedUnitId)")
-                        print("🔥 pendingHandoverMethod: \(pendingHandoverMethod)")
-                        
                         Task {
-                            print("🔥 Inside Task block")
                             if let unitId = selectedUnitId,
                                let newMethod = pendingHandoverMethod {
-                                print("🔥 About to call resolveHandoverConflict")
-                                
                                 await complaintListViewModel.resolveHandoverConflict(
                                     unitId: unitId,
                                     newMethod: newMethod
                                 )
-                                
-                                print("🔥 Finished resolveHandoverConflict")
-                                
-                                await complaintListViewModel.loadComplaints(byUnitId: unitId)
+
+                                // 🔥 Don’t reload here
                                 isHandoverMethodLocked = complaintListViewModel.isHandoverMethodLocked(for: unitId)
                                 handoverMethod = newMethod
-                                await submitInHouseComplaint()
-                            } else {
-                                print("🚫 Missing unitId or pendingHandoverMethod")
-                                print("🚫 unitId: \(selectedUnitId)")
-                                print("🚫 pendingHandoverMethod: \(pendingHandoverMethod)")
                             }
                         }
                     }
@@ -364,6 +357,7 @@ struct ResidentAddComplaintView: View {
         ZStack {
             CustomButtonComponent(
                 text: isSubmitting ? "Submitting..." : "Submit Complaint",
+                backgroundColor: .primaryBlue,
                 isDisabled: !isFormValid || isSubmitting,
                 action: {
                     guard let selectedUnit = unitViewModel.selectedUnit else { return }

@@ -67,6 +67,7 @@ struct ResidentMyUnitView: View {
                                         isClaimed: selectedSegment == 0,
                                         viewModel: viewModel
                                     )
+                                    .foregroundColor(selectedSegment == 0 ? .primaryBlue : .gray)
                                 }
                                 .disabled(selectedSegment != 0)
 
@@ -89,7 +90,7 @@ struct ResidentMyUnitView: View {
                     isPresentingAddUnit = true
                 }) {
                     Image(systemName: "plus")
-                        .foregroundColor(Color(.blue))
+                        .foregroundColor(.primaryBlue)
                 }
             }
         }

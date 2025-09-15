@@ -54,7 +54,7 @@ struct BSCComplainDetailView: View {
         .navigationBarTitleDisplayMode(.large)
         .task {
             await viewModel.loadComplaint(byId: complaintId)
-            await viewModel.loadClassifications(defaultId: "75b125fd-a656-4fd8-a500-2f051b068171")
+            await viewModel.loadClassifications(defaultId: viewModel.classification?.id)
         }
         .alert("Do you want to reject this issue?", isPresented: $showRejectAlert) {
             TextField("Explain why you reject this issue", text: $rejectionReason, axis: .vertical)
@@ -136,8 +136,9 @@ struct BSCComplainDetailView: View {
                 VStack(spacing: 5) {
                     DataRowComponent(
                         label: "Tanggal Masuk:",
-                        value: formatDate(complaint.createdAt ?? Date(), format: "HH:mm dd/MM/yyyy")
+                        value: complaint.createdAt.map { formatDate($0, format: "HH:mm dd/MM/yyyy") } ?? "-"
                     )
+
                     HStack {
                         Text("Status:")
                             .foregroundColor(.gray)
@@ -151,8 +152,10 @@ struct BSCComplainDetailView: View {
                     )
                     DataRowComponent(
                         label: "Deadline:",
-                        value: formatDate(complaint.deadlineDate ?? Date(), format: "HH:mm dd/MM/yyyy")
+                        value: complaint.duedate.map { formatDate($0, format: "HH:mm dd/MM/yyyy") } ?? "-"
                     )
+
+
                 }
             }
         }

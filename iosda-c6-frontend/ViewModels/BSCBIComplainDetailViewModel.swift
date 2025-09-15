@@ -27,6 +27,7 @@ class BSCBIComplaintDetailViewModel: ObservableObject {
     @Published var areaName: String = "-"
     @Published var blockName: String = "-"
     @Published var unitName: String = "-"
+    @Published var hasStartedWork: Bool = false
 
     let defaultClassificationId = "75b125fd-a656-4fd8-a500-2f051b068171"
     private let service: ComplaintServiceProtocol2
@@ -245,6 +246,7 @@ class BSCBIComplaintDetailViewModel: ObservableObject {
                 description: reason,
                 files: nil
             )
+            hasStartedWork = true
         } catch {
             errorMessage = "Failed to create rejection progress: \(error.localizedDescription)"
         }
@@ -328,5 +330,35 @@ class BSCBIComplaintDetailViewModel: ObservableObject {
             errorMessage = "Failed to update classification: \(error.localizedDescription)"
         }
     }
+    
+    func updateDueDateForStartWork() async {
+        guard let complaint = selectedComplaint else {
+            errorMessage = "No complaint selected"
+            return
+        }
+        guard let workDuration = classification?.workDuration else {
+            errorMessage = "No classification with work duration found"
+            return
+        }
+        
+        let newDueDate = Calendar.current.date(byAdding: .day, value: workDuration, to: Date()) ?? Date()
+        
+        isUpdating = true
+        defer { isUpdating = false }
+        
+        do {
+            let updatedComplaint = try await service.updateComplaintDueDate(
+                complaintId: complaint.id,
+                dueDate: newDueDate
+            )
+            
+            let complainDetail = try await service.getComplaintById(updatedComplaint.id)
+            selectedComplaint = complainDetail
+            selectedStatus = ComplaintStatus(raw: complainDetail.statusName)
+        } catch {
+            errorMessage = "Failed to update due date: \(error.localizedDescription)"
+        }
+    }
+
     
 }

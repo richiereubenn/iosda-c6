@@ -20,7 +20,7 @@ class ClassificationService: ClassificationServiceProtocol{
     }
     
     func fetchClassification() async throws -> [Classification] {
-        let response: APIResponse<[Classification]> = try await networkManager.request(endpoint: "/complaint/v1/classifications")
+        let response: APIResponse<[Classification]> = try await networkManager.request(endpoint: "/complaint/v1/classifications?page=1&limit=100")
 
         guard response.success else {
             throw NetworkError.serverError(0)

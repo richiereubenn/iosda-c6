@@ -93,7 +93,7 @@ struct BSCComplaintListView: View {
                         .multilineTextAlignment(.center)
                     
                     if let fileUrl = viewModel.lastKeyLog?.files.first?.url {
-                        AsyncImage(url: URL(string: "https://api.kevinchr.com/upload\(fileUrl)")) { image in
+                        AsyncImage(url: URL(string: "https://api.kevinchr.com/property/\(fileUrl)")) { image in
                             image.resizable()
                                  .scaledToFit()
                                  .frame(width: 200, height: 200)

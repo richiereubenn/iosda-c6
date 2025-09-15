@@ -50,7 +50,7 @@ class ResidentAddComplaintViewModel: ObservableObject {
         unitService: UnitServiceProtocol2 = UnitService2(),
         progressLogService: ProgressLogServiceProtocol = ProgressLogService(), // Add this
         classificationService: ClassificationServiceProtocol = ClassificationService(),
-        classificationAI: ClassificationAIServiceProtocol = ClassificationAIService(),
+        classificationAI: ClassificationAIServiceProtocol = ClassificationAIService()
         
     ) {
         self.complaintService = complaintService
@@ -74,7 +74,6 @@ class ResidentAddComplaintViewModel: ObservableObject {
         do {
             let fixedStatusId = "661a5a05-730b-4dc3-a924-251a1db7a2d7"
             
-            // 1️⃣ Initial request (classificationId nil at creation time)
             let initialRequest = CreateComplaintRequest2(
                 unitId: request.unitId,
                 userId: request.userId,
@@ -89,7 +88,6 @@ class ResidentAddComplaintViewModel: ObservableObject {
                 keyHandoverNote: nil
             )
             
-            // 2️⃣ Update unit key handover if available
             if let keyDate = selectedUnit.keyHandoverDate {
                 await unitListViewModel.loadUnits()
                 let note = selectedUnit.keyHandoverNote ?? ""
@@ -101,12 +99,9 @@ class ResidentAddComplaintViewModel: ObservableObject {
                 )
             }
             
-            // 3️⃣ Submit complaint immediately - THIS IS THE CRITICAL STEP
             let submittedComplaint = try await complaintService.submitComplaint(request: initialRequest)
             print("✅ Complaint created immediately with ID: \(submittedComplaint.id)")
-            complaintCreated = true // Mark as successful
-            
-            // 5️⃣ Create initial progress log - Handle image upload failures gracefully
+            complaintCreated = true
             do {
                 let _ = try await createInitialProgressLog(
                     complaintId: submittedComplaint.id,
@@ -116,7 +111,6 @@ class ResidentAddComplaintViewModel: ObservableObject {
                 print("✅ Progress log created successfully")
             } catch {
                 print("⚠️ Progress log creation failed: \(error.localizedDescription)")
-                // Create a basic progress log without images as fallback
                 let _ = try await progressLogService.createProgress(
                     complaintId: submittedComplaint.id,
                     userId: request.userId,
@@ -127,13 +121,11 @@ class ResidentAddComplaintViewModel: ObservableObject {
                 print("✅ Fallback progress log created without images")
             }
             
-            // 6️⃣ Refresh local list (don't let this fail the whole submission)
             do {
                 await loadComplaints(byUserId: request.userId)
                 print("✅ Complaint list refreshed successfully")
             } catch {
                 print("⚠️ Failed to refresh complaint list, but submission was successful: \(error.localizedDescription)")
-                // Don't propagate this error - the complaint was created successfully
             }
             
             // Clean up UI state

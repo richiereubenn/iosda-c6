@@ -12,6 +12,12 @@ protocol KeyLogServiceProtocol {
     func getLastKeyLog(unitId: String) async throws -> KeyLog?
     func getAllKeyLog(unitId: String) async throws -> [KeyLog]
     func createKeyLog(unitId: String, userId: String, detail: String) async throws -> KeyLog
+    func uploadKeyLogWithFiles(
+            unitId: String,
+            userId: String,
+            detail: String,
+            images: [UIImage]
+        ) async throws -> KeyLog
 }
 
 class KeyLogService: KeyLogServiceProtocol {
@@ -71,5 +77,66 @@ class KeyLogService: KeyLogServiceProtocol {
         }
         
         return keyLog
+    }
+    
+    func uploadKeyLogWithFiles(
+            unitId: String,
+            userId: String,
+            detail: String,
+            images: [UIImage]
+        ) async throws -> KeyLog {
+            
+            guard let url = URL(string: baseURL + "/property/v1/key-logs") else {
+                throw NetworkError.invalidURL
+            }
+            
+            var request = URLRequest(url: url)
+            request.httpMethod = "POST"
+            
+            if let token = networkManager.bearerToken {
+                request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+            }
+            
+            let boundary = UUID().uuidString
+            request.setValue("multipart/form-data; boundary=\(boundary)", forHTTPHeaderField: "Content-Type")
+            
+            var body = Data()
+            
+            // fields
+            body.appendFormField(name: "unit_id", value: unitId, boundary: boundary)
+            body.appendFormField(name: "user_id", value: userId, boundary: boundary)
+            body.appendFormField(name: "detail", value: detail, boundary: boundary)
+            
+            // files
+            for (index, image) in images.enumerated() {
+                if let imageData = image.jpegData(compressionQuality: 0.8) {
+                    body.appendFileField(
+                        name: "files",
+                        fileName: "keylog_\(index).jpg",
+                        mimeType: "image/jpeg",
+                        fileData: imageData,
+                        boundary: boundary
+                    )
+                }
+            }
+            
+            body.closeMultipart(boundary: boundary)
+            
+            let (data, response) = try await URLSession.shared.upload(for: request, from: body)
+            
+            guard let httpResponse = response as? HTTPURLResponse,
+                  200...299 ~= httpResponse.statusCode else {
+                throw NetworkError.serverError((response as? HTTPURLResponse)?.statusCode ?? 0)
+            }
+            
+            let decoder = JSONDecoder.iso8601WithFractionalSeconds
+            let apiResponse = try decoder.decode(APIResponse<KeyLog>.self, from: data)
+            
+            guard apiResponse.success, let keyLog = apiResponse.data else {
+                throw NetworkError.serverError(apiResponse.code ?? 0)
+            }
+            
+            return keyLog
+        
     }
 }

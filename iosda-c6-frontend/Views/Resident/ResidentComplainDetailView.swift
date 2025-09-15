@@ -196,7 +196,7 @@ struct ResidentComplainDetailView: View {
                 uploadAmount: .constant(1),
                 showTitleField: false,
                 showDescriptionField: true,
-                onStartWork: { _, _, description in
+                onStartWork: { images, _, description in
                     Task {
                         guard let complaint = viewModel.selectedComplaint else { return }
                         guard let userId = NetworkManager.shared.getUserIdFromToken() else {
@@ -204,21 +204,27 @@ struct ResidentComplainDetailView: View {
                             return
                         }
 
-                        // ✅ Grab unitId directly from complaint
+                        // ✅ Get unitId from the complaint
                         guard let unitId = complaint.unitId else {
                             print("⚠️ No unitId found, cannot create key log")
                             return
                         }
 
-                        // ✅ Call the updated function
-                        await viewModel.submitKeyHandoverEvidence(
+                        let finalDescription = (description?.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ?? true)
+                            ? "Key handover submitted"
+                            : description!.trimmingCharacters(in: .whitespacesAndNewlines)
+
+                        print("🚀 Submitting key handover with \(images.count) images and description: \(finalDescription)")
+
+                        let result = await viewModel.submitKeyHandoverEvidence(
                             complaintId: complaint.id,
-                            unitId: unitId,   // <-- added
+                            unitId: unitId,
                             userId: userId,
-                            description: (description?.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ?? true)
-                                ? "Key handover submitted"
-                                : description!
+                            description: finalDescription,
+                            images: images   // ✅ pass photos correctly
                         )
+
+                        print("🔍 Function returned: \(result != nil ? "Success" : "Failed")")
 
                         // ✅ Close sheet
                         showingPhotoUpload = false
@@ -229,11 +235,6 @@ struct ResidentComplainDetailView: View {
                 }
             )
         }
-
-
-
-
-
 
         .task {
             await viewModel.loadComplaint(byId: complaintId)

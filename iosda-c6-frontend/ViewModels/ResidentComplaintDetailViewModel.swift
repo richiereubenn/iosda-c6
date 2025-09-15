@@ -194,21 +194,18 @@ class ResidentComplaintDetailViewModel: ObservableObject {
         isLoading = false
     }
     
-    // Replace your submitKeyHandoverEvidence function with this debug version:
-
-    // Replace your submitKeyHandoverEvidence function with this fixed version:
-
     func submitKeyHandoverEvidence(
         complaintId: String,
         unitId: String?,
         userId: String,
-        description: String = "Key handover submitted"
+        description: String = "Key handover submitted",
+        images: [UIImage]
     ) async -> KeyLog? {
+        isSubmitting = true
+        defer { isSubmitting = false }
+        
         do {
-            print("📤 Submitting key handover evidence with description: '\(description)'")
-
-            // 1️⃣ Progress log
-            print("📝 Creating progress log...")
+            // 1️⃣ Create progress log
             _ = try await progressService.createProgress(
                 complaintId: complaintId,
                 userId: userId,
@@ -216,56 +213,40 @@ class ResidentComplaintDetailViewModel: ObservableObject {
                 description: description,
                 files: nil
             )
-            print("✅ Progress log created successfully")
-
-            // 2️⃣ Key log (use unitId passed in)
-            var createdKeyLog: KeyLog? = nil
-            if let unitId = unitId {
-                print("🗝️ Creating key log...")
-                createdKeyLog = try await keyLogService.createKeyLog(
-                    unitId: unitId,
-                    userId: userId,
-                    detail: "bsc"
-                )
-                print("✅ Key log created with detail 'bsc': \(createdKeyLog!)")
-            } else {
-                print("⚠️ No unitId found, cannot create key log")
-            }
-
-            // 3️⃣ Update complaint status - FIX: Use complaintId directly
-            print("🔄 Updating complaint status...")
-            print("🔍 selectedComplaint before status update: \(selectedComplaint?.id ?? "nil")")
             
-            // Use the service directly instead of the updateStatus function
-            do {
-                let updatedComplaint = try await service.updateComplaintStatus(
-                    complaintId: complaintId,  // Use the passed complaintId directly
-                    statusId: "06d2b0a3-afc8-400c-b4b4-bdcee995f35f"
-                )
-                print("✅ Status update API call successful")
-                
-                // Update the selectedComplaint
-                let complainDetail = try await service.getComplaintById(updatedComplaint.id)
-                selectedComplaint = complainDetail
-                selectedStatus = ComplaintStatus(raw: complainDetail.statusName)
-                
-            } catch {
-                print("❌ Status update failed: \(error)")
-                errorMessage = "Failed to update status: \(error.localizedDescription)"
+            // 2️⃣ Upload key log (requires unitId)
+            guard let unitId else {
+                errorMessage = "❌ No unitId found, cannot create key log"
+                return nil
             }
-
-            // 4️⃣ Refresh complaint data
-            print("🔄 Refreshing progress logs...")
+            
+            let keyLog = try await keyLogService.uploadKeyLogWithFiles(
+                unitId: unitId,
+                userId: userId,
+                detail: "bsc", // maybe make this a parameter later
+                images: images
+            )
+            
+            // 3️⃣ Update complaint status
+            let updatedComplaint = try await service.updateComplaintStatus(
+                complaintId: complaintId,
+                statusId: "06d2b0a3-afc8-400c-b4b4-bdcee995f35f"
+            )
+            
+            // Refresh selected complaint
+            let complaintDetail = try await service.getComplaintById(updatedComplaint.id)
+            selectedComplaint = complaintDetail
+            selectedStatus = ComplaintStatus(raw: complaintDetail.statusName)
+            
+            // 4️⃣ Refresh progress logs
             await getProgressLogs(complaintId: complaintId)
-            print("✅ Data refresh completed")
-
-            return createdKeyLog
-
+            
+            return keyLog
         } catch {
-            print("❌ Error in submitKeyHandoverEvidence: \(error)")
             errorMessage = "❌ Failed to submit key handover: \(error.localizedDescription)"
             return nil
         }
     }
+
 }
 

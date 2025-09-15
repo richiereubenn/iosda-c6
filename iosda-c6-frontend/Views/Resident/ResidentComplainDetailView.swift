@@ -204,13 +204,21 @@ struct ResidentComplainDetailView: View {
                             return
                         }
 
-                        // ✅ Call your new ViewModel method
+                        // ✅ Grab unitId directly from complaint
+                        guard let unitId = complaint.unitId else {
+                            print("⚠️ No unitId found, cannot create key log")
+                            return
+                        }
+
+                        // ✅ Call the updated function
                         await viewModel.submitKeyHandoverEvidence(
                             complaintId: complaint.id,
+                            unitId: unitId,   // <-- added
                             userId: userId,
-                            description: description?.isEmpty == false ? description! : "Key handover submitted"
+                            description: (description?.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ?? true)
+                                ? "Key handover submitted"
+                                : description!
                         )
-
 
                         // ✅ Close sheet
                         showingPhotoUpload = false
@@ -221,6 +229,7 @@ struct ResidentComplainDetailView: View {
                 }
             )
         }
+
 
 
 

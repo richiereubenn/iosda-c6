@@ -171,30 +171,52 @@ struct ResidentHomeView: View {
                 uploadAmount: .constant(1),
                 showTitleField: false,
                 showDescriptionField: true,
+                // Replace your PhotoUploadSheet onStartWork closure with this:
+
                 onStartWork: { _, _, description in
                     Task {
                         if let complaint = waitingKeyComplaint,
+                           let unit = unitViewModel.selectedUnit,
                            let userId = NetworkManager.shared.getUserIdFromToken() {
-                            await detailViewModel.submitKeyHandoverEvidence(
-                                complaintId: complaint.id,
-                                userId: userId,
-                                description: (description?.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ?? true)
-                                    ? "Key submitted via Home screen"
-                                    : description!
-                            )
-
-                            // 🔄 Refresh the complaints list and the specific complaint detail
+                            
+                            let finalDescription = (description?.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ?? true)
+                                ? "Key handover submitted"
+                                : description!.trimmingCharacters(in: .whitespacesAndNewlines)
+                            
+                            print("🚀 Calling submitKeyHandoverEvidence with description: '\(finalDescription)'")
+                            
+                            // ✅ Call without explicitly passing description parameter when it's the default
+                            let result: KeyLog?
+                            if finalDescription == "Key handover submitted" {
+                                // Use default parameter - don't pass description
+                                result = await detailViewModel.submitKeyHandoverEvidence(
+                                    complaintId: complaint.id,
+                                    unitId: unit.id,
+                                    userId: userId
+                                )
+                            } else {
+                                // Pass custom description
+                                result = await detailViewModel.submitKeyHandoverEvidence(
+                                    complaintId: complaint.id,
+                                    unitId: unit.id,
+                                    userId: userId,
+                                    description: finalDescription
+                                )
+                            }
+                            
+                            print("🔍 Function returned: \(result != nil ? "Success" : "Failed")")
+                            
+                            // 🔄 Refresh lists
                             await viewModel.loadComplaints(byUserId: userId)
-                            await detailViewModel.loadComplaint(byId: complaint.id)
-
+                            
                             if let updated = viewModel.complaints.first(where: { $0.id == complaint.id }) {
                                 print("🔄 Updated complaint status: \(updated.statusName)")
                             }
-
                         }
                         showingPhotoUpload = false
                     }
-                },
+                }
+,
                 onCancel: {
                     showingPhotoUpload = false
                 }

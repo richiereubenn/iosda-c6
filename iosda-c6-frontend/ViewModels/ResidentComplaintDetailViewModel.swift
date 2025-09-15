@@ -16,18 +16,21 @@ class ResidentComplaintDetailViewModel: ObservableObject {
     private let service: ComplaintServiceProtocol2
     private let unitService: UnitServiceProtocol2
     private let progressService: ProgressLogServiceProtocol
+    private let keyLogService: KeyLogServiceProtocol
     
     static let baseURL = "https://api.kevinchr.com/complaint"
     
     init(
-        service: ComplaintServiceProtocol2 = ComplaintService2(),
-        progressService: ProgressLogServiceProtocol = ProgressLogService(),
-        unitService: UnitServiceProtocol2 = UnitService2()
-    ) {
-        self.service = service
-        self.progressService = progressService
-        self.unitService = unitService
-    }
+           service: ComplaintServiceProtocol2 = ComplaintService2(),
+           progressService: ProgressLogServiceProtocol = ProgressLogService(),
+           unitService: UnitServiceProtocol2 = UnitService2(),
+           keyLogService: KeyLogServiceProtocol = KeyLogService()
+       ) {
+           self.service = service
+           self.progressService = progressService
+           self.unitService = unitService
+           self.keyLogService = keyLogService
+       }
     
     func loadComplaint(byId id: String) async {
         isLoading = true
@@ -191,35 +194,78 @@ class ResidentComplaintDetailViewModel: ObservableObject {
         isLoading = false
     }
     
+    // Replace your submitKeyHandoverEvidence function with this debug version:
+
+    // Replace your submitKeyHandoverEvidence function with this fixed version:
+
     func submitKeyHandoverEvidence(
-            complaintId: String,
-            userId: String,
-            description: String = "Key handover submitted"
-        ) async {
-            do {
-                print("📤 Submitting key handover evidence with description: \(description ?? "nil")")
+        complaintId: String,
+        unitId: String?,
+        userId: String,
+        description: String = "Key handover submitted"
+    ) async -> KeyLog? {
+        do {
+            print("📤 Submitting key handover evidence with description: '\(description)'")
 
-                // 1️⃣ Create progress log
-                _ = try await progressService.createProgress(
-                    complaintId: complaintId,
+            // 1️⃣ Progress log
+            print("📝 Creating progress log...")
+            _ = try await progressService.createProgress(
+                complaintId: complaintId,
+                userId: userId,
+                title: "Submitted Key",
+                description: description,
+                files: nil
+            )
+            print("✅ Progress log created successfully")
+
+            // 2️⃣ Key log (use unitId passed in)
+            var createdKeyLog: KeyLog? = nil
+            if let unitId = unitId {
+                print("🗝️ Creating key log...")
+                createdKeyLog = try await keyLogService.createKeyLog(
+                    unitId: unitId,
                     userId: userId,
-                    title: "Submitted Key",
-                    description: description,
-                    files: nil
+                    detail: "bsc"
                 )
-
-                // 2️⃣ Update complaint status
-                await updateStatus(to: "06d2b0a3-afc8-400c-b4b4-bdcee995f35f")
-                // 🔴 replace with the real status ID for "In Progress"
-
-                // 3️⃣ Refresh logs and complaint
-                await getProgressLogs(complaintId: complaintId)
-                await loadComplaint(byId: complaintId)
-
-            } catch {
-                errorMessage = "❌ Failed to submit key handover: \(error.localizedDescription)"
+                print("✅ Key log created with detail 'bsc': \(createdKeyLog!)")
+            } else {
+                print("⚠️ No unitId found, cannot create key log")
             }
-        }
 
+            // 3️⃣ Update complaint status - FIX: Use complaintId directly
+            print("🔄 Updating complaint status...")
+            print("🔍 selectedComplaint before status update: \(selectedComplaint?.id ?? "nil")")
+            
+            // Use the service directly instead of the updateStatus function
+            do {
+                let updatedComplaint = try await service.updateComplaintStatus(
+                    complaintId: complaintId,  // Use the passed complaintId directly
+                    statusId: "06d2b0a3-afc8-400c-b4b4-bdcee995f35f"
+                )
+                print("✅ Status update API call successful")
+                
+                // Update the selectedComplaint
+                let complainDetail = try await service.getComplaintById(updatedComplaint.id)
+                selectedComplaint = complainDetail
+                selectedStatus = ComplaintStatus(raw: complainDetail.statusName)
+                
+            } catch {
+                print("❌ Status update failed: \(error)")
+                errorMessage = "Failed to update status: \(error.localizedDescription)"
+            }
+
+            // 4️⃣ Refresh complaint data
+            print("🔄 Refreshing progress logs...")
+            await getProgressLogs(complaintId: complaintId)
+            print("✅ Data refresh completed")
+
+            return createdKeyLog
+
+        } catch {
+            print("❌ Error in submitKeyHandoverEvidence: \(error)")
+            errorMessage = "❌ Failed to submit key handover: \(error.localizedDescription)"
+            return nil
+        }
+    }
 }
 

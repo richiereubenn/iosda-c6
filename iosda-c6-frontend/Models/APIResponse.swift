@@ -111,11 +111,19 @@ struct UserDetailData: Codable {
     let user: User
 }
 
+struct ClassificationRequest: Codable {
+    let complaintDetail: String
+
+    enum CodingKeys: String, CodingKey {
+        case complaintDetail = "complaint_detail"
+    }
+}
+
 struct CreateComplaintRequest2: Codable {
     let unitId: String
     let userId: String
     let statusId: String
-    let classificationId: String
+    let classificationId: String?
     let title: String
     let description: String
     let latitude: Double?

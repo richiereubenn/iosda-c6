@@ -17,6 +17,8 @@ protocol ComplaintServiceProtocol2 {
     func updateComplaint(complaintId: String, classificationId: String) async throws -> Complaint2
     func submitComplaint(request: CreateComplaintRequest2) async throws -> Complaint2
     func updateComplaintHandoverMethod(complaintId: String, newMethod: HandoverMethod) async throws -> Complaint2
+    func updateComplaintClassification(complaintId: String, classificationId: String) async throws -> Complaint2
+    
 }
 
 class ComplaintService2: ComplaintServiceProtocol2 {
@@ -129,6 +131,35 @@ class ComplaintService2: ComplaintServiceProtocol2 {
         return updatedComplaint
     
     }
+    
+    func updateComplaintClassification(
+        complaintId: String,
+        classificationId: String
+    ) async throws -> Complaint2 {
+        let endpoint = "/complaint/v1/complaints/\(complaintId)"
+        
+        let bodyDict: [String: Any] = [
+            "classification_id": classificationId
+        ]
+        let bodyData = try JSONSerialization.data(withJSONObject: bodyDict, options: [])
+        
+        let response: APIResponse<Complaint2> = try await networkManager.request(
+            endpoint: endpoint,
+            method: .PUT, // if backend supports PATCH, prefer that
+            body: bodyData
+        )
+        
+        guard response.success else {
+            throw NetworkError.serverError(response.code ?? 0)
+        }
+        
+        guard let updatedComplaint = response.data else {
+            throw NetworkError.noData
+        }
+        
+        return updatedComplaint
+    }
+
 
     
     func getProgressLogs(complaintId: String) async throws -> [ProgressLog] {

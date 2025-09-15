@@ -45,10 +45,10 @@ struct BIComplaintDetailView: View {
                                 )
                                 
                                 DataRowComponent(
-                                    label: "Deadline :",
-                                    value: formatDate(complaint.deadlineDate, format: "dd MMM yyyy | HH:mm:ss")
+                                    label: "Deadline:",
+                                    value: viewModel.calculatedDeadlineString(for: complaint)
                                 )
-                                
+
                                 HStack {
                                     Text("Status :")
                                         .foregroundColor(.gray)

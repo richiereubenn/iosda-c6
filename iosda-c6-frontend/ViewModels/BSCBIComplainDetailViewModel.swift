@@ -27,6 +27,7 @@ class BSCBIComplaintDetailViewModel: ObservableObject {
     @Published var areaName: String = "-"
     @Published var blockName: String = "-"
     @Published var unitName: String = "-"
+    @Published var hasStartedWork: Bool = false
 
     let defaultClassificationId = "75b125fd-a656-4fd8-a500-2f051b068171"
     private let service: ComplaintServiceProtocol2
@@ -231,6 +232,31 @@ class BSCBIComplaintDetailViewModel: ObservableObject {
         }
     }
     
+    //masih salah
+    func calculatedDeadlineString(for complaint: Complaint2) -> String {
+        guard let status = selectedStatus, status == .inProgress else {
+            return "-"
+        }
+        
+        guard let classification else {
+            return "-"
+        }
+        
+        let durationDays: Int = classification.workDuration ?? 0
+        let startDate = Date() // sekarang, bukan createdAt
+        
+        if let calculated = Calendar.current.date(byAdding: .day, value: durationDays, to: startDate) {
+            let formatter = DateFormatter()
+            formatter.dateFormat = "HH:mm dd/MM/yyyy"
+            return formatter.string(from: calculated)
+        }
+        
+        return "-"
+    }
+
+
+
+    
     func submitRejectionProgress(complaintId: String,
                                  userId: String,
                                  reason: String) async {
@@ -245,6 +271,7 @@ class BSCBIComplaintDetailViewModel: ObservableObject {
                 description: reason,
                 files: nil
             )
+            hasStartedWork = true
         } catch {
             errorMessage = "Failed to create rejection progress: \(error.localizedDescription)"
         }

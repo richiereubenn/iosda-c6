@@ -83,6 +83,8 @@ struct CreateUnitRequest2: Codable {
     let bi_id: String?
     let unit_code_id: String
     let unit_number: String
+    let handover_date: String     // ISO8601 string
+    let renovation_permit: Bool
 }
 
 struct CreateComplaintRequest: Codable {
@@ -111,11 +113,19 @@ struct UserDetailData: Codable {
     let user: User
 }
 
+struct ClassificationRequest: Codable {
+    let complaintDetail: String
+
+    enum CodingKeys: String, CodingKey {
+        case complaintDetail = "complaint_detail"
+    }
+}
+
 struct CreateComplaintRequest2: Codable {
     let unitId: String
     let userId: String
     let statusId: String
-    let classificationId: String
+    let classificationId: String?
     let title: String
     let description: String
     let latitude: Double?
@@ -123,6 +133,7 @@ struct CreateComplaintRequest2: Codable {
     let handoverMethod: HandoverMethod
     let keyHandoverDate: Date?        // Added
     let keyHandoverNote: String?      // Added
+    
     
     enum CodingKeys: String, CodingKey {
         case unitId = "unit_id"

@@ -105,7 +105,7 @@ struct StatusProgressBar: View {
                 VStack(spacing: 8) {
                     ZStack {
                         Circle()
-                            .fill(index <= effectiveStepIndex ? Color.blue : Color.gray.opacity(0.3))
+                            .fill(index <= effectiveStepIndex ? Color.primaryBlue : Color.gray.opacity(0.3))
                             .frame(width: 40, height: 40)
 
                         if index < effectiveStepIndex {
@@ -133,7 +133,7 @@ struct StatusProgressBar: View {
 
                 if index < stepGroups.count - 1 {
                     Rectangle()
-                        .fill((index + 1) <= effectiveStepIndex ? Color.blue : Color.gray.opacity(0.3))
+                        .fill((index + 1) <= effectiveStepIndex ? Color.primaryBlue : Color.gray.opacity(0.3))
                         .frame(height: 2)
                         .padding(.bottom, 30)
                 }

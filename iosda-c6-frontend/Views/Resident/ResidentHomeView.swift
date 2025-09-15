@@ -4,12 +4,24 @@ struct ResidentHomeView: View {
     
     @ObservedObject var viewModel: ResidentComplaintListViewModel
     @ObservedObject var unitViewModel: ResidentUnitListViewModel
+    @StateObject private var detailViewModel = ResidentComplaintDetailViewModel()
+    
+    @State private var showingPhotoUpload = false
+    @State private var keyImage: [UIImage] = []
+
     
     @State private var showingCreateView = false
     @State private var showSuccessAlert = false
     @State private var userId: String? = nil
     
     var onComplaintSubmitted: (() -> Void)? = nil
+    
+    var waitingKeyComplaint: Complaint2? {
+        viewModel.complaints.first {
+            ComplaintStatus(raw: $0.statusName) == .waitingKeyHandover
+        }
+    }
+
     
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
@@ -94,6 +106,21 @@ struct ResidentHomeView: View {
                     showingCreateView = true
                 })
                 .disabled(unitViewModel.claimedUnits.isEmpty) // Disable if no units available
+                
+                // 🔑 Submit Key Button
+                if let complaint = waitingKeyComplaint,
+                   let unit = unitViewModel.selectedUnit {
+                    CustomButtonComponent(
+                        text: "Submit Key for \(unit.name ?? "Unit")",
+                        backgroundColor: .primaryBlue
+                    ) {
+                        showingPhotoUpload = true
+                    }
+
+                }
+
+
+                
             }
             .padding(.horizontal, 20)
             .padding(.vertical, 20)
@@ -137,6 +164,55 @@ struct ResidentHomeView: View {
             
             Spacer()
         }
+        .sheet(isPresented: $showingPhotoUpload) {
+            PhotoUploadSheet(
+                title: .constant("Key Handover Evidence"),
+                description: .constant("Please provide a description of the key handover."),
+                uploadAmount: .constant(1),
+                showTitleField: false,
+                showDescriptionField: true,
+
+                onStartWork: { images, _, description in
+                    Task {
+                        if let complaint = waitingKeyComplaint,
+                           let unit = unitViewModel.selectedUnit,
+                           let userId = NetworkManager.shared.getUserIdFromToken() {
+
+                            // ✅ Make sure we use images from PhotoUploadSheet
+                            let finalImages = images.isEmpty ? keyImage : images
+                            let finalDescription = (description?.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ?? true)
+                                ? "Key handover submitted"
+                                : description!.trimmingCharacters(in: .whitespacesAndNewlines)
+
+                            print("🚀 Calling submitKeyHandoverEvidence with description: '\(finalDescription)'")
+
+                            let result = await detailViewModel.submitKeyHandoverEvidence(
+                                complaintId: complaint.id,
+                                unitId: unit.id,
+                                userId: userId,
+                                description: finalDescription,
+                                images: finalImages
+                            )
+
+                            print("🔍 Function returned: \(result != nil ? "Success" : "Failed")")
+
+                            // 🔄 Refresh complaint list after submission
+                            await viewModel.loadComplaints(byUserId: userId)
+
+                            if let updated = viewModel.complaints.first(where: { $0.id == complaint.id }) {
+                                print("🔄 Updated complaint status: \(updated.statusName)")
+                            }
+                        }
+                        showingPhotoUpload = false
+                    }
+                },
+                onCancel: {
+                    showingPhotoUpload = false
+                }
+            )
+        }
+
+
         .alert("Error", isPresented: .constant(viewModel.errorMessage != nil)) {
             Button("OK") {
                 viewModel.errorMessage = nil

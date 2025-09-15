@@ -26,11 +26,14 @@ class AddUnitViewModel: ObservableObject {
     
     
     private let unitService: UnitService2
+    private let keyLogService: KeyLogService
     
-    init(unitService: UnitService2 = UnitService2()) {
-        self.unitService = unitService
-        self.loadResidentId()
-    }
+    init(unitService: UnitService2 = UnitService2(), keyLogService: KeyLogService = KeyLogService()) {
+           self.unitService = unitService
+           self.keyLogService = keyLogService
+           self.loadResidentId()
+       }
+       
     
     private func loadResidentId() {
         if let userId = NetworkManager.shared.getUserIdFromToken() {
@@ -84,8 +87,17 @@ class AddUnitViewModel: ObservableObject {
                 unit_number: unitNumber
             )
             
-            successMessage = "Unit claim submitted successfully: \(createdUnit.name ?? "")"
-            onSuccess()
+            let unitId = createdUnit.id
+            _ = try await keyLogService.createKeyLog(
+                unitId: unitId,
+                userId: residentId,
+                detail: "resident"
+            )
+            print("📝 KeyLog created for resident with unitId: \(unitId)")
+
+                  
+                  successMessage = "Unit claim submitted successfully: \(createdUnit.name ?? "")"
+                  onSuccess()
             
         } catch {
             let nsError = error as NSError

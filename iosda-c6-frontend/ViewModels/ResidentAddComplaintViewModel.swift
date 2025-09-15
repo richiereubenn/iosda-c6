@@ -15,6 +15,7 @@ class ResidentAddComplaintViewModel: ObservableObject {
     @Published var isLoading: Bool = false
     @Published var errorMessage: String?
     @Published var complaints: [Complaint2] = []
+    @Published var userId: String? = nil
     
     @Published var closeUpImage: UIImage? = nil
     @Published var overallImage: UIImage? = nil
@@ -40,16 +41,23 @@ class ResidentAddComplaintViewModel: ObservableObject {
     private let unitService: UnitServiceProtocol2
     private let complaintService: ComplaintServiceProtocol2
     private let progressLogService: ProgressLogServiceProtocol
+    private let classificationService: ClassificationServiceProtocol
+    private let classificationAI: ClassificationAIServiceProtocol
     private var unitListViewModel: ResidentUnitListViewModel
     
     init(
         complaintService: ComplaintServiceProtocol2 = ComplaintService2(),
         unitService: UnitServiceProtocol2 = UnitService2(),
-        progressLogService: ProgressLogServiceProtocol = ProgressLogService()  // Add this
+        progressLogService: ProgressLogServiceProtocol = ProgressLogService(), // Add this
+        classificationService: ClassificationServiceProtocol = ClassificationService(),
+        classificationAI: ClassificationAIServiceProtocol = ClassificationAIService(),
+        
     ) {
         self.complaintService = complaintService
         self.unitService = unitService
         self.progressLogService = progressLogService  // Add this
+        self.classificationService = classificationService
+        self.classificationAI = classificationAI
         self.unitListViewModel = ResidentUnitListViewModel()
         
         Task { @MainActor in
@@ -61,107 +69,124 @@ class ResidentAddComplaintViewModel: ObservableObject {
         isLoading = true
         errorMessage = nil
         
-        print("🏠 === VIEWMODEL DEBUG ===")
-        print("🏠 Received selectedUnit.id: \(selectedUnit.id)")
-        print("🗓️ Received selectedUnit.keyHandoverDate: \(selectedUnit.keyHandoverDate?.ISO8601Format() ?? "nil")")
-        print("📝 Received selectedUnit.keyHandoverNote: \(selectedUnit.keyHandoverNote ?? "nil")")
-        print("🗓️ Current Date() in ViewModel: \(Date().ISO8601Format())")
-        print("🏠 === END VIEWMODEL DEBUG ===")
-        
-        let fixedStatusId = "661a5a05-730b-4dc3-a924-251a1db7a2d7"  // Example status ID
-        
-        // Compose the full complaint request without key handover info (handled separately)
-        let fullRequest = CreateComplaintRequest2(
-            unitId: request.unitId,
-            userId: request.userId,
-            statusId: fixedStatusId,
-            classificationId: request.classificationId,
-            title: request.title,
-            description: request.description,
-            latitude: request.latitude,
-            longitude: request.longitude,
-            handoverMethod: request.handoverMethod,
-            keyHandoverDate: nil,  // handled separately
-            keyHandoverNote: nil   // handled separately
-        )
+        var complaintCreated = false
         
         do {
-            // Step 1: Update unit's key handover date & note (if available)
+            let fixedStatusId = "661a5a05-730b-4dc3-a924-251a1db7a2d7"
+            
+            // 1️⃣ Initial request (classificationId nil at creation time)
+            let initialRequest = CreateComplaintRequest2(
+                unitId: request.unitId,
+                userId: request.userId,
+                statusId: fixedStatusId,
+                classificationId: nil, // defer classification
+                title: request.title,
+                description: request.description,
+                latitude: request.latitude,
+                longitude: request.longitude,
+                handoverMethod: request.handoverMethod,
+                keyHandoverDate: nil,
+                keyHandoverNote: nil
+            )
+            
+            // 2️⃣ Update unit key handover if available
             if let keyDate = selectedUnit.keyHandoverDate {
-                print("📦 Updating key handover date: \(keyDate)")
-                print("📦 Key date ISO8601: \(keyDate.ISO8601Format())")
-                
                 await unitListViewModel.loadUnits()
-                // If there is a key handover note, include it
-                let note = selectedUnit.keyHandoverNote ?? ""  // Use empty string if note is nil
+                let note = selectedUnit.keyHandoverNote ?? ""
                 
-                print("🔄 About to call updateKeyHandoverDate with:")
-                print("🔄 unitId: \(selectedUnit.id)")
-                print("🔄 keyDate: \(keyDate.ISO8601Format())")
-                print("🔄 note: '\(note)'")
-                
-                // Update the unit with the key handover details
                 try await unitListViewModel.updateKeyHandoverDate(
                     unitId: selectedUnit.id,
                     keyDate: keyDate,
                     note: note
                 )
-                print("✅ Successfully updated key handover date")
-            } else {
-                print("⚠️ selectedUnit.keyHandoverDate is nil - no update will be performed")
             }
             
-            let submittedComplaint = try await complaintService.submitComplaint(request: fullRequest)
-            print("✅ Successfully submitted complaint with ID: \(submittedComplaint.id)")
+            // 3️⃣ Submit complaint immediately - THIS IS THE CRITICAL STEP
+            let submittedComplaint = try await complaintService.submitComplaint(request: initialRequest)
+            print("✅ Complaint created immediately with ID: \(submittedComplaint.id)")
+            complaintCreated = true // Mark as successful
             
-            // Step 3: Create initial progress log
-            //            do {
-            //                           let progressLog = try await progressLogService.createProgress(
-            //                               complaintId: submittedComplaint.id,  // Direct access since it's not optional
-            //                               userId: request.userId,
-            //                               title: request.title,
-            //                               description: "Complaint Submitted and is Under Review by BSC",
-            //                               files: nil
-            //                           )
-            //                           print("✅ Successfully created progress log: \(progressLog.id ?? "unknown")")
-            //                       } catch {
-            //                           print("⚠️ Failed to create progress log: \(error.localizedDescription)")
-            //                           // Don't fail the entire process if progress log creation fails
-            //                       }
-            let progressLog = try await createInitialProgressLog(
-                complaintId: submittedComplaint.id,
-                userId: request.userId,
-                title: request.title
-            )
+            // 5️⃣ Create initial progress log - Handle image upload failures gracefully
+            do {
+                let _ = try await createInitialProgressLog(
+                    complaintId: submittedComplaint.id,
+                    userId: request.userId,
+                    title: request.title
+                )
+                print("✅ Progress log created successfully")
+            } catch {
+                print("⚠️ Progress log creation failed: \(error.localizedDescription)")
+                // Create a basic progress log without images as fallback
+                let _ = try await progressLogService.createProgress(
+                    complaintId: submittedComplaint.id,
+                    userId: request.userId,
+                    title: request.title,
+                    description: "Complaint Submitted and is Under Review by BSC (Images failed to upload)",
+                    files: nil
+                )
+                print("✅ Fallback progress log created without images")
+            }
             
+            // 6️⃣ Refresh local list (don't let this fail the whole submission)
+            do {
+                await loadComplaints(byUserId: request.userId)
+                print("✅ Complaint list refreshed successfully")
+            } catch {
+                print("⚠️ Failed to refresh complaint list, but submission was successful: \(error.localizedDescription)")
+                // Don't propagate this error - the complaint was created successfully
+            }
             
-            
-            // Step 3: Refresh the complaints list to show updated complaints
-            await loadComplaints()
-            // Clear photo state after successful submission
+            // Clean up UI state
             closeUpImage = nil
             overallImage = nil
             closeUpPhotoItem = nil
             overallPhotoItem = nil
             
+            // 4️⃣ Fire off AI classification in background - MOVED TO END
+            // Don't let this affect the main complaint creation success
+            Task.detached { [weak self] in
+                do {
+                    let classificationRequest = ClassificationRequest(complaintDetail: request.description)
+                    let classificationResult = try await ClassificationAIService().getClassification(request: classificationRequest)
+                    let classificationId = classificationResult.classificationId
+                    print("🤖 AI classified complaint as \(classificationId)")
+                    
+                    // Update the complaint with classification
+                    try await ComplaintService2().updateComplaintClassification(
+                        complaintId: submittedComplaint.id,
+                        classificationId: classificationId
+                    )
+                    print("✅ Complaint updated with classification")
+                } catch {
+                    print("⚠️ Classification failed for complaint \(submittedComplaint.id): \(error.localizedDescription)")
+                    // Don't propagate this error to the UI since complaint creation succeeded
+                }
+            }
             
         } catch {
-            print("❌ Error submitting complaint or updating unit: \(error.localizedDescription)")
-            errorMessage = "Failed to submit complaint. Please try again later."
+            print("❌ Error submitting complaint: \(error.localizedDescription)")
+            
+            // Only show error if complaint creation actually failed
+            if !complaintCreated {
+                errorMessage = "Failed to submit complaint. Please try again later."
+            } else {
+                // Complaint was created but something else failed
+                print("⚠️ Complaint created successfully but post-processing failed: \(error.localizedDescription)")
+                // Don't show error to user since their complaint was successfully submitted
+            }
         }
         
         isLoading = false
     }
     
-    func loadComplaints() async {
+    func loadComplaints(byUserId userId: String) async {
         isLoading = true
         defer { isLoading = false }
         
         do {
-            complaints = try await complaintService.getAllComplaints()
+            complaints = try await complaintService.getComplaintsByUserId(userId)
         } catch {
-            print("❌ Failed to load complaints: \(error.localizedDescription)")
-            errorMessage = "Failed to load complaints."
+            errorMessage = "Failed to load your complaints: \(error.localizedDescription)"
         }
     }
     
@@ -294,30 +319,4 @@ class ResidentAddComplaintViewModel: ObservableObject {
         }
         return ordered
     }
-    
-//    func updateComplaintsAndUnitForNewMethod(unitId: String, newMethod: HandoverMethod) async throws {
-//        // 1. Get complaints for this unit
-//        let complaints = try await complaintService.getComplaintsByUnitId(unitId)
-//        
-//        // 2. Filter only "under review by bsc"
-//        let underReviewComplaints = complaints.filter {
-//            $0.statusName?.lowercased() == "under review by bsc"
-//        }
-//        
-//        // 3. Update their handover method
-//        for complaint in underReviewComplaints {
-//            try await complaintService.updateComplaintHandoverMethod(
-//                complaintId: complaint.id,
-//                newMethod: newMethod
-//            )
-//        }
-//        
-//        // 4. Reset unit key handover date
-//        // 4. Reset unit key handover date
-//        try await unitListViewModel.resetKeyHandoverDate(unitId: unitId)
-//
-//    }
-//
-//    
-    
 }

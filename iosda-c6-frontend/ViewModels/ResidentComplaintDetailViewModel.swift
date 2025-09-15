@@ -16,18 +16,21 @@ class ResidentComplaintDetailViewModel: ObservableObject {
     private let service: ComplaintServiceProtocol2
     private let unitService: UnitServiceProtocol2
     private let progressService: ProgressLogServiceProtocol
+    private let keyLogService: KeyLogServiceProtocol
     
     static let baseURL = "https://api.kevinchr.com/complaint"
     
     init(
-        service: ComplaintServiceProtocol2 = ComplaintService2(),
-        progressService: ProgressLogServiceProtocol = ProgressLogService(),
-        unitService: UnitServiceProtocol2 = UnitService2()
-    ) {
-        self.service = service
-        self.progressService = progressService
-        self.unitService = unitService
-    }
+           service: ComplaintServiceProtocol2 = ComplaintService2(),
+           progressService: ProgressLogServiceProtocol = ProgressLogService(),
+           unitService: UnitServiceProtocol2 = UnitService2(),
+           keyLogService: KeyLogServiceProtocol = KeyLogService()
+       ) {
+           self.service = service
+           self.progressService = progressService
+           self.unitService = unitService
+           self.keyLogService = keyLogService
+       }
     
     func loadComplaint(byId id: String) async {
         isLoading = true
@@ -190,5 +193,60 @@ class ResidentComplaintDetailViewModel: ObservableObject {
 
         isLoading = false
     }
+    
+    func submitKeyHandoverEvidence(
+        complaintId: String,
+        unitId: String?,
+        userId: String,
+        description: String = "Key handover submitted",
+        images: [UIImage]
+    ) async -> KeyLog? {
+        isSubmitting = true
+        defer { isSubmitting = false }
+        
+        do {
+            // 1️⃣ Create progress log
+            _ = try await progressService.createProgress(
+                complaintId: complaintId,
+                userId: userId,
+                title: "Submitted Key",
+                description: description,
+                files: nil
+            )
+            
+            // 2️⃣ Upload key log (requires unitId)
+            guard let unitId else {
+                errorMessage = "❌ No unitId found, cannot create key log"
+                return nil
+            }
+            
+            let keyLog = try await keyLogService.uploadKeyLogWithFiles(
+                unitId: unitId,
+                userId: userId,
+                detail: "bsc", // maybe make this a parameter later
+                images: images
+            )
+            
+            // 3️⃣ Update complaint status
+            let updatedComplaint = try await service.updateComplaintStatus(
+                complaintId: complaintId,
+                statusId: "06d2b0a3-afc8-400c-b4b4-bdcee995f35f"
+            )
+            
+            // Refresh selected complaint
+            let complaintDetail = try await service.getComplaintById(updatedComplaint.id)
+            selectedComplaint = complaintDetail
+            selectedStatus = ComplaintStatus(raw: complaintDetail.statusName)
+            
+            // 4️⃣ Refresh progress logs
+            await getProgressLogs(complaintId: complaintId)
+            
+            return keyLog
+        } catch {
+            errorMessage = "❌ Failed to submit key handover: \(error.localizedDescription)"
+            return nil
+        }
+    }
 
 }
+

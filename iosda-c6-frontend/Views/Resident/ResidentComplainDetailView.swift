@@ -7,6 +7,10 @@ struct ResidentComplainDetailView: View {
     @Environment(\.dismiss) private var dismiss
     @State private var showingProgressDetail = false
     @StateObject private var viewModel = ResidentComplaintDetailViewModel()
+    @State private var showingPhotoUpload = false
+    private let progressLogService = ProgressLogService()
+
+
 
     var body: some View {
         ZStack {
@@ -167,25 +171,69 @@ struct ResidentComplainDetailView: View {
                 ResidentProgressDetailView(complaintId: complaint.id)
             }
         }
-
         .overlay(alignment: .bottom) {
             if let complaint = viewModel.selectedComplaint,
-               let status = complaint.statusName?.lowercased(),
-               let method = complaint.handoverMethod,
-               (status == "under review by bi" || status == "waiting key handover") && method == .bringToMO {
+               complaint.handoverMethod == .bringToMO,
+               complaint.residentStatus == .waitingKeyHandover {
+
                 VStack(spacing: 0) {
                     CustomButtonComponent(
                         text: "Submit Key Handover Evidence",
-                        backgroundColor: .primaryBlue,
-                        action: {
-                            // TODO: Handle evidence submission
-                        }
-                    )
+                        backgroundColor: .primaryBlue
+                    ) {
+                        showingPhotoUpload = true
+                    }
                     .padding(.horizontal, 20)
                     .padding(.bottom, 20)
                     .background(Color(.systemBackground))
                 }
             }
+        }
+        .sheet(isPresented: $showingPhotoUpload) {
+            PhotoUploadSheet(
+                title: .constant("Key Handover Evidence"),
+                description: .constant("Please provide a description of the key handover."),
+                uploadAmount: .constant(1),
+                showTitleField: false,
+                showDescriptionField: true,
+                onStartWork: { images, _, description in
+                    Task {
+                        guard let complaint = viewModel.selectedComplaint else { return }
+                        guard let userId = NetworkManager.shared.getUserIdFromToken() else {
+                            print("❌ Failed to get user ID from token")
+                            return
+                        }
+
+                        // ✅ Get unitId from the complaint
+                        guard let unitId = complaint.unitId else {
+                            print("⚠️ No unitId found, cannot create key log")
+                            return
+                        }
+
+                        let finalDescription = (description?.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ?? true)
+                            ? "Key handover submitted"
+                            : description!.trimmingCharacters(in: .whitespacesAndNewlines)
+
+                        print("🚀 Submitting key handover with \(images.count) images and description: \(finalDescription)")
+
+                        let result = await viewModel.submitKeyHandoverEvidence(
+                            complaintId: complaint.id,
+                            unitId: unitId,
+                            userId: userId,
+                            description: finalDescription,
+                            images: images   // ✅ pass photos correctly
+                        )
+
+                        print("🔍 Function returned: \(result != nil ? "Success" : "Failed")")
+
+                        // ✅ Close sheet
+                        showingPhotoUpload = false
+                    }
+                },
+                onCancel: {
+                    showingPhotoUpload = false
+                }
+            )
         }
 
         .task {

@@ -571,8 +571,13 @@ struct ResidentAddComplaintView: View {
                 
                 print("✅ Complaint submitted successfully")
                 if let unitId = selectedUnitId {
-                            await complaintListViewModel.loadComplaints(byUnitId: unitId)
-                        }
+                    do {
+                        await complaintListViewModel.loadComplaints(byUnitId: unitId)
+                    } catch {
+                        print("⚠️ Failed to refresh complaint list after submission: \(error)")
+                        // Don't set errorMessage since the submission was successful
+                    }
+                }
                 
                 await MainActor.run {
                     isSubmitting = false

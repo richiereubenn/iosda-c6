@@ -128,15 +128,23 @@ class ComplaintListViewModel2: ObservableObject {
             return
         }
         
-        lastKeyLog = try? await keyLogService.getLastKeyLog(unitId: unitId)
-        let lastDetail = lastKeyLog?.detail ?? ""
-        
+        let handoverMethod = firstComplaint.handoverMethod
         let allResolvedOrRejected = complaints.allSatisfy {
             let status = $0.statusName?.lowercased() ?? ""
             return status == "resolved" || status == "rejected"
         }
-        
         let anyWaitingKey = complaints.contains { $0.statusName?.lowercased() == "waiting key handover" }
+        
+        // ✅ Rule baru: inHouse + ada waiting key => langsung aktif
+        if handoverMethod == .inHouse, anyWaitingKey {
+            isButtonEnabled = true
+            buttonTitle = "Accept Key Handover"
+            return
+        }
+        
+        // Kalau bukan inHouse, lanjut cek lastKeyLog
+        lastKeyLog = try? await keyLogService.getLastKeyLog(unitId: unitId)
+        let lastDetail = lastKeyLog?.detail ?? ""
         
         switch lastDetail {
         case "resident":
@@ -160,6 +168,7 @@ class ComplaintListViewModel2: ObservableObject {
             buttonTitle = "Accept Key Handover"
         }
     }
+
     
     func handleButtonTap(unitId: String, userId: String) async {
         lastKeyLog = try? await keyLogService.getLastKeyLog(unitId: unitId)

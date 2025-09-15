@@ -40,13 +40,13 @@ struct BIComplaintDetailView: View {
                         GroupedCard {
                             VStack(alignment: .leading, spacing: 8) {
                                 DataRowComponent(
-                                    label: "Opened :",
-                                    value: formatDate(complaint.createdAt, format: "dd MMM yyyy | HH:mm:ss")
+                                    label: "Opened:",
+                                    value: complaint.createdAt.map { formatDate($0, format: "HH:mm dd/MM/yyyy") } ?? "-"
                                 )
                                 
                                 DataRowComponent(
                                     label: "Deadline:",
-                                    value: viewModel.calculatedDeadlineString(for: complaint)
+                                    value: complaint.duedate.map { formatDate($0, format: "HH:mm dd/MM/yyyy") } ?? "-"
                                 )
 
                                 HStack {
@@ -122,7 +122,6 @@ struct BIComplaintDetailView: View {
                                 DataRowComponent(label: "Area :", value: viewModel.areaName)
                                 DataRowComponent(label: "Block :", value: viewModel.blockName)
                                 DataRowComponent(label: "Unit :", value: viewModel.unitName)
-                                DataRowComponent(label: "Coordinates :", value: (viewModel.selectedComplaint?.latitude)!) // nanti bisa tambahkan jika ada data
 
                             }
                         }
@@ -185,6 +184,10 @@ struct BIComplaintDetailView: View {
                             description: desc ?? ""
                         )
                         await viewModel.updateStatus(to: statusId)
+                        
+                        if sheetTitle == "Start this Work" {
+                            await viewModel.updateDueDateForStartWork()
+                        }
                         showSuccessAlert = true
                         
                         print("id complain", complaintId)
@@ -258,6 +261,7 @@ struct BIComplaintDetailView: View {
                             showPhotoUploadSheet = true
                             sheetTitle = "Add Progress"
                             sheetDescription = "Use this to upload a progress update with photos and notes about the current work status."
+                            statusId = "ba1b0384-9c57-4c34-a70b-2ed7e44b7ce0"
                             sheetUploadAmount = 1
                         }
                         

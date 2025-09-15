@@ -232,31 +232,6 @@ class BSCBIComplaintDetailViewModel: ObservableObject {
         }
     }
     
-    //masih salah
-    func calculatedDeadlineString(for complaint: Complaint2) -> String {
-        guard let status = selectedStatus, status == .inProgress else {
-            return "-"
-        }
-        
-        guard let classification else {
-            return "-"
-        }
-        
-        let durationDays: Int = classification.workDuration ?? 0
-        let startDate = Date() // sekarang, bukan createdAt
-        
-        if let calculated = Calendar.current.date(byAdding: .day, value: durationDays, to: startDate) {
-            let formatter = DateFormatter()
-            formatter.dateFormat = "HH:mm dd/MM/yyyy"
-            return formatter.string(from: calculated)
-        }
-        
-        return "-"
-    }
-
-
-
-    
     func submitRejectionProgress(complaintId: String,
                                  userId: String,
                                  reason: String) async {
@@ -355,5 +330,35 @@ class BSCBIComplaintDetailViewModel: ObservableObject {
             errorMessage = "Failed to update classification: \(error.localizedDescription)"
         }
     }
+    
+    func updateDueDateForStartWork() async {
+        guard let complaint = selectedComplaint else {
+            errorMessage = "No complaint selected"
+            return
+        }
+        guard let workDuration = classification?.workDuration else {
+            errorMessage = "No classification with work duration found"
+            return
+        }
+        
+        let newDueDate = Calendar.current.date(byAdding: .day, value: workDuration, to: Date()) ?? Date()
+        
+        isUpdating = true
+        defer { isUpdating = false }
+        
+        do {
+            let updatedComplaint = try await service.updateComplaintDueDate(
+                complaintId: complaint.id,
+                dueDate: newDueDate
+            )
+            
+            let complainDetail = try await service.getComplaintById(updatedComplaint.id)
+            selectedComplaint = complainDetail
+            selectedStatus = ComplaintStatus(raw: complainDetail.statusName)
+        } catch {
+            errorMessage = "Failed to update due date: \(error.localizedDescription)"
+        }
+    }
+
     
 }

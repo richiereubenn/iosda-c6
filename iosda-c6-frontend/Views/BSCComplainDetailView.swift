@@ -136,8 +136,9 @@ struct BSCComplainDetailView: View {
                 VStack(spacing: 5) {
                     DataRowComponent(
                         label: "Tanggal Masuk:",
-                        value: formatDate(complaint.createdAt ?? Date(), format: "HH:mm dd/MM/yyyy")
+                        value: complaint.createdAt.map { formatDate($0, format: "HH:mm dd/MM/yyyy") } ?? "-"
                     )
+
                     HStack {
                         Text("Status:")
                             .foregroundColor(.gray)
@@ -151,8 +152,9 @@ struct BSCComplainDetailView: View {
                     )
                     DataRowComponent(
                         label: "Deadline:",
-                        value: viewModel.calculatedDeadlineString(for: complaint)
+                        value: complaint.duedate.map { formatDate($0, format: "HH:mm dd/MM/yyyy") } ?? "-"
                     )
+
 
                 }
             }

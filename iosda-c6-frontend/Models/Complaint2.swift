@@ -25,6 +25,7 @@ struct Complaint2: Identifiable, Codable {
     let handoverMethod: HandoverMethod?
     let workDetail: String?
     let workDuration: String?
+    let duedate : Date?
     let createdAt: Date?
     let updatedAt: Date?
     let statusName: String?
@@ -47,6 +48,7 @@ struct Complaint2: Identifiable, Codable {
         case handoverMethod = "handover_method"
         case workDetail = "work_detail"
         case workDuration = "work_duration"
+        case duedate
         case createdAt = "created_at"
         case updatedAt = "updated_at"
         case statusName = "status_name"

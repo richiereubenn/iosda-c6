@@ -399,7 +399,7 @@ class ResidentAddComplaintViewModel: ObservableObject {
 //            keyHandoverDate: nil,
 //            keyHandoverNote: nil
 //        )
-//        
+//
 //        await submitComplaint(request: request, selectedUnit: selectedUnit)
 //    }
     

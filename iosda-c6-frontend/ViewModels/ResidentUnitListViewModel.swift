@@ -124,12 +124,12 @@ class ResidentUnitListViewModel: ObservableObject {
     
     func updateKeyHandoverDate(unitId: String, keyDate: Date, note: String?) async throws {
         // Log to check which unitId is being passed in
-        print("📝 Updating key handover date for unitId: \(unitId)")
+        print("Updating key handover date for unitId: \(unitId)")
         
         print("Claimed units: \(claimedUnits)")
         // Find the unit in the claimedUnits array
         guard let index = claimedUnits.firstIndex(where: { $0.id == unitId }) else {
-            print("❌ Unit with ID \(unitId) not found in claimedUnits.")
+            print("Unit with ID \(unitId) not found in claimedUnits.")
             throw NSError(domain: "Unit not found", code: 404, userInfo: nil)
         }
         
@@ -144,10 +144,10 @@ class ResidentUnitListViewModel: ObservableObject {
             
             // Update local copy after success
             claimedUnits[index] = updatedUnit
-            print("✅ Successfully updated unit: \(updatedUnit)") // Log successful update
+            print("Successfully updated unit: \(updatedUnit)") // Log successful update
         } catch {
             // Handle the error if update fails
-            print("❌ Error updating unit: \(error.localizedDescription)") // Log error
+            print("Error updating unit: \(error.localizedDescription)") // Log error
             throw NSError(domain: "Failed to update unit", code: 500, userInfo: [NSLocalizedDescriptionKey: "Error: \(error.localizedDescription)"])
         }
     }

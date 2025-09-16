@@ -2,8 +2,9 @@ import SwiftUI
 
 struct ResidentComplaintListView: View {
     @StateObject var viewModel: ResidentComplaintListViewModel
+    @StateObject private var detailViewModel = ResidentComplaintDetailViewModel()
     let userId: String
-
+    
     var body: some View {
         VStack {
             // Complaint Filter Picker
@@ -14,14 +15,14 @@ struct ResidentComplaintListView: View {
             }
             .pickerStyle(.segmented)
             .padding()
-
+            
             // Loading State
             if viewModel.isLoading {
                 ProgressView("Loading...")
                     .padding(.top, 40)
                 Spacer()
             }
-
+            
             // Empty State
             else if viewModel.filteredComplaints.isEmpty {
                 VStack(spacing: 12) {
@@ -37,20 +38,35 @@ struct ResidentComplaintListView: View {
                 .padding(.top, 40)
                 Spacer()
             }
-
+            
             // Complaint List
             else {
                 ScrollView {
                     VStack(spacing: 12) {
                         ForEach(viewModel.filteredComplaints) { complaint in
-                            NavigationLink(destination: ResidentComplainDetailView(complaintId: complaint.id)) {
-                                ResidentComplaintCard(complaint: complaint)
+                            NavigationLink(
+                                destination: ResidentComplainDetailView(
+                                    complaintId: complaint.id,
+                                    viewModel: detailViewModel
+                                )
+                            ) {
+                                ResidentComplaintCard(
+                                    complaint: complaint,
+                                    unitName: viewModel.unitNames[complaint.unitId ?? ""]
+                                )
+                                // ✅ fetch key logs for this unit when card appears
+//                                .task {
+//                                    if let unitId = complaint.unitId {
+//                                        await detailViewModel.loadKeyLogs(unitId: unitId)
+//                                    }
+//                                }
                             }
+                            
                             .buttonStyle(PlainButtonStyle())
-
-
+                            
+                            
                         }
-
+                        
                     }
                     .padding(.horizontal)
                 }
@@ -61,12 +77,12 @@ struct ResidentComplaintListView: View {
         .navigationTitle("Complaint List")
         .background(Color(.systemGroupedBackground))
         .task {
-                    if let userId = NetworkManager.shared.getUserIdFromToken() {
-                        await viewModel.loadComplaints(byUserId: userId)
-                    } else {
-                        viewModel.errorMessage = "Failed to get user ID from token"
-                    }
-                }
+            if let userId = NetworkManager.shared.getUserIdFromToken() {
+                await viewModel.loadComplaints(byUserId: userId)
+            } else {
+                viewModel.errorMessage = "Failed to get user ID from token"
+            }
+        }
         .alert("Error", isPresented: .constant(viewModel.errorMessage != nil)) {
             Button("OK") { viewModel.errorMessage = nil }
         } message: {

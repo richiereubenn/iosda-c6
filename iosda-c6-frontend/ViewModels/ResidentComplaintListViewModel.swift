@@ -8,6 +8,8 @@ class ResidentComplaintListViewModel: ObservableObject {
     @Published var filteredComplaints: [Complaint2] = []
     @Published var isLoading: Bool = false
     @Published var errorMessage: String? = nil
+    @Published var unitNames: [String: String] = [:]   // unitId → unitName
+
     
     @Published var selectedFilter: ComplaintFilter = .all {
         didSet { applyFilters() }
@@ -45,6 +47,18 @@ class ResidentComplaintListViewModel: ObservableObject {
             do {
                 complaints = try await service.getComplaintsByUserId(userId)
                 applyFilters()
+                
+                for complaint in complaints {
+                            if let unitId = complaint.unitId, unitNames[unitId] == nil {
+                                Task {
+                                    if let unit = try? await unitService.getUnitById(unitId) {
+                                        await MainActor.run {
+                                            self.unitNames[unitId] = unit.name ?? "Unknown Unit"
+                                        }
+                                    }
+                                }
+                            }
+                        }
             } catch {
                 errorMessage = "Failed to load your complaints: \(error.localizedDescription)"
             }
@@ -140,16 +154,16 @@ class ResidentComplaintListViewModel: ObservableObject {
                     complaints[index] = updated
                 }
             } catch {
-                print("❌ Failed to update complaint \(conflict.id): \(error)")
+                print("Failed to update complaint \(conflict.id): \(error)")
             }
         }
         // 2. Reset unit key handover date
         do {
             let unit = try await unitService.getUnitById(unitId)
             _ = try await unitService.updateUnitKeyOptional(unit, keyDate: nil, note: nil)
-            print("✅ Successfully reset key handover date for unit \(unitId)")
+            print("Successfully reset key handover date for unit \(unitId)")
         } catch {
-            print("❌ Failed to reset key handover date for unit \(unitId): \(error)")
+            print("Failed to reset key handover date for unit \(unitId): \(error)")
         }
 
     }
@@ -166,11 +180,11 @@ class ResidentComplaintListViewModel: ObservableObject {
                 note: nil
             )
             
-            print("✅ Successfully updated unit key date for unit \(unitId)")
-            print("✅ New key date: \(String(describing: newKeyDate))")
+            print("Successfully updated unit key date for unit \(unitId)")
+            print("New key date: \(String(describing: newKeyDate))")
             
         } catch {
-            print("❌ Failed to update unit key date for unit \(unitId): \(error)")
+            print("Failed to update unit key date for unit \(unitId): \(error)")
             errorMessage = "Failed to update key handover date: \(error.localizedDescription)"
         }
     }

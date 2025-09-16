@@ -6,7 +6,7 @@ struct ResidentComplainDetailView: View {
     @Environment(\.horizontalSizeClass) private var sizeClass
     @Environment(\.dismiss) private var dismiss
     @State private var showingProgressDetail = false
-    @StateObject private var viewModel = ResidentComplaintDetailViewModel()
+    @ObservedObject var viewModel = ResidentComplaintDetailViewModel()
     @State private var showingPhotoUpload = false
     private let progressLogService = ProgressLogService()
 
@@ -103,8 +103,8 @@ struct ResidentComplainDetailView: View {
                             DataRowComponent(label: "Complain Type:", value: complaint.classificationName ?? "Unknown")
                             DataRowComponent(label: "Created:", value: formatDate(complaint.openTimestamp ?? Date(), format: "HH:mm dd/MM/yyyy"))
                             
-                            if let unitId = complaint.unitId {
-                                DataRowComponent(label: "Unit ID:", value: unitId)
+                            if let unit = viewModel.selectedUnit {
+                                DataRowComponent(label: "Unit:", value: unit.name ?? "Unit")
                             }
 
                             if let closeTimestamp = complaint.closeTimestamp {
@@ -113,11 +113,27 @@ struct ResidentComplainDetailView: View {
 
                             if !complaint.description.isEmpty {
                                 DataRowComponent(label: "Description:", value: "")
-                                Text(complaint.description)
-                                    .font(.body)
-                                    .foregroundColor(.primary)
-                                    //.padding(.top, 8)
+
+                                let parts = complaint.description.components(separatedBy: "\n\nAdditional Notes:\n")
+                                
+                                VStack(alignment: .leading, spacing: 8) {
+                                    // Main description
+                                    Text(parts.first ?? "")
+                                        .font(.body)
+                                        .foregroundColor(.primary)
+                                    
+                                    // Additional notes (if available)
+                                    if parts.count > 1, !parts[1].isEmpty {
+                                        DataRowComponent(
+                                            label: "Additional Notes:",
+                                            value: parts[1],
+                                            labelColor: .secondary,
+                                            valueColor: .gray
+                                        )
+                                    }
+                                }
                             }
+
                         }
                     }
                     .padding(.horizontal, 20)
@@ -174,7 +190,8 @@ struct ResidentComplainDetailView: View {
         .overlay(alignment: .bottom) {
             if let complaint = viewModel.selectedComplaint,
                complaint.handoverMethod == .bringToMO,
-               complaint.residentStatus == .waitingKeyHandover {
+               complaint.residentStatus == .waitingKeyHandover{
+              // !viewModel.hasSubmittedKeyLog {   
 
                 VStack(spacing: 0) {
                     CustomButtonComponent(
@@ -189,6 +206,8 @@ struct ResidentComplainDetailView: View {
                 }
             }
         }
+
+
         .sheet(isPresented: $showingPhotoUpload) {
             PhotoUploadSheet(
                 title: .constant("Key Handover Evidence"),
@@ -200,13 +219,13 @@ struct ResidentComplainDetailView: View {
                     Task {
                         guard let complaint = viewModel.selectedComplaint else { return }
                         guard let userId = NetworkManager.shared.getUserIdFromToken() else {
-                            print("❌ Failed to get user ID from token")
+                            
                             return
                         }
 
                         // ✅ Get unitId from the complaint
                         guard let unitId = complaint.unitId else {
-                            print("⚠️ No unitId found, cannot create key log")
+                            
                             return
                         }
 
@@ -214,7 +233,7 @@ struct ResidentComplainDetailView: View {
                             ? "Key handover submitted"
                             : description!.trimmingCharacters(in: .whitespacesAndNewlines)
 
-                        print("🚀 Submitting key handover with \(images.count) images and description: \(finalDescription)")
+                       
 
                         let result = await viewModel.submitKeyHandoverEvidence(
                             complaintId: complaint.id,
@@ -224,8 +243,7 @@ struct ResidentComplainDetailView: View {
                             images: images   // ✅ pass photos correctly
                         )
 
-                        print("🔍 Function returned: \(result != nil ? "Success" : "Failed")")
-
+                     
                         // ✅ Close sheet
                         showingPhotoUpload = false
                     }
@@ -239,6 +257,9 @@ struct ResidentComplainDetailView: View {
         .task {
             await viewModel.loadComplaint(byId: complaintId)
             await viewModel.getProgressLogs(complaintId: complaintId)
+//            if let unitId = viewModel.selectedComplaint?.unitId {
+//                    await viewModel.loadKeyLogs(unitId: unitId)   // ✅ fetch key logs
+//                }
         }
     }
 

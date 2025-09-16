@@ -59,15 +59,15 @@ class RegisterViewModel: ObservableObject {
                 
                 let registeredUser = try await userService.register(newUser)
                 if let userId = registeredUser.id {
-                    print("🆔 Registered user ID: \(userId)")
+                    print("Registered user ID: \(userId)")
                 } else {
-                    print("⚠️ Registered user ID is nil")
+                    print("Registered user ID is nil")
                 }
 
                 if let roleId = registeredUser.roleId {
-                    print("👤 Registered user role ID: \(roleId)")
+                    print("Registered user role ID: \(roleId)")
                 } else {
-                    print("⚠️ Registered user role ID is nil")
+                    print("Registered user role ID is nil")
                 }
 
                 

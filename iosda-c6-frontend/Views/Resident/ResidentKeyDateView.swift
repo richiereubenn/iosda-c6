@@ -216,23 +216,13 @@ struct ResidentKeyDateView: View {
     }
 
     private func performComplaintSubmission(selectedUnit: inout Unit2, unitId: String, userId: String) async {
-        print("🗓️ === DATE DEBUG INFO ===")
-        print("🗓️ selectedDate from picker: \(selectedDate)")
-        print("🗓️ selectedDate ISO8601: \(selectedDate.ISO8601Format())")
 
         // ✅ normalize to midnight UTC
         let normalizedDate = utcMidnightForLocalDate(selectedDate)
-        
-        print("🗓️ normalizedDate: \(normalizedDate)")
-        print("🗓️ normalizedDate ISO8601: \(normalizedDate.ISO8601Format())")
-        print("🗓️ Current Date(): \(Date())")
+
 
         selectedUnit.keyHandoverDate = normalizedDate
         selectedUnit.keyHandoverNote = additionalNotes.isEmpty ? nil : additionalNotes
-
-        print("🗓️ selectedUnit.keyHandoverDate AFTER update: \(selectedUnit.keyHandoverDate?.ISO8601Format() ?? "nil")")
-        print("📝 selectedUnit.keyHandoverNote: \(selectedUnit.keyHandoverNote ?? "nil")")
-        print("🗓️ === END DEBUG INFO ===")
 
         let fixedStatusId = "661a5a05-730b-4dc3-a924-251a1db7a2d7"
 

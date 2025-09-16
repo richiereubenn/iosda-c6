@@ -122,7 +122,7 @@ struct ResidentAddComplaintView: View {
                 .alert("Different handover method detected",
                        isPresented: $showHandoverConflictAlert) {
                     Button("Cancel", role: .cancel) {
-                        print("🚫 User cancelled handover conflict resolution")
+                     
                     }
                     Button("Proceed") {
                         Task {
@@ -390,7 +390,7 @@ struct ResidentAddComplaintView: View {
                         
                         if hasConflict {
                             pendingHandoverMethod = methodToCheck
-                            print("🔥 Set pendingHandoverMethod to: \(pendingHandoverMethod)")
+                            
                             showHandoverConflictAlert = true
                         } else {
                             if handoverMethod == .bringToMO {
@@ -426,16 +426,16 @@ struct ResidentAddComplaintView: View {
     
     private var lockedHandoverText: String {
         guard let unitId = selectedUnitId else {
-            print("🐛 No selectedUnitId")
+           
             return HandoverMethod.handoverLocked.displayName
+            
         }
         
-        print("🐛 Checking complaints for unitId: \(unitId)")
-        print("🐛 Total complaints: \(complaintListViewModel.complaints.count)")
+      
         
         // Debug: Print all complaints for this unit
         let unitComplaints = complaintListViewModel.complaints.filter { $0.unitId == unitId }
-        print("🐛 Unit complaints:")
+       
         for complaint in unitComplaints {
             let status = ComplaintStatus(raw: complaint.statusName)
             print("   - Status: \(complaint.statusName) -> \(status.displayName), isLocking: \(status.isLockingStatus)")
@@ -446,11 +446,11 @@ struct ResidentAddComplaintView: View {
                   $0.unitId == unitId &&
                   ComplaintStatus(raw: $0.statusName).isLockingStatus
               }) else {
-            print("🐛 No active complaint found, returning fallback")
+         
             return HandoverMethod.handoverLocked.displayName
         }
         
-        print("🐛 Found active complaint with status: \(activeComplaint.statusName)")
+     
         return ComplaintStatus(raw: activeComplaint.statusName).displayName
     }
     
@@ -467,7 +467,8 @@ struct ResidentAddComplaintView: View {
             HStack {
                 Image(systemName: "lock.fill")
                     .foregroundColor(.accentColor)
-                Text(lockedHandoverText) // 👈 Dynamic display based on status
+                //Text(lockedHandoverText) // 👈 Dynamic display based on status
+                Text("Another complaint is in progress")
                     .fontWeight(.medium)
             }
             .padding()
@@ -561,7 +562,7 @@ struct ResidentAddComplaintView: View {
                     unitId: unitId,
                     userId: userId,
                     statusId: "661a5a05-730b-4dc3-a924-251a1db7a2d7",
-                    classificationId: classificationId,
+                    //classificationId: classificationId,
                     latitude: latitude,
                     longitude: longitude,
                     handoverMethod: methodToUse,
@@ -569,13 +570,12 @@ struct ResidentAddComplaintView: View {
                 )
                 
                 
-                print("✅ Complaint submitted successfully")
+              
                 if let unitId = selectedUnitId {
                     do {
                         await complaintListViewModel.loadComplaints(byUnitId: unitId)
                     } catch {
-                        print("⚠️ Failed to refresh complaint list after submission: \(error)")
-                        // Don't set errorMessage since the submission was successful
+                     
                     }
                 }
                 
@@ -584,7 +584,7 @@ struct ResidentAddComplaintView: View {
                     showSuccessAlert = true
                 }
             } catch {
-                print("❌ Error submitting in-house complaint: \(error)")
+                
                 await MainActor.run {
                     isSubmitting = false
                     complaintViewModel.errorMessage = error.localizedDescription

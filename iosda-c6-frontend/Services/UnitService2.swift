@@ -13,7 +13,7 @@ protocol UnitServiceProtocol2 {
     func getUnitsByBSCId() async throws -> [Unit2]
     func getUnitsByBIId() async throws -> [Unit2]
     func getUnitById(_ id: String) async throws -> Unit2
-    func createUnit(name: String, resident_id: String, bsc_id: String?, bi_id: String?, unitCode_id: String, unit_number: String) async throws -> Unit2
+    func createUnit(name: String, resident_id: String, bsc_id: String?, bi_id: String?, unitCode_id: String, unit_number: String, handover_date: Date, renovation_permit: Bool) async throws -> Unit2
 
     func updateUnit(unitId: String, bscId: String) async throws -> Unit2
 
@@ -98,18 +98,25 @@ class UnitService2: UnitServiceProtocol2 {
         bsc_id: String?,
         bi_id: String?,
         unitCode_id: String,
-        unit_number: String
+        unit_number: String,
+        handover_date: Date = Date(),
+        renovation_permit: Bool = true
     ) async throws -> Unit2 {
         let endpoint = "/property/v1/units"
         
-        // Use Codable struct instead of dictionary for better type safety
+        let formatter = ISO8601DateFormatter()
+        formatter.formatOptions = [.withInternetDateTime]
+        let handoverDateString = formatter.string(from: handover_date)
+        
         let unitRequest = CreateUnitRequest2(
             name: name,
             resident_id: resident_id,
             bsc_id: bsc_id,
             bi_id: bi_id,
             unit_code_id: unitCode_id,
-            unit_number: unit_number
+            unit_number: unit_number,
+            handover_date: handoverDateString,
+            renovation_permit: renovation_permit
         )
         
         let body = try JSONEncoder().encode(unitRequest)
@@ -126,6 +133,7 @@ class UnitService2: UnitServiceProtocol2 {
         
         return unit
     }
+
 
     func updateUnit(unitId: String, bscId: String) async throws -> Unit2 {
             let endpoint = "/property/v1/units/\(unitId)"
@@ -161,9 +169,6 @@ class UnitService2: UnitServiceProtocol2 {
         // Format the date to the proper format for the API
         let keyHandoverDateString = formatter.string(from: keyDate)
         
-        print("🔧 updateUnit debug:")
-            print("🔧 Input keyDate: \(keyDate)")
-            print("🔧 Formatted keyHandoverDateString: \(keyHandoverDateString)")
 
         let updateRequest = UpdateUnitRequest(
             name: unit.name ?? "",
@@ -198,10 +203,6 @@ class UnitService2: UnitServiceProtocol2 {
         formatter.formatOptions = [.withInternetDateTime]
         
         let keyHandoverDateString = keyDate.map { formatter.string(from: $0) }
-        
-        print("🔧 updateUnitKeyOptional debug:")
-        print("🔧 Input keyDate: \(String(describing: keyDate))")
-        print("🔧 Formatted keyHandoverDateString: \(String(describing: keyHandoverDateString))")
         
         let updateRequest = UpdateUnitRequest(
             name: unit.name ?? "",

@@ -13,7 +13,7 @@ struct BIComplaintDetailView: View {
     @State private var showRejectAlert = false
     @State private var showAcceptSheet = false
     @State private var rejectionReason = ""
-    @State private var sheetTitle = "tes"
+    @State private var sheetTitle = "Test"
     @State private var sheetDescription = ""
     @State private var sheetUploadAmount = 1
     @State private var statusId = ""
@@ -21,8 +21,6 @@ struct BIComplaintDetailView: View {
     @State private var showSuccessAlert = false
     @State private var successMessage = ""
 
-
-    
     @StateObject private var viewModel = BSCBIComplaintDetailViewModel()
     
     var body: some View {
@@ -50,7 +48,7 @@ struct BIComplaintDetailView: View {
                                 )
 
                                 HStack {
-                                    Text("Status :")
+                                    Text("Status:")
                                         .foregroundColor(.gray)
                                         .font(.subheadline)
                                     
@@ -59,12 +57,12 @@ struct BIComplaintDetailView: View {
                                 }
                                 
                                 DataRowComponent(
-                                    label: "Kategori :",
+                                    label: "Category:",
                                     value: viewModel.classification?.name ?? "-"
                                 )
                                 
                                 DataRowComponent(
-                                    label: "Detail Kerusakan :",
+                                    label: "Damage Details:",
                                     value: viewModel.classification?.workDetail ?? "-"
                                 )
                                 
@@ -83,13 +81,13 @@ struct BIComplaintDetailView: View {
                     }
                     
                     VStack(alignment: .leading, spacing: 12) {
-                        Text("Image")
+                        Text("Images")
                             .font(.system(size: 18, weight: .semibold))
                         
                         GroupedCard {
                             VStack(spacing: 8) {
                                 if viewModel.firstProgressImageURLs.isEmpty {
-                                    complaintImage(url: nil) 
+                                    complaintImage(url: nil)
                                 } else {
                                     ForEach(viewModel.firstProgressImageURLs.indices, id: \.self) { index in
                                         if index == 0 {
@@ -113,15 +111,15 @@ struct BIComplaintDetailView: View {
 
                     
                     VStack(alignment: .leading, spacing: 12) {
-                        Text("Location/Unit Detail")
+                        Text("Location / Unit Details")
                             .font(.system(size: 18, weight: .semibold))
                         
                         GroupedCard {
                             VStack(alignment: .leading, spacing: 8) {
-                                DataRowComponent(label: "Project :", value: viewModel.projectName)
-                                DataRowComponent(label: "Area :", value: viewModel.areaName)
-                                DataRowComponent(label: "Block :", value: viewModel.blockName)
-                                DataRowComponent(label: "Unit :", value: viewModel.unitName)
+                                DataRowComponent(label: "Project:", value: viewModel.projectName)
+                                DataRowComponent(label: "Area:", value: viewModel.areaName)
+                                DataRowComponent(label: "Block:", value: viewModel.blockName)
+                                DataRowComponent(label: "Unit:", value: viewModel.unitName)
 
                             }
                         }
@@ -137,7 +135,7 @@ struct BIComplaintDetailView: View {
             }
         }
         .navigationBarTitleDisplayMode(.inline)
-        .navigationTitle("Detail Complain")
+        .navigationTitle("Complaint Details")
         .background(Color(.systemGroupedBackground))
         .alert("Progress Updated", isPresented: $showSuccessAlert, actions: {
             Button("OK", role: .cancel) { showSuccessAlert = true }
@@ -147,7 +145,7 @@ struct BIComplaintDetailView: View {
 
         
         .alert("Do you want to reject this issue?", isPresented: $showRejectAlert) {
-            TextField("Explain why you reject this issue", text: $rejectionReason, axis: .vertical)
+            TextField("Enter the reason for rejection", text: $rejectionReason, axis: .vertical)
             
             Button("Cancel", role: .cancel) {
                 rejectionReason = ""
@@ -165,7 +163,7 @@ struct BIComplaintDetailView: View {
                 }
             }
         } message: {
-            Text("Explain why you reject this issue")
+            Text("Please provide a reason for rejecting this issue.")
         }
         .sheet(isPresented: $showPhotoUploadSheet) {
             PhotoUploadSheet(
@@ -190,7 +188,7 @@ struct BIComplaintDetailView: View {
                         }
                         showSuccessAlert = true
                         
-                        print("id complain", complaintId)
+                        print("Complaint ID:", complaintId)
                     }
                     showPhotoUploadSheet = false
                 },
@@ -260,7 +258,7 @@ struct BIComplaintDetailView: View {
                             successMessage = "New Progress Log Added"
                             showPhotoUploadSheet = true
                             sheetTitle = "Add Progress"
-                            sheetDescription = "Use this to upload a progress update with photos and notes about the current work status."
+                            sheetDescription = "Upload progress updates with photos and notes about the current work status."
                             statusId = "ba1b0384-9c57-4c34-a70b-2ed7e44b7ce0"
                             sheetUploadAmount = 1
                         }

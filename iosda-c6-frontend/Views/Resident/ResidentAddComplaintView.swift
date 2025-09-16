@@ -48,7 +48,7 @@ struct ResidentAddComplaintView: View {
     
     var body: some View {
         VStack(spacing: 10) {
-            dragIndicator
+            //dragIndicator
             
             NavigationStack {
                 ScrollView {
@@ -233,12 +233,12 @@ struct ResidentAddComplaintView: View {
     
     // MARK: - View Components
     
-    private var dragIndicator: some View {
-        RoundedRectangle(cornerRadius: 3)
-            .fill(Color.gray.opacity(0.4))
-            .frame(width: 40, height: 5)
-            .padding(.top, 10)
-    }
+//    private var dragIndicator: some View {
+//        RoundedRectangle(cornerRadius: 3)
+//            .fill(Color.gray.opacity(0.4))
+//            .frame(width: 40, height: 5)
+//            .padding(.top, 10)
+//    }
     
     @ViewBuilder
     private var titleSection: some View {

@@ -3,7 +3,12 @@ import SwiftUI
 struct ResidentComplaintListView: View {
     @StateObject var viewModel: ResidentComplaintListViewModel
     @StateObject private var detailViewModel = ResidentComplaintDetailViewModel()
+    @StateObject private var unitViewModel = ResidentUnitListViewModel() // ✅ Add this
+    
     let userId: String
+    @State private var isPresentingAddComplaint = false
+    @State private var currentUserId: String? = nil // ✅ Add this
+
     
     var body: some View {
         VStack {
@@ -75,14 +80,79 @@ struct ResidentComplaintListView: View {
         
         .searchable(text: $viewModel.searchText, prompt: "Search complaints...")
         .navigationTitle("Complaint List")
-        .background(Color(.systemGroupedBackground))
-        .task {
-            if let userId = NetworkManager.shared.getUserIdFromToken() {
-                await viewModel.loadComplaints(byUserId: userId)
-            } else {
-                viewModel.errorMessage = "Failed to get user ID from token"
+        .navigationBarTitleDisplayMode(.large)
+        .toolbar {
+            ToolbarItem(placement: .navigationBarTrailing) {
+                Button(action: {
+                    isPresentingAddComplaint = true
+                }) {
+                    Image(systemName: "plus")
+                        .foregroundColor(.primaryBlue)
+                }
             }
         }
+
+        .sheet(isPresented: $isPresentingAddComplaint) {
+            NavigationStack {
+                ResidentAddComplaintView(
+                    unitViewModel: unitViewModel,
+                    complaintViewModel: ResidentAddComplaintViewModel(),
+                    complaintListViewModel: viewModel,
+                    onComplaintSubmitted: {
+                        print("🔥 DEBUG: onComplaintSubmitted called from COMPLAINT LIST VIEW")
+                        Task {
+                            if let userId = NetworkManager.shared.getUserIdFromToken() {
+                                print("🔥 DEBUG: Refreshing complaints with userId: \(userId)")
+                                await viewModel.loadComplaints(byUserId: userId)
+                                print("🔥 DEBUG: Refresh completed from complaint list")
+                            } else {
+                                print("🔥 DEBUG: No userId found for refresh")
+                            }
+                        }
+                    },
+                    classificationId: "75b125fd-a656-4fd8-a500-2f051b068171",
+                    latitude: 0.0,
+                    longitude: 0.0
+                )
+                .onAppear {
+                    print("🔥 DEBUG: AddComplaintView appeared from COMPLAINT LIST")
+                    print("🔥 DEBUG: unitViewModel units count: \(unitViewModel.claimedUnits.count)")
+                    print("🔥 DEBUG: unitViewModel selectedUnit: \(unitViewModel.selectedUnit?.name ?? "none")")
+                    print("🔥 DEBUG: complaintListViewModel complaints count: \(viewModel.complaints.count)")
+                    print("🔥 DEBUG: classificationId: 75b125fd-a656-4fd8-a500-2f051b068171")
+                    
+                    // Check if view models are properly initialized
+                    print("🔥 DEBUG: unitViewModel object: \(ObjectIdentifier(unitViewModel))")
+                    print("🔥 DEBUG: viewModel object: \(ObjectIdentifier(viewModel))")
+                }
+                .presentationDetents([.large])
+                .presentationDragIndicator(.visible)
+            }
+        }
+                .task {
+                    if let userId = NetworkManager.shared.getUserIdFromToken() {
+                        currentUserId = userId // ✅ Store it
+                        await viewModel.loadComplaints(byUserId: userId)
+                        await unitViewModel.loadUnits() // ✅ Load units too
+                    } else {
+                        viewModel.errorMessage = "Failed to get user ID from token"
+                    }
+                }
+            
+        
+
+        .background(Color(.systemGroupedBackground))
+        .task {
+                if let userId = NetworkManager.shared.getUserIdFromToken() {
+                    await viewModel.loadComplaints(byUserId: userId)
+                    await unitViewModel.loadUnits() // Load units
+                    
+                    // Set default selection like in working view
+                    if unitViewModel.selectedUnit == nil && !unitViewModel.claimedUnits.isEmpty {
+                        unitViewModel.selectedUnit = unitViewModel.claimedUnits.first
+                    }
+                }
+            }
         .alert("Error", isPresented: .constant(viewModel.errorMessage != nil)) {
             Button("OK") { viewModel.errorMessage = nil }
         } message: {

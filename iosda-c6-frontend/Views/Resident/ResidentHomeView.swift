@@ -16,11 +16,16 @@ struct ResidentHomeView: View {
     
     var onComplaintSubmitted: (() -> Void)? = nil
     
-    var waitingKeyComplaint: Complaint2? {
-        viewModel.complaints.first {
-            ComplaintStatus(raw: $0.statusName) == .waitingKeyHandover
+    // 🔑 Units that need key handover
+    var unitsNeedingKey: [Unit2] {
+        unitViewModel.claimedUnits.filter { unit in
+            viewModel.complaints.contains {
+                $0.unitId == unit.id &&
+                ComplaintStatus(raw: $0.statusName) == .waitingKeyHandover
+            }
         }
     }
+
 
     
     var body: some View {
@@ -111,19 +116,19 @@ struct ResidentHomeView: View {
                 })
                 .disabled(unitViewModel.claimedUnits.isEmpty) // Disable if no units available
                 
-                // 🔑 Submit Key Button
-                if let complaint = waitingKeyComplaint,
-                   let unit = unitViewModel.selectedUnit{
-                   //!detailViewModel.hasSubmittedKeyLog {   // 👈 same check
+                ForEach(unitsNeedingKey) { unit in
                     CustomButtonComponent(
                         text: "Submit Key for \(unit.name ?? "Unit")",
-                        backgroundColor: .primaryBlue
+                        backgroundColor: .logoGreen
                     ) {
+                        // ✅ just store unitId, no need to pick a single complaint
+                        detailViewModel.selectedUnitId = unit.id
                         showingPhotoUpload = true
                     }
-                    
                 }
-                
+
+
+
 
 
                 
@@ -148,7 +153,7 @@ struct ResidentHomeView: View {
                     if let id = userId {
                         NavigationLink(destination: ResidentComplaintListView(
                             viewModel: ResidentComplaintListViewModel(),
-                            userId: id
+                            userId: "someId"
                         )) {
                             Text("View All")
                                 .foregroundColor(.primaryBlue)
@@ -191,36 +196,35 @@ struct ResidentHomeView: View {
                 uploadAmount: .constant(1),
                 showTitleField: false,
                 showDescriptionField: true,
-
                 onStartWork: { images, _, description in
                     Task {
-                        if let complaint = waitingKeyComplaint,
-                           let unit = unitViewModel.selectedUnit,
+                        if let unitId = detailViewModel.selectedUnitId,
                            let userId = NetworkManager.shared.getUserIdFromToken() {
 
-                            // ✅ Make sure we use images from PhotoUploadSheet
                             let finalImages = images.isEmpty ? keyImage : images
                             let finalDescription = (description?.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ?? true)
                                 ? "Key handover submitted"
                                 : description!.trimmingCharacters(in: .whitespacesAndNewlines)
 
-                           
-
-                            let result = await detailViewModel.submitKeyHandoverEvidence(
-                                complaintId: complaint.id,
-                                unitId: unit.id,
-                                userId: userId,
-                                description: finalDescription,
-                                images: finalImages
-                            )
-
-               
-                            // 🔄 Refresh complaint list after submission
-                            await viewModel.loadComplaints(byUserId: userId)
-
-                            if let updated = viewModel.complaints.first(where: { $0.id == complaint.id }) {
-                               
+                            // ✅ Get all complaints in this unit that are waiting for key handover
+                            let complaintsForUnit = viewModel.complaints.filter {
+                                $0.unitId == unitId &&
+                                ComplaintStatus(raw: $0.statusName) == .waitingKeyHandover
                             }
+
+                            // ✅ Submit evidence for each complaint
+                            for complaint in complaintsForUnit {
+                                _ = await detailViewModel.submitKeyHandoverEvidence(
+                                    complaintId: complaint.id,
+                                    unitId: unitId,
+                                    userId: userId,
+                                    description: finalDescription,
+                                    images: finalImages
+                                )
+                            }
+
+                            // ✅ Refresh complaints for the user
+                            await viewModel.loadComplaints(byUserId: userId)
                         }
                         showingPhotoUpload = false
                     }
@@ -229,6 +233,8 @@ struct ResidentHomeView: View {
                     showingPhotoUpload = false
                 }
             )
+            .presentationDetents([.medium]) // makes it appear as a half sheet or full sheet
+                .presentationDragIndicator(.visible)
         }
 
 
@@ -279,6 +285,8 @@ struct ResidentHomeView: View {
                 latitude: 0.0,
                 longitude: 0.0
             )
+            .presentationDetents([.large]) // makes it appear as a half sheet or full sheet
+                .presentationDragIndicator(.visible)
         }
 
     }

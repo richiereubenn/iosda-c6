@@ -12,6 +12,7 @@ struct ResidentContentView: View {
         NavigationStack{
             ResidentHomeView(viewModel: ResidentComplaintListViewModel(), unitViewModel: ResidentUnitListViewModel())
         }
+        .tint(.primaryBlue)
     }
 }
 

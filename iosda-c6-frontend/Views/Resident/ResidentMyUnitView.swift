@@ -94,6 +94,7 @@ struct ResidentMyUnitView: View {
                 }
             }
         }
+        .background(Color(.systemGroupedBackground))
         .searchable(text: $searchText)
         .alert("Error", isPresented: .constant(viewModel.errorMessage != nil)) {
             Button("OK") {
@@ -122,6 +123,8 @@ struct ResidentMyUnitView: View {
                 selectedUnitCodeName: $selectedUnitCodeName,
                 selectedUnitCodeId: $selectedUnitCodeId
             )
+            .presentationDetents([.large]) // makes it appear as a half sheet or full sheet
+                .presentationDragIndicator(.visible)
         }
 
 

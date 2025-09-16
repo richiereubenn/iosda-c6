@@ -8,6 +8,7 @@
 import SwiftUI
 
 extension Color {
+    static let logoGreen = Color(red: 18/255, green: 152/255, blue: 116/255)
     static let primaryBlue = Color(red: 0/255, green: 62/255, blue: 126/255)
     static var cardBackground: Color {
             let scheme = UITraitCollection.current.userInterfaceStyle

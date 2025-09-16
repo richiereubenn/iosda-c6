@@ -9,6 +9,7 @@ struct ResidentComplainDetailView: View {
     @ObservedObject var viewModel = ResidentComplaintDetailViewModel()
     @State private var showingPhotoUpload = false
     private let progressLogService = ProgressLogService()
+    
 
 
 
@@ -193,7 +194,7 @@ struct ResidentComplainDetailView: View {
                complaint.residentStatus == .waitingKeyHandover{
               // !viewModel.hasSubmittedKeyLog {   
 
-                VStack(spacing: 0) {
+                //VStack(spacing: 0) {
                     CustomButtonComponent(
                         text: "Submit Key Handover Evidence",
                         backgroundColor: .primaryBlue
@@ -201,9 +202,9 @@ struct ResidentComplainDetailView: View {
                         showingPhotoUpload = true
                     }
                     .padding(.horizontal, 20)
-                    .padding(.bottom, 20)
-                    .background(Color(.systemBackground))
-                }
+                                .padding(.vertical, 20)
+                                .background(.thinMaterial)
+               // }
             }
         }
 
@@ -235,13 +236,29 @@ struct ResidentComplainDetailView: View {
 
                        
 
-                        let result = await viewModel.submitKeyHandoverEvidence(
-                            complaintId: complaint.id,
-                            unitId: unitId,
-                            userId: userId,
-                            description: finalDescription,
-                            images: images   // ✅ pass photos correctly
-                        )
+//                        let result = await viewModel.submitKeyHandoverEvidence(
+//                            complaintId: complaint.id,
+//                            unitId: unitId,
+//                            userId: userId,
+//                            description: finalDescription,
+//                            images: images   // ✅ pass photos correctly
+//                        )
+                        // 🔑 Get all complaints for this unit that are waiting for key handover
+                        let complaintsForUnit = await viewModel.getComplaintsForUnit(unitId: unitId).filter {
+                            ComplaintStatus(raw: $0.statusName) == .waitingKeyHandover
+                        }
+
+                        // 🔄 Submit evidence for each complaint
+                        for c in complaintsForUnit {
+                            _ = await viewModel.submitKeyHandoverEvidence(
+                                complaintId: c.id,
+                                unitId: unitId,
+                                userId: userId,
+                                description: finalDescription,
+                                images: images
+                            )
+                        }
+
 
                      
                         // ✅ Close sheet
@@ -252,6 +269,8 @@ struct ResidentComplainDetailView: View {
                     showingPhotoUpload = false
                 }
             )
+            .presentationDetents([.medium]) // makes it appear as a half sheet or full sheet
+            .presentationDragIndicator(.visible)
         }
 
         .task {

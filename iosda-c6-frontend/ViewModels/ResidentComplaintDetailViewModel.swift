@@ -12,7 +12,9 @@ class ResidentComplaintDetailViewModel: ObservableObject {
     @Published var firstProgress: ProgressLog2? = nil
     @Published var progressLogs: [ProgressLog2] = []
     @Published var isSubmitting: Bool = false
-    
+    @Published var selectedComplaintId: String?
+    @Published var selectedUnitId: String?
+
     private let service: ComplaintServiceProtocol2
     private let unitService: UnitServiceProtocol2
     private let progressService: ProgressLogServiceProtocol
@@ -247,5 +249,15 @@ class ResidentComplaintDetailViewModel: ObservableObject {
                 return nil
             }
         }
+    
+    func getComplaintsForUnit(unitId: String) async -> [Complaint2] {
+        do {
+            return try await service.getComplaintsByUnitId(unitId)
+        } catch {
+            print("Failed to fetch complaints for unit: \(error)")
+            return []
+        }
+    }
+
 }
 

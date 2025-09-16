@@ -43,7 +43,7 @@ struct BIHomepage: View {
                 SummaryComplaintCard(
                     title: "Total Units Complaint",
                     count: viewModel.totalActiveUnits,
-                    category: " Complaint",
+                    category: " Units",
                     backgroundColor: Color.blue,
                     icon: "building.2.fill"
                 )
@@ -54,7 +54,7 @@ struct BIHomepage: View {
                 SummaryComplaintCard(
                     title: "Total Complaints",
                     count: viewModel.totalActiveComplaints,
-                    category: " Complaint",
+                    category: " Complaints",
                     backgroundColor: Color.red,
                     icon: "exclamationmark.bubble.fill"
                 )

@@ -31,7 +31,7 @@ struct BSCBuildingUnitComplainListView: View {
                                 SummaryComplaintCard(
                                     title: "Total Units",
                                     count: viewModel.totalActiveUnits,
-                                    category: " Complaint",
+                                    category: " Unit",
                                     backgroundColor: Color.blue,
                                     icon: "building.2.fill"
                                 )
@@ -39,7 +39,7 @@ struct BSCBuildingUnitComplainListView: View {
                                 SummaryComplaintCard(
                                     title: "Total Complaints",
                                     count: viewModel.totalActiveComplaints,
-                                    category: " Unit",
+                                    category: " Complaints",
                                     backgroundColor: Color.red,
                                     icon: "building.2.fill"
                                 )

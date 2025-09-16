@@ -35,7 +35,7 @@ struct BSCComplainDetailView: View {
                     ScrollView {
                         VStack(spacing: 20) {
                             headerSection(complaint: complaint)
-                            Text("Complain Description")
+                            Text("Complaint Description")
                                 .font(.headline)
                                 .frame(maxWidth: .infinity, alignment: .leading)
                             detailsSection(complaint: complaint)
@@ -50,7 +50,7 @@ struct BSCComplainDetailView: View {
                 }
             }
         }
-        .navigationTitle("Detail Complain")
+        .navigationTitle("Complaint Detail")
         .navigationBarTitleDisplayMode(.large)
         .task {
             await viewModel.loadComplaint(byId: complaintId)
@@ -75,7 +75,7 @@ struct BSCComplainDetailView: View {
                 }
             }
         } message: {
-            Text("Explain why you reject this issue")
+            Text("Please explain the reason for rejection")
         }
     }
     
@@ -99,30 +99,28 @@ struct BSCComplainDetailView: View {
     
     private func residenceProfile(complaint: Complaint2) -> some View {
         VStack(alignment: .leading, spacing: 12) {
-            Text("Residence Profile")
+            Text("Resident Profile")
                 .font(.headline)
             GroupedCard {
                 VStack(spacing: 5) {
                     DataRowComponent(
-                    label: "Nama:",
-                    value: viewModel.resident?.name ?? "–"
-                )
-                DataRowComponent(
-                    label: "Nomor HP:",
-                    value: viewModel.resident?.phone ?? "–"
-                )
-                DataRowComponent(
-                    label: "Kode Rumah:",
-                    value: viewModel.unit?.unitNumber ?? "–"
-                )
-                DataRowComponent(
-                    label: "Tanggal ST:",
-                    value: viewModel.unit?.handoverDate.map {
-                        formatDate($0, format: "dd/MM/yyyy")
-                    } ?? "-"
-                )
-
-
+                        label: "Name:",
+                        value: viewModel.resident?.name ?? "–"
+                    )
+                    DataRowComponent(
+                        label: "Phone Number:",
+                        value: viewModel.resident?.phone ?? "–"
+                    )
+                    DataRowComponent(
+                        label: "House Code:",
+                        value: viewModel.unit?.unitNumber ?? "–"
+                    )
+                    DataRowComponent(
+                        label: "Handover Date:",
+                        value: viewModel.unit?.handoverDate.map {
+                            formatDate($0, format: "dd/MM/yyyy")
+                        } ?? "-"
+                    )
                 }
             }
         }
@@ -130,12 +128,12 @@ struct BSCComplainDetailView: View {
     
     private func statusComplain(complaint: Complaint2) -> some View {
         VStack(alignment: .leading, spacing: 12) {
-            Text("Status Complain")
+            Text("Complaint Status")
                 .font(.headline)
             GroupedCard {
                 VStack(spacing: 5) {
                     DataRowComponent(
-                        label: "Tanggal Masuk:",
+                        label: "Submitted At:",
                         value: complaint.createdAt.map { formatDate($0, format: "HH:mm dd/MM/yyyy") } ?? "-"
                     )
 
@@ -147,15 +145,13 @@ struct BSCComplainDetailView: View {
                         Spacer()
                     }
                     DataRowComponent(
-                        label: "Key Method:",
+                        label: "Key Handover Method:",
                         value: complaint.handoverMethod?.displayName ?? "-"
                     )
                     DataRowComponent(
                         label: "Deadline:",
                         value: complaint.duedate.map { formatDate($0, format: "HH:mm dd/MM/yyyy") } ?? "-"
                     )
-
-
                 }
             }
         }
@@ -219,14 +215,14 @@ struct BSCComplainDetailView: View {
                 if complaint.statusName?.lowercased() != "under review by bsc" {
                     if let savedClassification = viewModel.classification {
                         DataRowComponent(
-                            label: "Kategori: ",
+                            label: "Category: ",
                             value: savedClassification.name
                         )
                     } else {
                         Text("-")
                     }
                 } else {
-                    Text("Kategori: ")
+                    Text("Category: ")
                         .font(.subheadline)
                         .minimumScaleFactor(0.8)
                         .lineLimit(1)
@@ -236,7 +232,7 @@ struct BSCComplainDetailView: View {
                         Text("Loading categories...")
                             .foregroundColor(.gray)
                     } else {
-                        Picker("Pilih Kategori", selection: $viewModel.selectedCategory) {
+                        Picker("Select Category", selection: $viewModel.selectedCategory) {
                             ForEach(viewModel.uniqueCategories, id: \.self) { category in
                                 Text(category).tag(category as String?)
                             }
@@ -260,25 +256,25 @@ struct BSCComplainDetailView: View {
                 if complaint.statusName?.lowercased() != "under review by bsc" {
                     if let savedClassification = viewModel.classification {
                         DataRowComponent(
-                            label: "Detail Kerusakan: ",
+                            label: "Damage Detail: ",
                             value: savedClassification.workDetail ?? "-"
                         )
                     } else {
                         Text("-")
                     }
                 } else {
-                    Text("Detail Kerusakan: ")
+                    Text("Damage Detail: ")
                         .font(.subheadline)
                         .minimumScaleFactor(0.8)
                         .lineLimit(1)
                         .foregroundColor(.gray)
 
                     if viewModel.workDetailsForSelectedCategory.isEmpty {
-                        Text("Loading categories...")
+                        Text("Loading details...")
                             .foregroundColor(.gray)
                     } else {
-                        Picker("Pilih Detail Kerusakan", selection: $viewModel.selectedWorkDetail) {
-                            Text("Pilih Detail Kerusakan").tag(nil as String?)
+                        Picker("Select Damage Detail", selection: $viewModel.selectedWorkDetail) {
+                            Text("Select Damage Detail").tag(nil as String?)
                             ForEach(viewModel.workDetailsForSelectedCategory, id: \.self) { detail in
                                 Text(detail).tag(detail as String?)
                             }
@@ -306,11 +302,11 @@ struct BSCComplainDetailView: View {
     
     private var requirementsSection: some View {
         VStack(alignment: .leading, spacing: 12) {
-            Text("Syarat").font(.headline)
+            Text("Requirements").font(.headline)
             GroupedCard {
                 VStack(spacing: 5) {
                     RequirementsCheckbox(
-                        text: "Garansi",
+                        text: "Warranty",
                         isChecked: viewModel.selectedComplaint != nil ?
                             viewModel.unit != nil && viewModel.classification != nil ?
                                 BSCBuildingUnitComplainListViewModel().isWarrantyValid(
@@ -322,7 +318,7 @@ struct BSCComplainDetailView: View {
                         onToggle: { garansiChecked.toggle() }
                     )
                     RequirementsCheckbox(
-                        text: "Izin Renovasi",
+                        text: "Renovation Permit",
                         isChecked: viewModel.unit?.renovationPermit ?? false,
                         onToggle: { izinRenovasiChecked.toggle() }
                     )

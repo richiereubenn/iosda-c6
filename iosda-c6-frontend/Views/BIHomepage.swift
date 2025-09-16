@@ -11,14 +11,17 @@ struct BIHomepage: View {
     @StateObject private var viewModel = BIHomepageViewModel()
     
     var body: some View {
-        VStack(spacing: 16) {
+        VStack(spacing: 8) {
             // Header
             HStack {
-                Text("CiputraHelp") 
+                Image("ciputra_logo")
+                    .resizable()
+                    .frame(width: 50, height: 40)
+                
+                Text("Ciputra Help")
                     .font(.largeTitle)
                     .fontWeight(.bold)
-                    .accessibilityAddTraits(.isHeader)
-
+                
                 Spacer()
                 
                 HStack(spacing: 15) {
@@ -26,17 +29,16 @@ struct BIHomepage: View {
                         Image(systemName: "bell")
                             .foregroundColor(.primaryBlue)
                             .font(.title2)
-                            .accessibilityLabel("Notifications")
                     }
                     
                     Button(action: {}) {
                         Image(systemName: "person.circle")
                             .foregroundColor(.primaryBlue)
                             .font(.title2)
-                            .accessibilityLabel("Profile")
                     }
                 }
             }
+            .padding(.bottom, 10)
             
             // Summary Cards ambil dari ViewModel
             HStack(spacing: 16) {
@@ -61,7 +63,7 @@ struct BIHomepage: View {
             
             // Latest Complaints header
             HStack {
-                Text("Latest Complaints from Units")
+                Text("Recent Unit Complaints")
                     .font(.system(size: 20, weight: .bold))
                     .foregroundColor(.primary)
                     .accessibilityAddTraits(.isHeader)

@@ -13,24 +13,14 @@ struct BIComplaintListView: View {
     @StateObject var viewModel = ComplaintListViewModel2()
     
     var body: some View {
-        VStack {
-            // Tampilkan info filter saat ini
-            if !viewModel.isLoading {
-                HStack {
-                    Text("Filter: \(viewModel.selectedFilter.rawValue)")
-                        .font(.subheadline)
-                        .foregroundColor(.secondary)
-                    Spacer()
-                }
-                .padding(.horizontal)
-            }
+        ZStack {
+            Color(.systemGroupedBackground)
+                .ignoresSafeArea()
             
-            if viewModel.isLoading {
-                ProgressView("Loading...")
-            } else if viewModel.filteredComplaints.isEmpty {
-                ZStack {
-                    Color(.systemGroupedBackground).ignoresSafeArea()
-                    
+            Group {
+                if viewModel.isLoading {
+                    ProgressView("Loading...")
+                } else if viewModel.filteredComplaints.isEmpty {
                     VStack(spacing: 12) {
                         Image(systemName: "doc.text")
                             .font(.title)
@@ -41,15 +31,26 @@ struct BIComplaintListView: View {
                             .minimumScaleFactor(0.8)
                             .lineLimit(2)
                     }
-                }
-            } else {
-                ScrollView {
-                    VStack(spacing: 12) {
-                        ForEach(viewModel.filteredComplaints) { complaint in
-                            ComplaintRow(complaint: complaint)
+                } else {
+                    VStack {
+                        // Tampilkan info filter
+                        HStack {
+                            Text("Filter: \(viewModel.selectedFilter.rawValue)")
+                                .font(.subheadline)
+                                .foregroundColor(.secondary)
+                            Spacer()
+                        }
+                        .padding(.horizontal)
+                        
+                        ScrollView {
+                            VStack(spacing: 12) {
+                                ForEach(viewModel.filteredComplaints) { complaint in
+                                    ComplaintRow(complaint: complaint)
+                                }
+                            }
+                            .padding(.horizontal)
                         }
                     }
-                    .padding(.horizontal)
                 }
             }
         }
@@ -82,9 +83,9 @@ struct BIComplaintListView: View {
         } message: {
             Text(viewModel.errorMessage ?? "")
         }
-        .background(Color(.systemGroupedBackground))
     }
 }
+
 
 // MARK: - ComplaintRow Subview
 struct ComplaintRow: View {

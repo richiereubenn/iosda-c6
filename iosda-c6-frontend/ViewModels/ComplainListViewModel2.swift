@@ -223,7 +223,7 @@ class ComplaintListViewModel2: ObservableObject {
                     statusId: "06d2b0a3-afc8-400c-b4b4-bdcee995f35f"
                 )
                 
-                try await _=progressLogService.createProgress(complaintId: complaint.id, userId: userId, title: "Kunci diterima", description: "Kunci berhasil di terima oleh BSC", files: [])
+                try await _=progressLogService.createProgress(complaintId: complaint.id, userId: userId, title: "Key received", description: "The key has been successfully received by Citraland Management", files: [])
                 
                 if let idx = complaints.firstIndex(where: { $0.id == updatedComplaint.id }) {
                     complaints[idx] = updatedComplaint

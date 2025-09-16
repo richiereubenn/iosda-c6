@@ -77,10 +77,10 @@ struct ResidentAddUnitView: View {
     
     var body: some View {
         VStack{
-            RoundedRectangle(cornerRadius: 3)
-                .fill(Color.gray.opacity(0.4))
-                .frame(width: 40, height: 5)
-                .padding(.top, 10)
+//            RoundedRectangle(cornerRadius: 3)
+//                .fill(Color.gray.opacity(0.4))
+//                .frame(width: 40, height: 5)
+//                .padding(.top, 10)
             
         NavigationStack{
                 

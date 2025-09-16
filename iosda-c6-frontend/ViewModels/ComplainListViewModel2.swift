@@ -14,6 +14,7 @@ class ComplaintListViewModel2: ObservableObject {
     @Published var filteredComplaints: [Complaint2] = []
     @Published var isLoading: Bool = false
     @Published var errorMessage: String? = nil
+    @Published var unitName: String = ""
     
     @Published var selectedFilter: ComplaintFilter = .all {
         didSet { applyFilters() }
@@ -69,15 +70,25 @@ class ComplaintListViewModel2: ObservableObject {
     func loadComplaints(byUnitId unitId: String) async {
         isLoading = true
         defer { isLoading = false }
-        
+
         do {
+            // load nama unit dulu biar title langsung update
+            Task {
+                if let unit = try? await UnitService2().getUnitById(unitId) {
+                    self.unitName = unit.name ?? "Unit"
+                }
+            }
+
+            // lalu load complaints
             let data = try await service.getComplaintsByUnitId(unitId)
-            complaints = data
+            self.complaints = data
             applyFilters()
         } catch {
             errorMessage = "Failed to load complaints for unit \(unitId): \(error.localizedDescription)"
         }
     }
+
+
     
     private func applyFilters() {
         var results = complaints

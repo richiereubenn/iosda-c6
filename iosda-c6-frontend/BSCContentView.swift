@@ -48,6 +48,7 @@ struct BSCContentView: View {
             }
             
         }
+        .tint(.primaryBlue)
     }
 }
 

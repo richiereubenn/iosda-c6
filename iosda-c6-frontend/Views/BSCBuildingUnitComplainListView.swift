@@ -11,55 +11,61 @@ struct BSCBuildingUnitComplainListView: View {
     @StateObject private var viewModel = BSCBuildingUnitComplainListViewModel()
     
     var body: some View {
-            NavigationStack {
-                Group {
-                    if viewModel.isLoading {
-                        // Loading screen bawaan Apple
-                        VStack {
-                            ProgressView()
-                                .progressViewStyle(CircularProgressViewStyle())
-                                .scaleEffect(1.5)
-                            Text("Loading...")
-                                .font(.headline)
-                                .padding(.top, 8)
-                        }
-                        .frame(maxWidth: .infinity, maxHeight: .infinity)
-                    } else {
-                        // Konten utama
-                        VStack(spacing: 16) {
-                            HStack(spacing: 16) {
-                                SummaryComplaintCard(
-                                    title: "Total Units",
-                                    count: viewModel.totalActiveUnits,
-                                    category: " Unit",
-                                    backgroundColor: Color.blue,
-                                    icon: "building.2.fill"
-                                )
-                                
-                                SummaryComplaintCard(
-                                    title: "Total Complaints",
-                                    count: viewModel.totalActiveComplaints,
-                                    category: " Complaints",
-                                    backgroundColor: Color.red,
-                                    icon: "building.2.fill"
-                                )
-                            }
+        NavigationStack {
+            Group {
+                if viewModel.isLoading {
+                    VStack {
+                        ProgressView()
+                            .progressViewStyle(CircularProgressViewStyle())
+                            .scaleEffect(1.5)
+                        Text("Loading...")
+                            .font(.headline)
+                            .padding(.top, 8)
+                    }
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                } else {
+                    // Konten utama
+                    VStack(spacing: 16) {
+                        HStack(spacing: 16) {
+                            SummaryComplaintCard(
+                                title: "Total Units",
+                                count: viewModel.totalActiveUnits,
+                                category: " Units",
+                                backgroundColor: Color(Color.primaryBlue),
+                                icon: "building.2.fill"
+                            )
                             
-                            unitListScrollView()
+                            SummaryComplaintCard(
+                                title: "Total Complaints",
+                                count: viewModel.totalActiveComplaints,
+                                category: " Complaints",
+                                backgroundColor: Color(red: 10/255, green: 100/255, blue: 80/255),
+                                icon: "exclamationmark.bubble.fill"
+                            )
                         }
-                        .padding(.horizontal)
-                        .padding(.top)
-                        .background(Color(.systemGroupedBackground))
-                        .searchable(text: $viewModel.searchText)
+                        
+                        unitListScrollView()
+                    }
+                    .padding(.horizontal)
+                    .padding(.top)
+                    .background(Color(.systemGroupedBackground))
+                    .searchable(text: $viewModel.searchText)
+                    .toolbar {
+                        ToolbarItem(placement: .navigationBarTrailing) {
+                            Image(systemName: "line.3.horizontal.decrease.circle")
+                                .font(.title2)
+                                .foregroundColor(.primaryBlue)
+                        }
                     }
                 }
-                .navigationTitle("Building Complain List")
-                .task {
-                    await viewModel.fetchUnits()
-                    await viewModel.fetchSummary()
-                }
+            }
+            .navigationTitle("Building Complain List")
+            .task {
+                await viewModel.fetchUnits()
+                await viewModel.fetchSummary()
             }
         }
+    }
     
     @ViewBuilder
     private func unitListScrollView() -> some View {
@@ -70,17 +76,17 @@ struct BSCBuildingUnitComplainListView: View {
                 ForEach(units) { unit in
                     let summary = viewModel.getComplaintCounts(for: unit.id)
                     
-                    NavigationLink(destination: BSCComplaintListView(unitId: unit.id)) {
+                    NavigationLink(destination: BSCComplaintListView(unitId: unit.id, unitName: unit.name!)) {
                         UnitComplainCard(
                             unitCode: unit.name ?? "Unknown",
-                            latestComplaintDate: formatDate(unit.createdAt!, format: "dd MMM yyyy | HH:mm:ss"),
+                            latestComplaintDate: formatDate(unit.createdAt!, format: "dd MMM yyyy"),
                             totalComplaints: summary.total,
                             completedComplaints: summary.completed
                         )
                     }
                     .contentShape(Rectangle())
                 }
-
+                
             }
         }
         

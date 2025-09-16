@@ -42,9 +42,9 @@ enum ComplaintStatus: String {
     var color: Color {
         switch self {
         case .open: return .red
-        case .underReviewbByBSC: return .yellow
-        case .underReviewByBI: return .yellow
-        case .waitingKeyHandover: return .orange
+        case .underReviewbByBSC: return .orange
+        case .underReviewByBI: return .orange
+        case .waitingKeyHandover: return .brown
         case .inProgress: return .blue
         case .resolved: return .green
         case .rejected: return .red

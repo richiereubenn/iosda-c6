@@ -18,7 +18,7 @@ struct PhotoUploadCard: View {
             ZStack {
                 RoundedRectangle(cornerRadius: 8)
                     .fill(Color.gray.opacity(0.1))
-                    .frame(height: 120)
+                    .frame(maxWidth: .infinity, minHeight: 120)
                     .overlay(
                         RoundedRectangle(cornerRadius: 8)
                             .stroke(Color.gray.opacity(0.3), lineWidth: 1)
@@ -28,7 +28,7 @@ struct PhotoUploadCard: View {
                     ZStack(alignment: .topTrailing) {
                         Image(uiImage: image)
                             .resizable()
-                            .aspectRatio(contentMode: .fill)
+                            .scaledToFill()
                             .frame(height: 120)
                             .clipped()
                             .cornerRadius(8)

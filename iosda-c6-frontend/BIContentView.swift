@@ -12,6 +12,7 @@ struct BIContentView: View {
         NavigationStack {
             BIHomepage()
         }
+        .tint(.primaryBlue)
     }
 }
 

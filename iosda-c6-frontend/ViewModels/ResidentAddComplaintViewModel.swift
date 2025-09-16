@@ -50,7 +50,7 @@ class ResidentAddComplaintViewModel: ObservableObject {
         unitService: UnitServiceProtocol2 = UnitService2(),
         progressLogService: ProgressLogServiceProtocol = ProgressLogService(), // Add this
         classificationService: ClassificationServiceProtocol = ClassificationService(),
-        classificationAI: ClassificationAIServiceProtocol = ClassificationAIService(),
+        classificationAI: ClassificationAIServiceProtocol = ClassificationAIService()
         
     ) {
         self.complaintService = complaintService

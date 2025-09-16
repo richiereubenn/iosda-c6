@@ -248,7 +248,7 @@ struct BIComplaintDetailView: View {
                             backgroundColor: .primaryBlue,
                             textColor: .white
                         ) {
-                            sheetTitle = "Start this Work"
+                            sheetTitle = "The task is currently in progress"
                             sheetDescription = "This will set the work status to 'In Progress'."
                             sheetUploadAmount = 2
                             statusId = "ba1b0384-9c57-4c34-a70b-2ed7e44b7ce0"
@@ -263,9 +263,9 @@ struct BIComplaintDetailView: View {
                             backgroundColor: .orange,
                             textColor: .white
                         ) {
+                            sheetTitle = "New progress has been added"
                             successMessage = "New Progress Log Added"
                             showPhotoUploadSheet = true
-                            sheetTitle = "Add Progress"
                             sheetDescription = "Upload progress updates with photos and notes about the current work status."
                             statusId = "ba1b0384-9c57-4c34-a70b-2ed7e44b7ce0"
                             sheetUploadAmount = 1
@@ -276,9 +276,9 @@ struct BIComplaintDetailView: View {
                             backgroundColor: .primaryBlue,
                             textColor: .white
                         ) {
+                            sheetTitle = "The task is complete"
                             successMessage = "Status updated to \"Resolved\""
                             showPhotoUploadSheet = true
-                            sheetTitle = "Complete Work"
                             sheetDescription = "This will set the work status to 'Resolved'."
                             sheetUploadAmount = 2
                             statusId = "c1eaf31c-1140-47bc-bebe-c22c62ac45e5"

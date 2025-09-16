@@ -18,6 +18,7 @@ struct BSCComplainDetailView: View {
     @State private var izinRenovasiChecked = true
     @State private var showRejectAlert = false
     @State private var rejectionReason = ""
+    @State private var showSuccessAlert = false
     
     
     private var isConfirmDisabled: Bool {
@@ -56,6 +57,9 @@ struct BSCComplainDetailView: View {
         .task {
             await viewModel.loadComplaint(byId: complaintId)
             await viewModel.loadClassifications(defaultId: viewModel.classification?.id)
+        }
+        .alert("Complaint Confirmed Successfully", isPresented: $showSuccessAlert) {
+            Button("OK", role: .cancel) { showSuccessAlert = false }
         }
         .alert("Do you want to reject this issue?", isPresented: $showRejectAlert) {
             TextField("Explain why you reject this issue", text: $rejectionReason, axis: .vertical)
@@ -137,7 +141,7 @@ struct BSCComplainDetailView: View {
                         label: "Submitted At:",
                         value: complaint.createdAt.map { formatDate($0, format: "HH:mm dd/MM/yyyy") } ?? "-"
                     )
-
+                    
                     HStack {
                         Text("Status:")
                             .foregroundColor(.gray)
@@ -228,7 +232,7 @@ struct BSCComplainDetailView: View {
                         .minimumScaleFactor(0.8)
                         .lineLimit(1)
                         .foregroundColor(.gray)
-
+                    
                     if viewModel.uniqueCategories.isEmpty {
                         Text("Loading categories...")
                             .foregroundColor(.gray)
@@ -269,7 +273,7 @@ struct BSCComplainDetailView: View {
                         .minimumScaleFactor(0.8)
                         .lineLimit(1)
                         .foregroundColor(.gray)
-
+                    
                     if viewModel.workDetailsForSelectedCategory.isEmpty {
                         Text("Loading details...")
                             .foregroundColor(.gray)
@@ -308,13 +312,13 @@ struct BSCComplainDetailView: View {
                     RequirementsCheckbox(
                         text: "Warranty",
                         isChecked: viewModel.selectedComplaint != nil ?
-                            viewModel.unit != nil && viewModel.classification != nil ?
-                                BSCBuildingUnitComplainListViewModel().isWarrantyValid(
-                                    for: viewModel.selectedComplaint!,
-                                    unit: viewModel.unit,
-                                    classification: viewModel.classification
-                                ) : false
-                            : false,
+                        viewModel.unit != nil && viewModel.classification != nil ?
+                        BSCBuildingUnitComplainListViewModel().isWarrantyValid(
+                            for: viewModel.selectedComplaint!,
+                            unit: viewModel.unit,
+                            classification: viewModel.classification
+                        ) : false
+                        : false,
                         onToggle: { garansiChecked.toggle() }
                     )
                     RequirementsCheckbox(
@@ -341,6 +345,19 @@ struct BSCComplainDetailView: View {
                         Task {
                             await viewModel.updateClassification()
                             await viewModel.updateStatus(to: "8e8f0a90-36eb-4a7f-aad0-ee2e59fd9b8f")
+                            
+                            showSuccessAlert = true
+                            let progressService = ProgressLogService()
+                            do {
+                                _ = try await progressService.createProgress(
+                                    complaintId: complaintId,
+                                    userId: "376db8a1-b5e0-4c97-a277-e18e46237921", // ganti dengan user id yang sesuai
+                                    title: "Complaint Confirmed Successfully",
+                                    description: "The complaint has been reviewed and accepted."
+                                )
+                            } catch {
+                                print("Failed to create progress log: \(error.localizedDescription)")
+                            }
                         }
                     }
                     

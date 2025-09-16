@@ -109,19 +109,26 @@ struct ResidentHomeView: View {
                 
                 // 🔑 Submit Key Button
                 if let complaint = waitingKeyComplaint,
-                   let unit = unitViewModel.selectedUnit {
+                   let unit = unitViewModel.selectedUnit{
+                   //!detailViewModel.hasSubmittedKeyLog {   // 👈 same check
                     CustomButtonComponent(
                         text: "Submit Key for \(unit.name ?? "Unit")",
                         backgroundColor: .primaryBlue
                     ) {
                         showingPhotoUpload = true
                     }
-
+                    
                 }
+                
 
 
                 
             }
+//            .task {
+//                if let unitId = waitingKeyComplaint?.unitId {
+//                    await detailViewModel.loadKeyLogs(unitId: unitId)
+//                }
+//            }
             .padding(.horizontal, 20)
             .padding(.vertical, 20)
             
@@ -152,9 +159,18 @@ struct ResidentHomeView: View {
                 ScrollView {
                     LazyVStack(spacing: 15) {
                         ForEach(viewModel.complaints.prefix(5)) { complaint in
-                            NavigationLink(destination: ResidentComplainDetailView(complaintId: complaint.id)) {
-                                ResidentComplaintCard(complaint: complaint)
+                            NavigationLink(
+                                destination: ResidentComplainDetailView(
+                                    complaintId: complaint.id,
+                                    viewModel: detailViewModel   // 👈 pass the same one
+                                )
+                            ) {
+                                ResidentComplaintCard(
+                                    complaint: complaint,
+                                    unitName: viewModel.unitNames[complaint.unitId ?? ""]
+                                )
                             }
+
                             .buttonStyle(PlainButtonStyle())
                         }
                     }
@@ -184,7 +200,7 @@ struct ResidentHomeView: View {
                                 ? "Key handover submitted"
                                 : description!.trimmingCharacters(in: .whitespacesAndNewlines)
 
-                            print("🚀 Calling submitKeyHandoverEvidence with description: '\(finalDescription)'")
+                           
 
                             let result = await detailViewModel.submitKeyHandoverEvidence(
                                 complaintId: complaint.id,
@@ -194,13 +210,12 @@ struct ResidentHomeView: View {
                                 images: finalImages
                             )
 
-                            print("🔍 Function returned: \(result != nil ? "Success" : "Failed")")
-
+               
                             // 🔄 Refresh complaint list after submission
                             await viewModel.loadComplaints(byUserId: userId)
 
                             if let updated = viewModel.complaints.first(where: { $0.id == complaint.id }) {
-                                print("🔄 Updated complaint status: \(updated.statusName)")
+                               
                             }
                         }
                         showingPhotoUpload = false

@@ -45,9 +45,9 @@ class LoginViewModel: ObservableObject {
                 
                 self.loggedInUser = user
                 if let userId = NetworkManager.shared.getUserIdFromToken() {
-                    print("✅ Logged in user ID: \(userId)")
+                    print("Logged in user ID: \(userId)")
                 } else {
-                    print("⚠️ Failed to decode user ID from token")
+                    print("Failed to decode user ID from token")
                 }
                 
             } catch {

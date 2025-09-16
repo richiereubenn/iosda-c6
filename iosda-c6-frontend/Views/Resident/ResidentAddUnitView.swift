@@ -39,11 +39,11 @@ struct ResidentAddUnitView: View {
     @State private var blockLoadError: String?
     private var filteredBlocks: [Block] {
         guard let area = filteredAreas.first(where: { $0.name == selectedAreaName }) else {
-            print("❌ No matching area for selectedAreaName: \(selectedAreaName)")
+         
             return []
         }
         let matchingBlocks = allBlocks.filter { $0.areaId == area.id }
-        print("✅ Found \(matchingBlocks.count) blocks for area: \(area.name) (areaId: \(area.id))")
+        
         return matchingBlocks
     }
 
@@ -52,11 +52,11 @@ struct ResidentAddUnitView: View {
     @State private var unitCodeLoadError: String?
     private var filteredUnitCodes: [UnitCode] {
         guard let block = filteredBlocks.first(where: { $0.name == selectedBlockName }) else {
-            print("❌ No matching area for selectedAreaName: \(selectedBlockName)")
+         
             return []
         }
         let matchingUnitCode = unitCodes.filter { $0.blockId == block.id }
-        print("✅ Found \(matchingUnitCode.count) units for block: \(block.name) (blockId: \(block.id))")
+    
         return matchingUnitCode
     }
 
@@ -303,12 +303,12 @@ struct ResidentAddUnitView: View {
         do {
             let service = BlockService()
             let fetchedBlocks = try await service.getAllBlocks()
-            print("✅ Blocks fetched: \(fetchedBlocks.map { "\($0.name) - areaId: \($0.areaId)" })")
+        
             DispatchQueue.main.async {
                 self.allBlocks = fetchedBlocks
             }
         } catch {
-            print("❌ Failed to fetch blocks: \(error)")
+           
             DispatchQueue.main.async {
                 self.blockLoadError = "Failed to load blocks"
             }

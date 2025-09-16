@@ -58,11 +58,6 @@ class AddUnitViewModel: ObservableObject {
                return
            }
         
-        print("🔹 Submitting unit claim...")
-        print("📦 Constructed name: \(areaName) - \(unitCodeName)")
-        print("👤 residentId: \(residentId)")
-        print("🏷️ unitCodeId: \(unitCodeId)")
-        
         guard !areaName.isEmpty, !unitCodeName.isEmpty, !residentId.isEmpty else {
             errorMessage = "Please fill in all required fields."
             return
@@ -93,7 +88,7 @@ class AddUnitViewModel: ObservableObject {
                 userId: residentId,
                 detail: "resident"
             )
-            print("📝 KeyLog created for resident with unitId: \(unitId)")
+            print("KeyLog created for resident with unitId: \(unitId)")
 
                   
                   successMessage = "Unit claim submitted successfully: \(createdUnit.name ?? "")"

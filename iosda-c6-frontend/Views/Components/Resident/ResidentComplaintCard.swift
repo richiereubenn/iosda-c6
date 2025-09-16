@@ -2,6 +2,7 @@ import SwiftUI
 
 struct ResidentComplaintCard: View {
     let complaint: Complaint2
+    let unitName: String?
     
     private var status: ComplaintStatus {
         ComplaintStatus(raw: complaint.statusName)
@@ -36,11 +37,17 @@ struct ResidentComplaintCard: View {
                 .minimumScaleFactor(0.8)
             
             HStack {
-                Text(formatDate(complaint.openTimestamp ?? Date(), format: "HH:mm dd/MM/yyyy"))
+//                Text(formatDate(complaint.openTimestamp ?? Date(), format: "HH:mm dd/MM/yyyy"))
+//                    .font(.subheadline)
+//                    .foregroundColor(.secondary)
+//                    .lineLimit(1)
+//                    .minimumScaleFactor(0.8)
+                Text(unitName ?? "Unknown Unit")   // 👈 show unit name here
                     .font(.subheadline)
                     .foregroundColor(.secondary)
                     .lineLimit(1)
                     .minimumScaleFactor(0.8)
+
                 
                 Spacer()
                 

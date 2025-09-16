@@ -12,14 +12,22 @@ struct LoginView: View {
             GeometryReader { geo in
                 ZStack {
                     // Background logo watermark
-                    Image("ciputra_logo")
-                        .resizable()
-                        .scaledToFit()
-                        .opacity(0.05)
-                        .frame(width: geo.size.width * 1.4)
-                        .position(x: geo.size.width / 2, y: geo.size.height / 2) // center watermark
+//                    Image("ciputra_logo")
+//                        .resizable()
+//                        .scaledToFit()
+//                        .opacity(0.05)
+//                        .frame(width: geo.size.width * 1.4)
+//                        .position(x: geo.size.width / 2, y: geo.size.height / 2) // center watermark
                     
                     VStack(alignment: .leading, spacing: 0) {
+                        Image("ciputra_logo")
+                            .resizable()
+                            .scaledToFit()
+                            .opacity(1)
+                            .frame(width: geo.size.width * 0.3)
+                            //.position(x: geo.size.width / 2, y: geo.size.height / 2) // center
+                            .padding(.top,40)
+                            .frame(maxWidth: .infinity, alignment: .center)
                         
                         Text("Login to Ciputra Help")
                             .font(.system(size: 24, weight: .bold))

@@ -169,9 +169,6 @@ class UnitService2: UnitServiceProtocol2 {
         // Format the date to the proper format for the API
         let keyHandoverDateString = formatter.string(from: keyDate)
         
-        print("🔧 updateUnit debug:")
-            print("🔧 Input keyDate: \(keyDate)")
-            print("🔧 Formatted keyHandoverDateString: \(keyHandoverDateString)")
 
         let updateRequest = UpdateUnitRequest(
             name: unit.name ?? "",
@@ -206,10 +203,6 @@ class UnitService2: UnitServiceProtocol2 {
         formatter.formatOptions = [.withInternetDateTime]
         
         let keyHandoverDateString = keyDate.map { formatter.string(from: $0) }
-        
-        print("🔧 updateUnitKeyOptional debug:")
-        print("🔧 Input keyDate: \(String(describing: keyDate))")
-        print("🔧 Formatted keyHandoverDateString: \(String(describing: keyHandoverDateString))")
         
         let updateRequest = UpdateUnitRequest(
             name: unit.name ?? "",

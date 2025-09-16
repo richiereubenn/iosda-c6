@@ -26,6 +26,10 @@ struct ResidentHomeView: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
             HStack {
+                Image("ciputra_logo")
+                    .resizable()
+                    .frame(width: 50, height: 40)
+                
                 Text("Ciputra Help")
                     .font(.largeTitle)
                     .fontWeight(.bold)

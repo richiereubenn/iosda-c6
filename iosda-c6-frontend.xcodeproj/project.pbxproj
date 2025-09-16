@@ -278,6 +278,7 @@
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = "iosda-c6-frontend/Info.plist";
+				INFOPLIST_KEY_CFBundleDisplayName = "Ciputra Help";
 				INFOPLIST_KEY_NSCameraUsageDescription = "This app needs access to camera to take photos for work documentation";
 				INFOPLIST_KEY_NSPhotoLibraryAddUsageDescription = "This app needs access to save photos to your photo library";
 				INFOPLIST_KEY_NSPhotoLibraryUsageDescription = "This app needs access to photo library to select images for work documentation";
@@ -313,6 +314,7 @@
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = "iosda-c6-frontend/Info.plist";
+				INFOPLIST_KEY_CFBundleDisplayName = "Ciputra Help";
 				INFOPLIST_KEY_NSCameraUsageDescription = "This app needs access to camera to take photos for work documentation";
 				INFOPLIST_KEY_NSPhotoLibraryAddUsageDescription = "This app needs access to save photos to your photo library";
 				INFOPLIST_KEY_NSPhotoLibraryUsageDescription = "This app needs access to photo library to select images for work documentation";

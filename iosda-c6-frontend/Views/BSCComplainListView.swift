@@ -8,8 +8,9 @@
 import SwiftUI
 
 struct BSCComplaintListView: View {
-    let unitId : String
-    let userId : String = "60d177e9-c2dc-46eb-8dd8-ba51091dc87a" 
+    let unitId: String
+    let userId: String = "60d177e9-c2dc-46eb-8dd8-ba51091dc87a"
+    let unitName: String
     @StateObject var viewModel = ComplaintListViewModel2()
     
     var body: some View {
@@ -58,9 +59,7 @@ struct BSCComplaintListView: View {
                     ScrollView {
                         VStack(spacing: 12) {
                             ForEach(viewModel.filteredComplaints) { complaint in
-                                NavigationLink(destination: BSCComplainDetailView(complaintId: complaint.id)) {
-                                    ComplaintCard(complaint: complaint)
-                                }
+                                ComplaintRows(complaint: complaint)
                             }
                         }
                         .padding(.horizontal)
@@ -68,7 +67,7 @@ struct BSCComplaintListView: View {
                 }
             }
             .searchable(text: $viewModel.searchText, prompt: "Search complaints...")
-            .navigationTitle("Kode Rumah")
+            .navigationTitle(unitName)
             .task {
                 await viewModel.loadComplaints(byUnitId: unitId)
                 await viewModel.evaluateButton(unitId: unitId)
@@ -94,9 +93,12 @@ struct BSCComplaintListView: View {
                     
                     if let fileUrl = viewModel.lastKeyLog?.files.first?.url {
                         AsyncImage(url: URL(string: "https://api.kevinchr.com/property/\(fileUrl)")) { image in
-                            image.resizable()
-                                 .scaledToFit()
-                                 .frame(width: 200, height: 200)
+                            image
+                                .resizable()
+                                .scaledToFill()
+                                .frame(width: 300, height: 300)
+                                .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
+                                .contentShape(RoundedRectangle(cornerRadius: 8))
                         } placeholder: {
                             ProgressView()
                         }
@@ -141,7 +143,7 @@ struct BSCComplaintListView: View {
                     }
                     .frame(height: 44)
                 }
-                .frame(width: 270)
+                .frame(width: 350)
                 .background(Color(.systemBackground))
                 .cornerRadius(14)
                 .shadow(radius: 20)
@@ -162,16 +164,21 @@ struct BSCComplaintListView: View {
     }
 }
 
-
-
+struct ComplaintRows: View {
+    let complaint: Complaint2
+    
+    var body: some View {
+        NavigationLink(destination: BSCComplainDetailView(complaintId: complaint.id, complainName: complaint.title)) {
+            ComplaintCard(complaint: complaint)
+        }
+    }
+}
 
 #Preview {
     Group {
         NavigationStack {
-            BSCComplaintListView(unitId: "da34c1d1-0709-4f0d-96f5-2ede46f68e8b")
+            BSCComplaintListView(unitId: "da34c1d1-0709-4f0d-96f5-2ede46f68e8b", unitName: "ko")
         }
         .environment(\.sizeCategory, .medium)
-        
     }
 }
-

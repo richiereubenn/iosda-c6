@@ -83,14 +83,17 @@ class BIHomepageViewModel: ObservableObject {
     func fetchSummary() async {
         do {
             let units = try await unitService.getUnitsByBIId()
+            print("Units fetched for summary: \(units.count)")
             
             var activeComplaintsCount = 0
             var activeUnitIds: Set<String> = []
             
             for unit in units {
                 let complaints = try await complaintService.getComplaintsByUnitId(unit.id)
+                print("Unit \(unit.id) complaints: \(complaints.count)")
                 
                 let activeComplaints = complaints.filter { isActiveComplaint($0) }
+                print("Active complaints: \(activeComplaints.count)")
                 
                 if !activeComplaints.isEmpty {
                     activeComplaintsCount += activeComplaints.count
@@ -101,11 +104,14 @@ class BIHomepageViewModel: ObservableObject {
             self.totalActiveComplaints = activeComplaintsCount
             self.totalActiveUnits = activeUnitIds.count
             
+            print("Summary → Units: \(self.totalActiveUnits), Complaints: \(self.totalActiveComplaints)")
         } catch {
+            print("Error fetching summary: \(error)")
             self.totalActiveUnits = 0
             self.totalActiveComplaints = 0
         }
     }
+
 
     
     private func isActiveComplaint(_ complaint: Complaint2) -> Bool {

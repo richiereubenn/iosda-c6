@@ -9,6 +9,7 @@ import SwiftUI
 
 struct BSCComplainDetailView: View {
     let complaintId: String
+    let complainName: String
     
     @Environment(\.horizontalSizeClass) private var sizeClass
     @StateObject private var viewModel = BSCBIComplaintDetailViewModel()
@@ -50,7 +51,7 @@ struct BSCComplainDetailView: View {
                 }
             }
         }
-        .navigationTitle("Complaint Detail")
+        .navigationTitle(complainName)
         .navigationBarTitleDisplayMode(.large)
         .task {
             await viewModel.loadComplaint(byId: complaintId)
@@ -263,7 +264,7 @@ struct BSCComplainDetailView: View {
                         Text("-")
                     }
                 } else {
-                    Text("Damage Detail: ")
+                    Text("Work Detail: ")
                         .font(.subheadline)
                         .minimumScaleFactor(0.8)
                         .lineLimit(1)
@@ -290,7 +291,6 @@ struct BSCComplainDetailView: View {
                     }
                 }
             }
-            
             Text(complaint.description ?? "–")
                 .font(.subheadline.weight(.medium))
                 .foregroundColor(.primary)

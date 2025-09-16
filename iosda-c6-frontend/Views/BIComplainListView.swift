@@ -8,7 +8,8 @@
 import SwiftUI
 
 struct BIComplaintListView: View {
-    let unitId : String
+    let unitId: String
+    let unitCode: String
     @StateObject var viewModel = ComplaintListViewModel2()
     
     var body: some View {
@@ -45,9 +46,7 @@ struct BIComplaintListView: View {
                 ScrollView {
                     VStack(spacing: 12) {
                         ForEach(viewModel.filteredComplaints) { complaint in
-                            NavigationLink(destination: BIComplaintDetailView(complaintId: complaint.id)) {
-                                ComplaintCard(complaint: complaint)
-                            }
+                            ComplaintRow(complaint: complaint)
                         }
                     }
                     .padding(.horizontal)
@@ -55,7 +54,8 @@ struct BIComplaintListView: View {
             }
         }
         .searchable(text: $viewModel.searchText, prompt: "Search complaints...")
-        .navigationTitle("Kode Rumah")
+        .navigationTitle(unitCode)
+        .navigationBarTitleDisplayMode(.large)
         .toolbar {
             ToolbarItem(placement: .navigationBarTrailing) {
                 Menu {
@@ -70,7 +70,7 @@ struct BIComplaintListView: View {
                 } label: {
                     Image(systemName: "line.3.horizontal.decrease.circle")
                         .font(.title2)
-                        .foregroundColor(.blue)
+                        .foregroundColor(.primaryBlue)
                 }
             }
         }
@@ -86,16 +86,13 @@ struct BIComplaintListView: View {
     }
 }
 
-
-
-
-//#Preview {
-//    Group {
-//        NavigationStack {
-//            BIComplaintListView(unitId: unitId, viewModel: ComplaintListViewModel2())
-//        }
-//        .environment(\.sizeCategory, .medium)
-//        
-//    }
-//}
-//
+// MARK: - ComplaintRow Subview
+struct ComplaintRow: View {
+    let complaint: Complaint2
+    
+    var body: some View {
+        NavigationLink(destination: BIComplaintDetailView(complaintId: complaint.id, complaintName: complaint.title)) {
+            ComplaintCard(complaint: complaint)
+        }
+    }
+}

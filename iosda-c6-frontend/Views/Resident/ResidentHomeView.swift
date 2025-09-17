@@ -256,27 +256,25 @@ struct ResidentHomeView: View {
             Text(viewModel.errorMessage ?? "")
         }
         .onAppear {
-            // Load units only once
-            if unitViewModel.claimedUnits.isEmpty && unitViewModel.waitingUnits.isEmpty {
-                Task {
+            Task {
+                // Load units only if empty
+                if unitViewModel.claimedUnits.isEmpty && unitViewModel.waitingUnits.isEmpty {
                     await unitViewModel.loadUnits()
                 }
-            }
-            
-            // Set default selectedUnit on first load when no unit is selected
-            if unitViewModel.selectedUnit == nil && !unitViewModel.claimedUnits.isEmpty {
-                unitViewModel.selectedUnit = unitViewModel.claimedUnits.first
-            }
-            
-            Task {
+                
+                // Set default selectedUnit
+                if unitViewModel.selectedUnit == nil && !unitViewModel.claimedUnits.isEmpty {
+                    unitViewModel.selectedUnit = unitViewModel.claimedUnits.first
+                }
+                
                 if let id = NetworkManager.shared.getUserIdFromToken() {
                     userId = id
                     await viewModel.loadComplaints(byUserId: id)
                     
-                    // ✅ preload logs for each unit that needs key
+                    // Load key logs for all units every time
                     for unit in unitViewModel.claimedUnits {
-                                 await detailViewModel.loadKeyLogsByUnit(unitId: unit.id)
-                             }
+                        await detailViewModel.loadKeyLogsByUnit(unitId: unit.id)
+                    }
                 } else {
                     viewModel.errorMessage = "Unable to get user ID from token"
                 }

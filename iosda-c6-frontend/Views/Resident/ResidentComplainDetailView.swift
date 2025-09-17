@@ -191,22 +191,21 @@ struct ResidentComplainDetailView: View {
         .overlay(alignment: .bottom) {
             if let complaint = viewModel.selectedComplaint,
                complaint.handoverMethod == .bringToMO,
-               complaint.residentStatus == .waitingKeyHandover{
-              // !viewModel.hasSubmittedKeyLog {   
-
-                //VStack(spacing: 0) {
-                    CustomButtonComponent(
-                        text: "Submit Key Handover Evidence",
-                        backgroundColor: .primaryBlue
-                    ) {
-                        showingPhotoUpload = true
-                    }
-                    .padding(.horizontal, 20)
-                                .padding(.vertical, 20)
-                                .background(.thinMaterial)
-               // }
+               complaint.residentStatus == .waitingKeyHandover,
+               !viewModel.hasSubmittedKeyLog {  // ✅ hide if last key log is BSC
+                
+                CustomButtonComponent(
+                    text: "Submit Key Handover Evidence",
+                    backgroundColor: .primaryBlue
+                ) {
+                    showingPhotoUpload = true
+                }
+                .padding(.horizontal, 20)
+                .padding(.vertical, 20)
+                .background(.thinMaterial)
             }
         }
+
 
 
         .sheet(isPresented: $showingPhotoUpload) {
@@ -276,10 +275,12 @@ struct ResidentComplainDetailView: View {
         .task {
             await viewModel.loadComplaint(byId: complaintId)
             await viewModel.getProgressLogs(complaintId: complaintId)
-//            if let unitId = viewModel.selectedComplaint?.unitId {
-//                    await viewModel.loadKeyLogs(unitId: unitId)   // ✅ fetch key logs
-//                }
+
+            if let unitId = viewModel.selectedComplaint?.unitId {
+                await viewModel.loadKeyLogs(unitId: unitId)   // ✅ load logs for this unit
+            }
         }
+
     }
 
     private func complaintImage(url: String) -> some View {

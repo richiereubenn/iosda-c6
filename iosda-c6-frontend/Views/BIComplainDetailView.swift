@@ -195,7 +195,7 @@ struct BIComplaintDetailView: View {
                             )
                             await viewModel.updateStatus(to: statusId)
                             
-                            if sheetTitle == "Start this Work" {
+                            if sheetTitle == "Start Work" {
                                 await viewModel.updateDueDateForStartWork()
                             }
                             showSuccessAlert = true
@@ -248,7 +248,7 @@ struct BIComplaintDetailView: View {
                             backgroundColor: .primaryBlue,
                             textColor: .white
                         ) {
-                            sheetTitle = "The task is currently in progress"
+                            sheetTitle = "Start Work"
                             sheetDescription = "This will set the work status to 'In Progress'."
                             sheetUploadAmount = 2
                             statusId = "ba1b0384-9c57-4c34-a70b-2ed7e44b7ce0"
@@ -263,7 +263,7 @@ struct BIComplaintDetailView: View {
                             backgroundColor: .orange,
                             textColor: .white
                         ) {
-                            sheetTitle = "New progress has been added"
+                            sheetTitle = "New Progress"
                             successMessage = "New Progress Log Added"
                             showPhotoUploadSheet = true
                             sheetDescription = "Upload progress updates with photos and notes about the current work status."
@@ -276,7 +276,7 @@ struct BIComplaintDetailView: View {
                             backgroundColor: .primaryBlue,
                             textColor: .white
                         ) {
-                            sheetTitle = "The task is complete"
+                            sheetTitle = "Task Resolved"
                             successMessage = "Status updated to \"Resolved\""
                             showPhotoUploadSheet = true
                             sheetDescription = "This will set the work status to 'Resolved'."

@@ -18,7 +18,7 @@ struct BIHomepage: View {
                     .resizable()
                     .frame(width: 50, height: 40)
                 
-                Text("Ciputra Help")
+                Text("CiputraHelp")
                     .font(.largeTitle)
                     .fontWeight(.bold)
                 

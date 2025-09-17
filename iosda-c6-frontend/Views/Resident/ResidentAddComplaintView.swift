@@ -548,7 +548,13 @@ struct ResidentAddComplaintView: View {
             return
         }
         
-        let methodToUse: HandoverMethod = isHandoverMethodLocked ? .handoverLocked : (handoverMethod ?? .inHouse)
+        let methodToSend: HandoverMethod
+        if handoverMethod == .handoverLocked {
+            methodToSend = .bringToMO // 👈 fallback if locked
+        } else {
+            methodToSend = handoverMethod ?? .bringToMO // 👈 unwrap safely
+        }
+
         
         
         
@@ -565,7 +571,7 @@ struct ResidentAddComplaintView: View {
                     //classificationId: classificationId,
                     latitude: latitude,
                     longitude: longitude,
-                    handoverMethod: methodToUse,
+                    handoverMethod: methodToSend,
                     selectedUnit: selectedUnit
                 )
                 

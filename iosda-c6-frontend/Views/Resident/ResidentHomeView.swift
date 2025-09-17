@@ -16,6 +16,7 @@ struct ResidentHomeView: View {
     
     var onComplaintSubmitted: (() -> Void)? = nil
     
+    
     // 🔑 Units that need key handover
     var unitsNeedingKey: [Unit2] {
         unitViewModel.claimedUnits.filter { unit in
@@ -35,7 +36,7 @@ struct ResidentHomeView: View {
                     .resizable()
                     .frame(width: 50, height: 40)
                 
-                Text("Ciputra Help")
+                Text("CiputraHelp")
                     .font(.largeTitle)
                     .fontWeight(.bold)
                 
@@ -116,16 +117,23 @@ struct ResidentHomeView: View {
                 })
                 .disabled(unitViewModel.claimedUnits.isEmpty) // Disable if no units available
                 
+                // Update your ForEach logic:
                 ForEach(unitsNeedingKey) { unit in
-                    CustomButtonComponent(
-                        text: "Submit Key for \(unit.name ?? "Unit")",
-                        backgroundColor: .logoGreen
-                    ) {
-                        // ✅ just store unitId, no need to pick a single complaint
-                        detailViewModel.selectedUnitId = unit.id
-                        showingPhotoUpload = true
+                    // Check if last key log is from BSC using the correct function
+                    if !detailViewModel.hasSubmittedKeyLog(for: unit.id) {
+                        CustomButtonComponent(
+                            text: "Submit Key for \(unit.name ?? "Unit")",
+                            backgroundColor: .logoGreen
+                        ) {
+                            detailViewModel.selectedUnitId = unit.id
+                            Task {
+                                await detailViewModel.loadKeyLogs(unitId: unit.id)
+                            }
+                            showingPhotoUpload = true
+                        }
                     }
                 }
+
 
 
 
@@ -222,9 +230,11 @@ struct ResidentHomeView: View {
                                     images: finalImages
                                 )
                             }
-
+                            await detailViewModel.loadKeyLogs(unitId: unitId)
                             // ✅ Refresh complaints for the user
                             await viewModel.loadComplaints(byUserId: userId)
+
+  
                         }
                         showingPhotoUpload = false
                     }
@@ -259,10 +269,14 @@ struct ResidentHomeView: View {
             }
             
             Task {
-                // Load complaints by user ID for recent complaints section
                 if let id = NetworkManager.shared.getUserIdFromToken() {
                     userId = id
                     await viewModel.loadComplaints(byUserId: id)
+                    
+                    // ✅ preload logs for each unit that needs key
+                    for unit in unitViewModel.claimedUnits {
+                                 await detailViewModel.loadKeyLogsByUnit(unitId: unit.id)
+                             }
                 } else {
                     viewModel.errorMessage = "Unable to get user ID from token"
                 }
@@ -278,6 +292,9 @@ struct ResidentHomeView: View {
                     Task {
                         if let id = userId {
                             await viewModel.loadComplaints(byUserId: id) // refresh Home
+                            for unit in unitViewModel.claimedUnits {
+                                                   await detailViewModel.loadKeyLogsByUnit(unitId: unit.id)
+                                               }
                         }
                     }
                 },

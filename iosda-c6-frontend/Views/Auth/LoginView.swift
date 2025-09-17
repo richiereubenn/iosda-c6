@@ -29,7 +29,7 @@ struct LoginView: View {
                             .padding(.top,40)
                             .frame(maxWidth: .infinity, alignment: .center)
                         
-                        Text("Login to Ciputra Help")
+                        Text("Login to CiputraHelp")
                             .font(.system(size: 24, weight: .bold))
                             .foregroundColor(.black)
                             .padding(.top, 10)

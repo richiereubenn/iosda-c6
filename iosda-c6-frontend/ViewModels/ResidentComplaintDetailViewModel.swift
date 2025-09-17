@@ -14,7 +14,16 @@ class ResidentComplaintDetailViewModel: ObservableObject {
     @Published var isSubmitting: Bool = false
     @Published var selectedComplaintId: String?
     @Published var selectedUnitId: String?
+    @Published var keyLogs: [KeyLog] = []
+    @Published var lastKeyLog: KeyLog? = nil
+    @Published var keyLogsByUnit: [String: [KeyLog]] = [:]
+    @Published var lastKeyLogByUnit: [String: KeyLog] = [:]
 
+    var hasSubmittedKeyLog: Bool {
+        guard let last = lastKeyLog else { return false }
+        return last.detail?.lowercased().contains("bsc") ?? false
+    }
+    
     private let service: ComplaintServiceProtocol2
     private let unitService: UnitServiceProtocol2
     private let progressService: ProgressLogServiceProtocol
@@ -225,9 +234,13 @@ class ResidentComplaintDetailViewModel: ObservableObject {
                 let keyLog = try await keyLogService.uploadKeyLogWithFiles(
                     unitId: unitId,
                     userId: userId,
-                    detail: "bsc", // maybe make this a parameter later
+                    detail: "bsc",
                     images: images
                 )
+
+                // ✅ refresh logs so button hides immediately
+                await loadKeyLogs(unitId: unitId)
+
                 
                 // 3️⃣ Update complaint status
 //                let updatedComplaint = try await service.updateComplaintStatus(
@@ -258,6 +271,36 @@ class ResidentComplaintDetailViewModel: ObservableObject {
             return []
         }
     }
+    
+    func loadKeyLogs(unitId: String) async {
+        do {
+            let logs = try await keyLogService.getAllKeyLog(unitId: unitId)
+            self.keyLogs = logs
+            self.lastKeyLog = try await keyLogService.getLastKeyLog(unitId: unitId)
+        } catch {
+            print("❌ Failed to load key logs: \(error)")
+        }
+    }
+    
+    func hasSubmittedKeyLog(for unitId: String) -> Bool {
+        guard let last = lastKeyLogByUnit[unitId] else { return false }
+        return last.detail?.lowercased().contains("bsc") ?? false
+    }
+
+    func loadKeyLogsByUnit(unitId: String) async {
+        do {
+            let logs = try await keyLogService.getAllKeyLog(unitId: unitId)
+            let last = try await keyLogService.getLastKeyLog(unitId: unitId)
+
+            await MainActor.run {
+                self.keyLogsByUnit[unitId] = logs
+                if let last { self.lastKeyLogByUnit[unitId] = last }
+            }
+        } catch {
+            print("❌ Failed to load key logs for \(unitId): \(error)")
+        }
+    }
+
 
 }
 

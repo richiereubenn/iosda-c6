@@ -274,11 +274,12 @@
 				ASSETCATALOG_COMPILER_INCLUDE_ALL_APPICON_ASSETS = YES;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = 57H75CS3ZG;
+				DEVELOPMENT_TEAM = QMV7N4KZBR;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = "iosda-c6-frontend/Info.plist";
-				INFOPLIST_KEY_CFBundleDisplayName = "Ciputra Help";
+				INFOPLIST_KEY_CFBundleDisplayName = CiputraHelp;
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.business";
 				INFOPLIST_KEY_NSCameraUsageDescription = "This app needs access to camera to take photos for work documentation";
 				INFOPLIST_KEY_NSPhotoLibraryAddUsageDescription = "This app needs access to save photos to your photo library";
 				INFOPLIST_KEY_NSPhotoLibraryUsageDescription = "This app needs access to photo library to select images for work documentation";
@@ -293,7 +294,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.0;
+				MARKETING_VERSION = 2.0;
 				PRODUCT_BUNDLE_IDENTIFIER = "com.kevinchr.iosda-c6-frontend";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
@@ -310,11 +311,12 @@
 				ASSETCATALOG_COMPILER_INCLUDE_ALL_APPICON_ASSETS = YES;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = 57H75CS3ZG;
+				DEVELOPMENT_TEAM = QMV7N4KZBR;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = "iosda-c6-frontend/Info.plist";
-				INFOPLIST_KEY_CFBundleDisplayName = "Ciputra Help";
+				INFOPLIST_KEY_CFBundleDisplayName = CiputraHelp;
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.business";
 				INFOPLIST_KEY_NSCameraUsageDescription = "This app needs access to camera to take photos for work documentation";
 				INFOPLIST_KEY_NSPhotoLibraryAddUsageDescription = "This app needs access to save photos to your photo library";
 				INFOPLIST_KEY_NSPhotoLibraryUsageDescription = "This app needs access to photo library to select images for work documentation";
@@ -329,7 +331,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.0;
+				MARKETING_VERSION = 2.0;
 				PRODUCT_BUNDLE_IDENTIFIER = "com.kevinchr.iosda-c6-frontend";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;

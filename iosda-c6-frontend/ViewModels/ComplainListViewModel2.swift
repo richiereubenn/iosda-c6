@@ -242,9 +242,46 @@ class ComplaintListViewModel2: ObservableObject {
     }
     
     
-    func rejectKey() {
+    func rejectKey(unitId: String, userId: String) async {
         showKeyLogAlert = false
+        
+        let waitingComplaints = complaints.filter {
+            $0.statusName?.lowercased() == "waiting key handover"
+        }
+        
+        for complaint in waitingComplaints {
+            do {
+                // Update status ke Rejected (ganti dengan ID status reject dari backend)
+                let updatedComplaint = try await service.updateComplaintStatus(
+                    complaintId: complaint.id,
+                    statusId: "99d06c4a-e49f-4144-b617-2a1b6c51092f"
+                )
+                
+                // Tambahkan progress log
+                try await _ = progressLogService.createProgress(
+                    complaintId: complaint.id,
+                    userId: userId,
+                    title: "Key don't receive",
+                    description: "Tolong submit kunci",
+                    files: []
+                )
+                
+                if let idx = complaints.firstIndex(where: { $0.id == updatedComplaint.id }) {
+                    complaints[idx] = updatedComplaint
+                }
+                
+            } catch {
+                errorMessage = "Failed to reject complaint: \(error.localizedDescription)"
+            }
+        }
+        
+        await loadComplaints(byUnitId: unitId)
+        await evaluateButton(unitId: unitId)
+        applyFilters()
+        
+        await createKeyLog(unitId: unitId, userId: userId, detail: "resident")
     }
+
     
     private func createKeyLog(unitId: String, userId: String, detail: String) async {
         do {

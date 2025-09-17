@@ -118,7 +118,9 @@ struct BSCComplaintListView: View {
                     
                     HStack(spacing: 0) {
                         Button {
-                            viewModel.rejectKey()
+                            Task{
+                                await viewModel.rejectKey(unitId: unitId, userId: userId)
+                            }
                         } label: {
                             Text("Reject")
                                 .foregroundColor(.red)
@@ -174,11 +176,3 @@ struct ComplaintRows: View {
     }
 }
 
-#Preview {
-    Group {
-        NavigationStack {
-            BSCComplaintListView(unitId: "da34c1d1-0709-4f0d-96f5-2ede46f68e8b", unitName: "ko")
-        }
-        .environment(\.sizeCategory, .medium)
-    }
-}

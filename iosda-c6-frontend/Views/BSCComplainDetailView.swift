@@ -344,7 +344,15 @@ struct BSCComplainDetailView: View {
                     ) {
                         Task {
                             await viewModel.updateClassification()
-                            await viewModel.updateStatus(to: "8e8f0a90-36eb-4a7f-aad0-ee2e59fd9b8f")
+                            if let unitId = viewModel.unit?.id {
+                                let keyLogService = KeyLogService()
+                                if let lastKeyLog = try? await keyLogService.getLastKeyLog(unitId: unitId),
+                                   lastKeyLog.detail?.lowercased() == "bsc" {
+                                    await viewModel.updateStatus(to: "06d2b0a3-afc8-400c-b4b4-bdcee995f35f")
+                                } else {
+                                    await viewModel.updateStatus(to: "8e8f0a90-36eb-4a7f-aad0-ee2e59fd9b8f")
+                                }
+                            }
                             
                             showSuccessAlert = true
                             let progressService = ProgressLogService()

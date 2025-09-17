@@ -2,7 +2,7 @@ import Foundation
 
 
 struct File: Identifiable, Codable {
-    let id: Int?
+    let id: String?
     let name: String?
     let path: String?
     let mimeType: String?

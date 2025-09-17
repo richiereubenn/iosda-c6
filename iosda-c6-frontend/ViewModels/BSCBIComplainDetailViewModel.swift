@@ -1,0 +1,364 @@
+//
+//  BSCBIComplainDetailViewModel.swift
+//  iosda-c6-frontend
+//
+//  Created by Richie Reuben Hermanto on 09/09/25.
+//
+
+import Foundation
+import SwiftUI
+
+@MainActor
+class BSCBIComplaintDetailViewModel: ObservableObject {
+    @Published var selectedComplaint: Complaint2? = nil
+    @Published var selectedStatus: ComplaintStatus? = nil
+    @Published var classifications: [Classification] = []
+    @Published var firstProgress: ProgressLog2? = nil
+    @Published var classification: Classification? = nil
+    @Published var isLoading: Bool = false
+    @Published var isUpdating: Bool = false
+    @Published var errorMessage: String? = nil
+    @Published var isSubmitting: Bool = false
+    @Published var selectedCategory: String? = nil
+    @Published var selectedWorkDetail: String? = nil
+    @Published var unit: Unit2? = nil
+    @Published var resident: User? = nil
+    @Published var projectName: String = "-"
+    @Published var areaName: String = "-"
+    @Published var blockName: String = "-"
+    @Published var unitName: String = "-"
+    @Published var hasStartedWork: Bool = false
+
+    let defaultClassificationId = "75b125fd-a656-4fd8-a500-2f051b068171"
+    private let service: ComplaintServiceProtocol2
+    private let progressService: ProgressLogServiceProtocol
+    private let classificationService: ClassificationServiceProtocol
+    private let unitService: UnitServiceProtocol2
+    private let userService: UserServiceProtocol
+    private let unitCodeService: UnitCodeServiceProtocol
+    private let blockService: BlockServiceProtocol
+    private let areaService: AreaServiceProtocol
+    private let projectService: ProjectServiceProtocol
+    
+    
+    private let baseURL = "https://api.kevinchr.com/complaint"
+    
+    
+    init(
+        service: ComplaintServiceProtocol2 = ComplaintService2(),
+        progressService: ProgressLogServiceProtocol = ProgressLogService(),
+        classificationService: ClassificationServiceProtocol = ClassificationService(),
+        unitService: UnitServiceProtocol2 = UnitService2(),
+        userService: UserServiceProtocol = UserService(),
+        unitCodeService: UnitCodeServiceProtocol = UnitCodeService(),
+        blockService: BlockServiceProtocol = BlockService(),
+        areaService: AreaServiceProtocol = AreaService(),
+        projectService: ProjectServiceProtocol = ProjectService()
+    ) {
+        self.service = service
+        self.progressService = progressService
+        self.classificationService = classificationService
+        self.unitService = unitService
+        self.userService = userService
+        self.unitCodeService = unitCodeService
+        self.blockService = blockService
+        self.areaService = areaService
+        self.projectService = projectService
+    }
+
+    
+    var uniqueCategories: [String] {
+        Array(Set(classifications.map { $0.name })).sorted()
+    }
+    
+    var workDetailsForSelectedCategory: [String] {
+        guard let category = selectedCategory else { return [] }
+        return classifications
+            .filter { $0.name == category }
+            .map { $0.workDetail ?? "-" }
+    }
+    
+    func loadComplaint(byId id: String) async {
+        isLoading = true
+        defer { isLoading = false }
+        
+        do {
+            let complaint = try await service.getComplaintById(id)
+            selectedComplaint = complaint
+            selectedStatus = ComplaintStatus(raw: complaint.statusName)
+            
+            await loadFirstProgress(for: id)
+            
+            if let classificationId = complaint.classificationId {
+                await loadClassificationById(classificationId)
+            }
+            
+            if let unitId = complaint.unitId {
+                await loadUnitHierarchy(unitId: unitId) 
+                try await loadUnitAndResident(unitId: unitId)
+            }
+
+            
+        } catch {
+            errorMessage = "Failed to load complaint \(id): \(error.localizedDescription)"
+        }
+    }
+    
+    private func loadUnitHierarchy(unitId: String) async {
+        do {
+            let unit = try await unitService.getUnitById(unitId)
+            self.unitName = unit.name ?? "-"
+            
+            guard let unitCodeId = unit.unitCodeId else {
+                print("Unit has no unitCodeId")
+                return
+            }
+            
+            let unitCode = try await unitCodeService.getUnitCodeById(unitCodeId)
+            print("unitCode loaded:", unitCode)
+            
+            let block = try await blockService.getBlockById(unitCode.blockId)
+            print("block loaded:", block)
+            self.blockName = block.name
+            
+            let area = try await areaService.getAreaById(block.areaId)
+            print("area loaded:", area)
+            self.areaName = area.name
+            
+            let project = try await projectService.getProjectById(area.projectId)
+            print("project loaded:", project)
+            self.projectName = project.name
+            
+        } catch {
+            print("Failed to load hierarchy:", error.localizedDescription)
+        }
+    }
+
+//    private func loadUnitHierarchy(unitId: String) async {
+//        do {
+//            if let unit = try await unitService.getAllUnits().first(where: { $0.id == unitId }) {
+//                self.unitName = unit.name!
+//
+//                let unitCode = try await unitCodeService.getUnitCodeById(unit.unitCodeId!)
+//                
+//                let block = try await blockService.getBlockById(unitCode.blockId)
+//                self.blockName = block.name
+//                print("Blockname", blockName)
+//                
+//                let area = try await areaService.getAreaById(block.areaId)
+//                self.areaName = area.name
+//                print("Area", areaName)
+//                
+//                let project = try await projectService.getProjectById(area.projectId)
+//                self.projectName = project.name
+//            }
+//        } catch {
+//            print("Failed to load hierarchy: \(error.localizedDescription)")
+//        }
+//    }
+
+    
+    private func loadUnitAndResident(unitId: String) async throws {
+        let units = try await unitService.getAllUnits()
+        if let foundUnit = units.first(where: { $0.id == unitId }) {
+            self.unit = foundUnit
+            if let residentId = foundUnit.residentId {
+                print("residentIDIDID", residentId)
+                do {
+                    let user = try await userService.getUserById(residentId)
+                    print("residentNameName", user.name)
+                    self.resident = user
+                } catch {
+                    print("Failed to fetch userName:", error)
+                }
+            }
+        }
+    }
+    
+    private func loadFirstProgress(for complaintId: String) async {
+        do {
+            firstProgress = try await progressService.getFirstProgress(complaintId: complaintId)
+        } catch {
+            print("Failed to load first progress: \(error.localizedDescription)")
+        }
+    }
+    
+    func updateStatus(to statusId: String) async {
+        guard let complaint = selectedComplaint else {
+            errorMessage = "No complaint selected"
+            return
+        }
+        
+        isUpdating = true
+        defer { isUpdating = false }
+        
+        do {
+            let updatedComplaint = try await service.updateComplaintStatus(
+                complaintId: complaint.id,
+                statusId: statusId
+            )
+            
+            let complainDetail = try await service.getComplaintById(updatedComplaint.id)
+            
+            selectedComplaint = complainDetail
+            selectedStatus = ComplaintStatus(raw: complainDetail.statusName)
+        } catch {
+            errorMessage = "Failed to update status: \(error.localizedDescription)"
+        }
+    }
+    
+    func shouldShowActions(for status: ComplaintStatus?) -> Bool {
+        guard let status else { return false }
+        switch status {
+        case .underReviewbByBSC:
+            return true
+        default:
+            return false
+        }
+    }
+    
+    var firstProgressImageURLs: [String] {
+        firstProgress?.files?.compactMap { file in
+            fullURL(for: file.url)
+        } ?? []
+    }
+    
+    private func fullURL(for path: String?) -> String {
+        guard let path else { return "" }
+        if path.hasPrefix("http") {
+            return path
+        } else {
+            return baseURL + path
+        }
+    }
+    
+    func submitRejectionProgress(complaintId: String,
+                                 userId: String,
+                                 reason: String) async {
+        isSubmitting = true
+        defer { isSubmitting = false }
+        
+        do {
+            _ = try await progressService.createProgress(
+                complaintId: complaintId,
+                userId: userId,
+                title: "Rejection Comment",
+                description: reason,
+                files: nil
+            )
+            hasStartedWork = true
+        } catch {
+            errorMessage = "Failed to create rejection progress: \(error.localizedDescription)"
+        }
+    }
+    
+    func submitStartWorkProgress(
+        complaintId: String,
+        userId: String,
+        images: [UIImage],
+        title: String,
+        description: String
+    ) async {
+        isSubmitting = true
+        defer { isSubmitting = false }
+        
+        do {
+            _ = try await progressService.uploadProgressWithFiles(
+                complaintId: complaintId,
+                userId: userId,
+                title: title,
+                description: description,
+                images: images
+            )
+        } catch {
+            errorMessage = "Failed to create start work progress: \(error.localizedDescription)"
+        }
+    }
+    
+    func loadClassifications(defaultId: String? = nil) async {
+        do {
+            let fetched = try await classificationService.fetchClassification()
+            classifications = fetched
+            
+            if let id = defaultId,
+               let classification = fetched.first(where: { $0.id == id }) {
+                selectedCategory = classification.name
+                selectedWorkDetail = classification.workDetail
+            }
+            
+        } catch {
+            errorMessage = "Failed to load classifications: \(error.localizedDescription)"
+        }
+    }
+    
+    private func loadClassificationById(_ id: String) async {
+        do {
+            let savedclassification = try await classificationService.getClassificationById(id)
+            classification = savedclassification
+        } catch {
+            print("Failed to fetch classification by id: \(error.localizedDescription)")
+        }
+    }
+    
+    func updateClassification() async {
+        guard let complaint = selectedComplaint else {
+            errorMessage = "No complaint selected"
+            return
+        }
+        guard let selectedDetail = selectedWorkDetail,
+              let classification = classifications.first(where: { $0.workDetail == selectedDetail }) else {
+            errorMessage = "No classification selected"
+            return
+        }
+        
+        isUpdating = true
+        defer { isUpdating = false }
+        
+        do {
+            let updatedComplaint = try await service.updateComplaint(
+                complaintId: complaint.id,
+                classificationId: classification.id ?? "-"
+            )
+            let complainDetail = try await service.getComplaintById(updatedComplaint.id)
+            selectedComplaint = complainDetail
+            
+            if let classificationId = complainDetail.classificationId {
+                await loadClassificationById(classificationId)
+            }
+            
+        } catch {
+            errorMessage = "Failed to update classification: \(error.localizedDescription)"
+        }
+    }
+    
+    func updateDueDateForStartWork() async {
+        guard let complaint = selectedComplaint else {
+            errorMessage = "No complaint selected"
+            return
+        }
+        guard let workDuration = classification?.workDuration else {
+            errorMessage = "No classification with work duration found"
+            return
+        }
+        
+        let newDueDate = Calendar.current.date(byAdding: .day, value: workDuration, to: Date()) ?? Date()
+        
+        isUpdating = true
+        defer { isUpdating = false }
+        
+        do {
+            let updatedComplaint = try await service.updateComplaintDueDate(
+                complaintId: complaint.id,
+                dueDate: newDueDate
+            )
+            
+            let complainDetail = try await service.getComplaintById(updatedComplaint.id)
+            selectedComplaint = complainDetail
+            selectedStatus = ComplaintStatus(raw: complainDetail.statusName)
+        } catch {
+            errorMessage = "Failed to update due date: \(error.localizedDescription)"
+        }
+    }
+
+    
+}

@@ -1,53 +1,31 @@
-//
-//  PhotoUploadSheet.swift
-//  iosda-c6-frontend
-//
-//  Created by Richie Reuben Hermanto on 01/09/25.
-//
-
 import SwiftUI
 
 struct PhotoUploadSheet: View {
-    let title: String
-    let description: String
-    let photoLabel1: String
-    let photoLabel2: String?
-    let uploadAmount: Int // 1 or 2
-    let onStartWork: () -> Void
+    @Binding var title: String
+    @Binding var description: String
+    @Binding var uploadAmount: Int
+    let showTitleField: Bool
+    let showDescriptionField: Bool
+    let onStartWork: ([UIImage], String?, String?) -> Void
     let onCancel: () -> Void
     
     @StateObject private var viewModel = PhotoUploadAlertViewModel()
+    @State private var inputTitle: String = ""
+    @State private var inputDescription: String = ""
     
     var body: some View {
         VStack(spacing: 20) {
-            VStack(spacing: 8) {
+            Spacer()
+            VStack(alignment:.center, spacing: 8) {
                 Text(title)
-                    .font(.system(size: 18, weight: .semibold))
-                    .multilineTextAlignment(.center)
+                    .font(.system(.title2, weight: .semibold))
                 
                 Text(description)
-                    .font(.system(size: 14))
+                    .font(.system(.subheadline))
                     .foregroundColor(.secondary)
-                    .multilineTextAlignment(.center)
             }
+
             
-            VStack(alignment: .leading, spacing: 8) {
-                Text("Before starting, you are required to upload the following \(uploadAmount == 1 ? "photo" : "two photos"):")
-                    .font(.system(size: 14))
-                    .foregroundColor(.primary)
-                
-                VStack(alignment: .leading, spacing: 4) {
-                    Text("• \(photoLabel1)")
-                    if uploadAmount == 2, let label2 = photoLabel2 {
-                        Text("• \(label2)")
-                    }
-                }
-                .font(.system(size: 14))
-                .foregroundColor(.secondary)
-            }
-            .frame(maxWidth: .infinity, alignment: .leading)
-            
-            // Photo upload cards
             if uploadAmount == 1 {
                 PhotoUploadCard(
                     title: "Photo",
@@ -85,6 +63,13 @@ struct PhotoUploadSheet: View {
                     )
                 }
             }
+            if showDescriptionField {
+                TextField("Enter Description", text: $inputDescription, axis: .vertical)
+                    .lineLimit(3, reservesSpace: true)
+                    .textFieldStyle(RoundedBorderTextFieldStyle())
+            }
+            
+            Spacer()
             
             HStack(spacing: 16) {
                 CustomButtonComponent(
@@ -93,19 +78,26 @@ struct PhotoUploadSheet: View {
                     textColor: .white
                 ) {
                     viewModel.reset()
+                    inputTitle = ""
+                    inputDescription = ""
                     onCancel()
                 }
+                
 
                 CustomButtonComponent(
-                    text: "Start Work",
+                    text: "Confirm",
                     backgroundColor: viewModel.canStartWork(uploadAmount: uploadAmount) ? .primaryBlue : .gray,
                     textColor: .white
                 ) {
-                    onStartWork()
+                    let photos = [viewModel.photo1, viewModel.photo2].compactMap { $0 }
+                    onStartWork(
+                        photos,
+                        title,
+                        showDescriptionField ? inputDescription.trimmingCharacters(in: .whitespacesAndNewlines) : nil
+                    )
                 }
                 .disabled(!viewModel.canStartWork(uploadAmount: uploadAmount))
             }
-
         }
         .padding(20)
         .onAppear {
@@ -135,24 +127,4 @@ struct PhotoUploadSheet: View {
             )
         }
     }
-}
-
-#Preview {
-    Group {
-        PhotoUploadSheet(
-            title: "Start this Work?",
-            description: "This will set the work status to 'In Progress'.",
-            photoLabel1: "A close-up photo of the specific defect.",
-            photoLabel2: nil,
-            uploadAmount: 1,
-            onStartWork: {
-                print("Start Work tapped")
-            },
-            onCancel: {
-                print("Cancel tapped")
-            }
-        )
-        .previewDisplayName("Upload 1 Photo")
-    }
-    .padding()
 }

@@ -29,7 +29,6 @@ struct DataRowComponent: View {
             Text(value)
                 .foregroundColor(valueColor)
                 .font(.subheadline.weight(.medium))
-                .minimumScaleFactor(0.8)
                 .lineLimit(1)
         }
         .frame(maxWidth: .infinity, alignment: .leading)

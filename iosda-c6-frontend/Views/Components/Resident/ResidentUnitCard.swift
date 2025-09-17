@@ -7,27 +7,36 @@
 import SwiftUI
 
 struct ResidentUnitCard: View {
-    let unit: Unit
-    let userUnit: UserUnit
+    let unit: Unit2
+    let isClaimed: Bool
+       @ObservedObject var viewModel: ResidentUnitListViewModel
     
     var body: some View {
         HStack {
             VStack(alignment: .leading, spacing: 12) {
-                if let ownershipType = userUnit.ownershipType {
-                    Text(ownershipType)
-                        .font(.caption)
-                        .foregroundColor(.green)
-                }
-                Text(unit.name)
-                    .font(.headline)
+//                if let ownershipType = userUnit.ownershipType {
+//                    Text(ownershipType)
+//                        .font(.caption)
+//                        .foregroundColor(.green)
+//                }
+                Text(isClaimed ? "Claimed" : "Waiting")
+                    .font(.caption)
+                    .fontWeight(.semibold)
+                    .foregroundColor(isClaimed ? .green : .orange)
+                    .padding(.vertical, 4)
+                    .padding(.horizontal, 8)
+                    .background((isClaimed ? Color.green.opacity(0.1) : Color.orange.opacity(0.1)))
+                    .cornerRadius(8)
+
+                Text(unit.name ?? "Unknown Unit")
+                                    .font(.headline)
+                                    //.foregroundColor(.primaryBlue)
                 // Header with status indicator
-                
-                if let project = unit.project {
-                    Text(project)
-                        .font(.subheadline)
-                        .foregroundColor(.secondary)
-                }
-                
+                if let projectName = viewModel.getProjectName(for: unit) {
+                                    Text(projectName)
+                                        .font(.subheadline)
+                                        .foregroundColor(.secondary)
+                                }
             }
             Spacer()
 //            
@@ -43,31 +52,4 @@ struct ResidentUnitCard: View {
                 .shadow(color: .black.opacity(0.1), radius: 4, x: 0, y: 2)
         )
     }
-}
-
-#Preview {
-    ResidentUnitCard(
-        unit: Unit(
-            id: 1234,
-            name: "Citraland Utara - 8/24",
-            bscUuid: "2",
-            biUuid: "2",
-            contractorUuid: "2",
-            keyUuid: 2,
-            project: "Citraland Utara",
-            area: "NorthWestPark",
-            block: "NA",
-            unitNumber: "8/24",
-            handoverDate: nil,
-            renovationPermit: true,
-            isApproved: true
-        ),
-        userUnit: UserUnit(
-            id: 1,
-            userId: 123,
-            unitId: 1234,
-            ownershipType: "Owner"
-        )
-    )
-    .padding()
 }

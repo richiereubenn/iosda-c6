@@ -1,19 +1,8 @@
-//
-//  BSCUnitListView.swift
-//  iosda-c6-frontend
-//
-//  Created by Richie Reuben Hermanto on 02/09/25.
-//
-
 import SwiftUI
 
 struct BSCUnitListView: View {
-    @StateObject private var viewModel = UnitViewModel()
+    @StateObject private var viewModel = BSCUnitListViewModel()
     @State private var searchText = ""
-    
-    private var filteredUnits: [Unit] {
-        viewModel.searchUnits(with: searchText)
-    }
     
     var body: some View {
         VStack(spacing: 16) {
@@ -27,18 +16,28 @@ struct BSCUnitListView: View {
                 
                 UnitStatusSummaryCard(
                     title: "Claimed Unit",
-                    count: viewModel.claimedUnits.count,
+                    count: viewModel.approvedUnits.count,
                     backgroundColor: .green,
                     icon: "checkmark.circle.fill"
                 )
-                
+            }
+            Picker("", selection: $viewModel.selectedSegment) {
+                Text("All").tag(0)
+                Text("Pending").tag(1)
+                Text("Approved").tag(2)
+            }
+            .pickerStyle(SegmentedPickerStyle())
+            .padding(.vertical, 8)
+            .onChange(of: viewModel.selectedSegment) { _ in
+                viewModel.filterUnits(searchText: searchText)
             }
             
+            // Unit List
             if viewModel.isLoading {
                 Spacer()
                 ProgressView("Loading units...")
                 Spacer()
-            } else if filteredUnits.isEmpty && !searchText.isEmpty {
+            } else if viewModel.filteredUnits.isEmpty && !searchText.isEmpty {
                 Spacer()
                 Text("No units found for '\(searchText)'")
                     .foregroundColor(.secondary)
@@ -46,17 +45,16 @@ struct BSCUnitListView: View {
             } else {
                 ScrollView {
                     LazyVStack(spacing: 12) {
-                        ForEach(filteredUnits, id: \.id) { unit in
+                        ForEach(viewModel.filteredUnits, id: \.id) { unit in
                             NavigationLink {
                                 BSCUnitDetailView(
-                                    unit: unit,
-                                    userUnit: viewModel.getUserUnit(for: unit),
+                                    unitId: unit.id,
                                     viewModel: viewModel
                                 )
                             } label: {
                                 UnitRequestCard(
                                     unit: unit,
-                                    userUnit: viewModel.getUserUnit(for: unit)
+                                    resident: viewModel.getUser(for: unit)
                                 )
                                 .contentShape(Rectangle())
                             }
@@ -65,7 +63,6 @@ struct BSCUnitListView: View {
                     .padding(.horizontal, 4)
                 }
             }
-            
             if let errorMessage = viewModel.errorMessage {
                 Text(errorMessage)
                     .foregroundColor(.red)
@@ -76,24 +73,11 @@ struct BSCUnitListView: View {
         .padding(.horizontal)
         .background(Color(.systemGroupedBackground))
         .padding(.top)
-        .searchable(text: $searchText, prompt: "Cari unit, area, atau project...")
-        .navigationTitle("Unit Request List")
-        .toolbar {
-            ToolbarItem(placement: .navigationBarTrailing) {
-                Menu {
-                    Button(action: { viewModel.selectedSegment = 0 }) {
-                        Label("Unit Terdaftar", systemImage: viewModel.selectedSegment == 0 ? "checkmark" : "")
-                    }
-                    Button(action: { viewModel.selectedSegment = 1 }) {
-                        Label("Unit Pending", systemImage: viewModel.selectedSegment == 1 ? "checkmark" : "")
-                    }
-                } label: {
-                    Image(systemName: "line.3.horizontal.decrease.circle")
-                        .font(.title2)
-                        .foregroundColor(.blue)
-                }
-            }
+        .searchable(text: $searchText, prompt: "Cari unit atau nomor...")
+        .onChange(of: searchText) { newValue in
+            viewModel.filteredUnits
         }
+        .navigationTitle("Unit Request List")
         .onAppear {
             viewModel.loadUnits()
         }

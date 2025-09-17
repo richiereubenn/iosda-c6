@@ -1,11 +1,11 @@
 import Foundation
 
 struct Complaint: Identifiable, Codable {
-    let id: Int?
-    let unitId: Int?
-    let statusId: Int?
-    let progressId: Int?
-    let classificationId: Int?
+    let id: String?
+    let unitId: String?
+    let statusId: String?
+    let progressId: String?
+    let classificationId: String?
     let title: String
     let description: String
     let openTimestamp: Date?
@@ -23,8 +23,8 @@ struct Complaint: Identifiable, Codable {
 //    var progressLogs: [ProgressLog]?
     
     enum HandoverMethod: String, Codable {
-        case inHouse = "in_house"
-        case bringToMO = "bring_to_mo"
+        case inHouse = "in house"
+        case bringToMO = "bring to mo"
     }
 
     private enum CodingKeys: String, CodingKey {

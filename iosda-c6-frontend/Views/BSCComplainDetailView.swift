@@ -8,179 +8,200 @@
 import SwiftUI
 
 struct BSCComplainDetailView: View {
+    let complaintId: String
+    let complainName: String
+    
     @Environment(\.horizontalSizeClass) private var sizeClass
-    @StateObject private var viewModel = BuildingListViewModel()
+    @StateObject private var viewModel = BSCBIComplaintDetailViewModel()
+    
     @State private var garansiChecked = true
     @State private var izinRenovasiChecked = true
+    @State private var showRejectAlert = false
+    @State private var rejectionReason = ""
+    @State private var showSuccessAlert = false
     
-    @State private var statusID: Status.ComplaintStatusID = .init(rawValue: 2)!
     
     private var isConfirmDisabled: Bool {
         !(garansiChecked && izinRenovasiChecked)
     }
     
     var body: some View {
-        ScrollView {
-            VStack(spacing: 20) {
-                
-                if sizeClass == .regular {
-                    HStack(spacing: 40) {
-                        residenceProfile
-                        statusComplain
-                    }
-                } else {
-                    VStack(spacing: 20) {
-                        residenceProfile
-                        statusComplain
-                    }
-                }
-                
-                Text("Complain Description")
-                    .font(.headline)
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                
-                if sizeClass == .regular {
-                    GroupedCard{
-                        HStack(alignment: .top, spacing: 20) {
-                            complainImages
-                            complainDetails
-                        }
-                    }
-                    
-                } else {
-                    GroupedCard{
+        ZStack {
+            Color(.systemGroupedBackground)
+                .ignoresSafeArea()
+            
+            Group {
+                if viewModel.isLoading {
+                    ProgressView("Loading...")
+                } else if let complaint = viewModel.selectedComplaint {
+                    ScrollView {
                         VStack(spacing: 20) {
-                            complainImages
-                            complainDetails
+                            headerSection(complaint: complaint)
+                            Text("Complaint Description")
+                                .font(.headline)
+                                .frame(maxWidth: .infinity, alignment: .leading)
+                            detailsSection(complaint: complaint)
+                            requirementsSection
+                            actionButtons(complaint: complaint)
                         }
+                        .padding(.horizontal, 20)
                     }
-                }
-                
-                VStack(alignment: .leading, spacing: 12) {
-                    Text("Syarat")
-                        .font(.headline)
-                        .frame(maxWidth: .infinity, alignment: .leading)
-                    GroupedCard{
-                        VStack(spacing: 5) {
-                            RequirementsCheckbox(
-                                text: "Garansi",
-                                isChecked: garansiChecked,
-                                onToggle: { garansiChecked.toggle() }
-                            )
-                            
-                            RequirementsCheckbox(
-                                text: "Izin Renovasi",
-                                isChecked: izinRenovasiChecked,
-                                onToggle: { izinRenovasiChecked.toggle() }
-                            )
-                        }
-                    }
-                   
-                }
-                
-                VStack(alignment: .leading, spacing: 12) {
-                    if statusID.rawValue == 3 {
-                        HStack(spacing: 16) {
-                            CustomButtonComponent(
-                                text: "Reject",
-                                backgroundColor: .red,
-                                textColor: .white,
-                                isDisabled: false
-                            ) {
-                                print("Rejected")
-                                statusID = .init(rawValue: 6)!
-                            }
-                            
-                            CustomButtonComponent(
-                                text: "Accept",
-                                backgroundColor: .green,
-                                textColor: .white,
-                                isDisabled: isConfirmDisabled
-                            ) {
-                                print("Accepted")
-                                statusID = .init(rawValue: 4)!
-                            }
-                        }
-                    }else if statusID.rawValue == 4 || statusID.rawValue == 6  {
-                        
-                    }else {
-                        CustomButtonComponent(
-                            text: "Confirm",
-                            backgroundColor: .primaryBlue,
-                            textColor: .white,
-                            isDisabled: isConfirmDisabled
-                        ) {
-                            statusID = .init(rawValue: 3)!
-                            NotificationManager.shared.sendNotification(title: "Complain Confirmed", body: "You have confirmed the complain.")
-                        }
-                    }
+                } else {
+                    Text("Complaint not found")
+                        .foregroundColor(.secondary)
                 }
             }
-            .padding(.horizontal, 20)
         }
-        .navigationTitle("Detail Complain")
+        .navigationTitle(complainName)
         .navigationBarTitleDisplayMode(.large)
-        .background(Color(.systemGroupedBackground))
-    }
-    
-    private var residenceProfile: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            Text("Residence Profile")
-                .font(.headline)
-                .frame(maxWidth: .infinity, alignment: .leading)
+        .task {
+            await viewModel.loadComplaint(byId: complaintId)
+            await viewModel.loadClassifications(defaultId: viewModel.classification?.id)
+        }
+        .alert("Complaint Confirmed Successfully", isPresented: $showSuccessAlert) {
+            Button("OK", role: .cancel) { showSuccessAlert = false }
+        }
+        .alert("Do you want to reject this issue?", isPresented: $showRejectAlert) {
+            TextField("Explain why you reject this issue", text: $rejectionReason, axis: .vertical)
             
-            GroupedCard{
-                VStack(spacing: 5) {
-                    DataRowComponent(label: "Nama:", value: "Kevin Mulyono")
-                    DataRowComponent(label: "Nomor HP:", value: "0858321231231")
-                    DataRowComponent(label: "Kode Rumah:", value: "AA/ADA/XAV")
-                    DataRowComponent(label: "Tanggal ST:", value: "20 Januari 2025")
+            Button("Cancel", role: .cancel) {
+                rejectionReason = ""
+            }
+            
+            Button("Reject", role: .destructive) {
+                let reason = rejectionReason.trimmingCharacters(in: .whitespacesAndNewlines)
+                Task {
+                    await viewModel.updateStatus(to: "99d06c4a-e49f-4144-b617-2a1b6c51092f")
+                    await viewModel.submitRejectionProgress(
+                        complaintId: complaintId,
+                        userId: "2b4c59bd-0460-426b-a720-80ccd85ed5b2",
+                        reason: reason
+                    )
                 }
             }
-           
-            
+        } message: {
+            Text("Please explain the reason for rejection")
         }
     }
     
-    private var statusComplain: some View {
+    
+    
+    private func headerSection(complaint: Complaint2) -> some View {
+        Group {
+            if sizeClass == .regular {
+                HStack(spacing: 40) {
+                    residenceProfile(complaint: complaint)
+                    statusComplain(complaint: complaint)
+                }
+            } else {
+                VStack(spacing: 20) {
+                    residenceProfile(complaint: complaint)
+                    statusComplain(complaint: complaint)
+                }
+            }
+        }
+    }
+    
+    private func residenceProfile(complaint: Complaint2) -> some View {
         VStack(alignment: .leading, spacing: 12) {
-            Text("Status Complain")
+            Text("Resident Profile")
                 .font(.headline)
-                .frame(maxWidth: .infinity, alignment: .leading)
-            GroupedCard{
+            GroupedCard {
                 VStack(spacing: 5) {
-                    DataRowComponent(label: "Tanggal Masuk:", value: "22 Februari 2025")
-                    DataRowComponent(label: "Key Status:", value: "In House")
+                    DataRowComponent(
+                        label: "Name:",
+                        value: viewModel.resident?.name ?? "–"
+                    )
+                    DataRowComponent(
+                        label: "Phone Number:",
+                        value: viewModel.resident?.phone ?? "–"
+                    )
+                    DataRowComponent(
+                        label: "House Code:",
+                        value: viewModel.unit?.unitNumber ?? "–"
+                    )
+                    DataRowComponent(
+                        label: "Handover Date:",
+                        value: viewModel.unit?.handoverDate.map {
+                            formatDate($0, format: "dd/MM/yyyy")
+                        } ?? "-"
+                    )
+                }
+            }
+        }
+    }
+    
+    private func statusComplain(complaint: Complaint2) -> some View {
+        VStack(alignment: .leading, spacing: 12) {
+            Text("Complaint Status")
+                .font(.headline)
+            GroupedCard {
+                VStack(spacing: 5) {
+                    DataRowComponent(
+                        label: "Submitted At:",
+                        value: complaint.createdAt.map { formatDate($0, format: "HH:mm dd/MM/yyyy") } ?? "-"
+                    )
+                    
                     HStack {
                         Text("Status:")
                             .foregroundColor(.gray)
                             .font(.system(size: 14))
-                        
-                        StatusBadge(statusID: statusID)
+                        StatusBadge(status: viewModel.selectedStatus ?? .unknown)
                         Spacer()
                     }
-                    DataRowComponent(label: "Deadline:", value: "30 Februari 2025")
+                    DataRowComponent(
+                        label: "Key Handover Method:",
+                        value: complaint.handoverMethod?.displayName ?? "-"
+                    )
+                    DataRowComponent(
+                        label: "Deadline:",
+                        value: complaint.duedate.map { formatDate($0, format: "HH:mm dd/MM/yyyy") } ?? "-"
+                    )
                 }
             }
         }
     }
     
-    private var complainImages: some View {
+    private func detailsSection(complaint: Complaint2) -> some View {
         Group {
             if sizeClass == .regular {
+                GroupedCard {
+                    HStack(alignment: .top, spacing: 20) {
+                        complainImages(for: complaint)
+                        complainDetails(complaint: complaint)
+                    }
+                }
+            } else {
+                GroupedCard {
+                    VStack(spacing: 20) {
+                        complainImages(for: complaint)
+                        complainDetails(complaint: complaint)
+                    }
+                }
+            }
+        }
+    }
+    
+    private func complainImages(for complaint: Complaint2) -> some View {
+        let urls = viewModel.firstProgressImageURLs
+        return Group {
+            if sizeClass == .regular {
                 VStack(spacing: 12) {
-                    complaintImage(url: "https://via.placeholder.com/150x100")
-                    complaintImage(url: "https://via.placeholder.com/150x100")
+                    ForEach(urls, id: \.self) { url in
+                        complaintImage(url: url)
+                    }
                 }
             } else {
                 HStack(spacing: 12) {
-                    complaintImage(url: "https://via.placeholder.com/150x100")
-                    complaintImage(url: "https://via.placeholder.com/150x100")
+                    ForEach(urls, id: \.self) { url in
+                        complaintImage(url: url)
+                    }
                     Spacer()
                 }
             }
         }
     }
+    
     
     private func complaintImage(url: String) -> some View {
         AsyncImage(url: URL(string: url)) { image in
@@ -193,20 +214,172 @@ struct BSCComplainDetailView: View {
         .clipped()
     }
     
-    private var complainDetails: some View {
+    private func complainDetails(complaint: Complaint2) -> some View {
         VStack(alignment: .leading, spacing: 12) {
-            DataRowComponent(label: "Kategori:", value: "Atap")
-            DataRowComponent(label: "Detail Kerusakan:", value: "Atap Bocor")
-            Text("Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.")
-                .font(.system(size: 14))
+            HStack(alignment: .firstTextBaseline) {
+                if complaint.statusName?.lowercased() != "under review by bsc" {
+                    if let savedClassification = viewModel.classification {
+                        DataRowComponent(
+                            label: "Category: ",
+                            value: savedClassification.name
+                        )
+                    } else {
+                        Text("-")
+                    }
+                } else {
+                    Text("Category: ")
+                        .font(.subheadline)
+                        .minimumScaleFactor(0.8)
+                        .lineLimit(1)
+                        .foregroundColor(.gray)
+                    
+                    if viewModel.uniqueCategories.isEmpty {
+                        Text("Loading categories...")
+                            .foregroundColor(.gray)
+                    } else {
+                        Picker("Select Category", selection: $viewModel.selectedCategory) {
+                            ForEach(viewModel.uniqueCategories, id: \.self) { category in
+                                Text(category).tag(category as String?)
+                            }
+                        }
+                        .pickerStyle(.menu)
+                        .scaleEffect(0.9)
+                        .accentColor(.primaryBlue)
+                        .fixedSize()
+                        .padding(.leading, -20)
+                        .padding(.bottom, -20)
+                        .padding(.top, -15)
+                        .disabled(viewModel.selectedCategory == nil)
+                        .onChange(of: viewModel.selectedCategory) { _ in
+                            viewModel.selectedWorkDetail = nil
+                        }
+                    }
+                }
+            }
+            
+            HStack(alignment: .firstTextBaseline) {
+                if complaint.statusName?.lowercased() != "under review by bsc" {
+                    if let savedClassification = viewModel.classification {
+                        DataRowComponent(
+                            label: "Damage Detail: ",
+                            value: savedClassification.workDetail ?? "-"
+                        )
+                    } else {
+                        Text("-")
+                    }
+                } else {
+                    Text("Work Detail: ")
+                        .font(.subheadline)
+                        .minimumScaleFactor(0.8)
+                        .lineLimit(1)
+                        .foregroundColor(.gray)
+                    
+                    if viewModel.workDetailsForSelectedCategory.isEmpty {
+                        Text("Loading details...")
+                            .foregroundColor(.gray)
+                    } else {
+                        Picker("Select Damage Detail", selection: $viewModel.selectedWorkDetail) {
+                            Text("Select Damage Detail").tag(nil as String?)
+                            ForEach(viewModel.workDetailsForSelectedCategory, id: \.self) { detail in
+                                Text(detail).tag(detail as String?)
+                            }
+                        }
+                        .pickerStyle(.menu)
+                        .scaleEffect(0.9)
+                        .accentColor(.primaryBlue)
+                        .fixedSize()
+                        .padding(.leading, -25)
+                        .padding(.top, -15)
+                        .padding(.bottom, -15)
+                        .disabled(viewModel.selectedCategory == nil)
+                    }
+                }
+            }
+            Text(complaint.description ?? "–")
+                .font(.subheadline.weight(.medium))
                 .foregroundColor(.primary)
                 .fixedSize(horizontal: false, vertical: true)
         }
     }
-}
-
-#Preview {
-    NavigationStack {
-        BSCComplainDetailView()
+    
+    
+    
+    private var requirementsSection: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            Text("Requirements").font(.headline)
+            GroupedCard {
+                VStack(spacing: 5) {
+                    RequirementsCheckbox(
+                        text: "Warranty",
+                        isChecked: viewModel.selectedComplaint != nil ?
+                        viewModel.unit != nil && viewModel.classification != nil ?
+                        BSCBuildingUnitComplainListViewModel().isWarrantyValid(
+                            for: viewModel.selectedComplaint!,
+                            unit: viewModel.unit,
+                            classification: viewModel.classification
+                        ) : false
+                        : false,
+                        onToggle: { garansiChecked.toggle() }
+                    )
+                    RequirementsCheckbox(
+                        text: "Renovation Permit",
+                        isChecked: viewModel.unit?.renovationPermit ?? false,
+                        onToggle: { izinRenovasiChecked.toggle() }
+                    )
+                }
+            }
+        }
+    }
+    
+    private func actionButtons(complaint: Complaint2) -> some View {
+        VStack(alignment: .leading, spacing: 12) {
+            if let status = viewModel.selectedStatus {
+                switch status {
+                case .underReviewbByBSC:
+                    CustomButtonComponent(
+                        text: "Confirm",
+                        backgroundColor: .primaryBlue,
+                        textColor: .white,
+                        isDisabled: isConfirmDisabled
+                    ) {
+                        Task {
+                            await viewModel.updateClassification()
+                            if let unitId = viewModel.unit?.id {
+                                let keyLogService = KeyLogService()
+                                if let lastKeyLog = try? await keyLogService.getLastKeyLog(unitId: unitId),
+                                   lastKeyLog.detail?.lowercased() == "bsc" {
+                                    await viewModel.updateStatus(to: "06d2b0a3-afc8-400c-b4b4-bdcee995f35f")
+                                } else {
+                                    await viewModel.updateStatus(to: "8e8f0a90-36eb-4a7f-aad0-ee2e59fd9b8f")
+                                }
+                            }
+                            
+                            showSuccessAlert = true
+                            let progressService = ProgressLogService()
+                            do {
+                                _ = try await progressService.createProgress(
+                                    complaintId: complaintId,
+                                    userId: "376db8a1-b5e0-4c97-a277-e18e46237921", // ganti dengan user id yang sesuai
+                                    title: "Complaint Confirmed Successfully",
+                                    description: "The complaint has been reviewed and accepted."
+                                )
+                            } catch {
+                                print("Failed to create progress log: \(error.localizedDescription)")
+                            }
+                        }
+                    }
+                    
+                case .open, .resolved, .rejected, .unknown, .closed, .assignToVendor, .underReviewByBI, .waitingKeyHandover, .inProgress:
+                    EmptyView()
+                }
+            }
+        }
+    }
+    
+    
+    private func formatDate(_ date: Date, format: String) -> String {
+        let formatter = DateFormatter()
+        formatter.dateFormat = format
+        return formatter.string(from: date)
     }
 }

@@ -8,33 +8,18 @@
 import SwiftUI
 
 struct BIComplaintListView: View {
-    @ObservedObject var viewModel: ComplaintListViewModel
-    @State private var searchText: String = ""
-    @State private var showingCreateView = false
-
+    let unitId: String
+    let unitCode: String
+    @StateObject var viewModel = ComplaintListViewModel2()
+    
     var body: some View {
-        VStack(spacing: 8) {
-            Picker("Complaint Status", selection: $viewModel.selectedFilter) {
-                ForEach(ComplaintListViewModel.ComplaintFilter.allCases, id: \.self) { filter in
-                    Text(filter.rawValue)
-                        .font(.subheadline)
-                        .minimumScaleFactor(0.8)
-                        .lineLimit(1)
-                        .tag(filter)
-                }
-            }
-            .pickerStyle(SegmentedPickerStyle())
-            .padding(.horizontal)
-            .onChange(of: viewModel.selectedFilter) { _ in
-                viewModel.filterComplaints()
-            }
+        ZStack {
+            Color(.systemGroupedBackground)
+                .ignoresSafeArea()
             
             Group {
                 if viewModel.isLoading {
-                    ProgressView()
-                        .scaleEffect(1.2)
-                        .padding(.top, 40)
-                    Spacer()
+                    ProgressView("Loading...")
                 } else if viewModel.filteredComplaints.isEmpty {
                     VStack(spacing: 12) {
                         Image(systemName: "doc.text")
@@ -46,53 +31,69 @@ struct BIComplaintListView: View {
                             .minimumScaleFactor(0.8)
                             .lineLimit(2)
                     }
-                    .padding(.top, 40)
-                    Spacer()
                 } else {
-                    ScrollView {
-                        LazyVStack(spacing: 12) {
-                            ForEach(viewModel.filteredComplaints) { complaint in
-                                NavigationLink(
-                                    destination: BIComplaintDetailView()
-                                ) {
-                                    ResidentComplaintCardView(complaint: complaint)
-                                        .accessibilityElement(children: .combine)
-                                        .accessibilityLabel("\(complaint.title), \(complaint.status)")
-                                }
-                                .buttonStyle(PlainButtonStyle())
-                            }
+                    VStack {
+                        // Tampilkan info filter
+                        HStack {
+                            Text("Filter: \(viewModel.selectedFilter.rawValue)")
+                                .font(.subheadline)
+                                .foregroundColor(.secondary)
+                            Spacer()
                         }
-                        .padding(.horizontal, 20)
-                        .padding(.top, 20)
+                        .padding(.horizontal)
+                        
+                        ScrollView {
+                            VStack(spacing: 12) {
+                                ForEach(viewModel.filteredComplaints) { complaint in
+                                    ComplaintRow(complaint: complaint)
+                                }
+                            }
+                            .padding(.horizontal)
+                        }
                     }
                 }
             }
         }
-        .background(Color(.systemGroupedBackground))
-        .navigationTitle("Kode Rumah")
+        .searchable(text: $viewModel.searchText, prompt: "Search complaints...")
+        .navigationTitle(unitCode)
         .navigationBarTitleDisplayMode(.large)
-        .searchable(text: $searchText, prompt: "Search complaints...")
-        .onAppear {
-            Task {
-                await viewModel.loadComplaints()
+        .toolbar {
+            ToolbarItem(placement: .navigationBarTrailing) {
+                Menu {
+                    ForEach(ComplaintListViewModel2.ComplaintFilter.allCases, id: \.self) { filter in
+                        Button {
+                            viewModel.selectedFilter = filter
+                        } label: {
+                            Label(filter.rawValue,
+                                  systemImage: viewModel.selectedFilter == filter ? "checkmark" : "")
+                        }
+                    }
+                } label: {
+                    Image(systemName: "line.3.horizontal.decrease.circle")
+                        .font(.title2)
+                        .foregroundColor(.primaryBlue)
+                }
             }
+        }
+        .task {
+            await viewModel.loadComplaints(byUnitId: unitId)
         }
         .alert("Error", isPresented: .constant(viewModel.errorMessage != nil)) {
             Button("OK") { viewModel.errorMessage = nil }
         } message: {
             Text(viewModel.errorMessage ?? "")
-                .font(.body)
         }
     }
 }
 
-#Preview {
-    Group {
-        NavigationStack {
-            BIComplaintListView(viewModel: ComplaintListViewModel())
+
+// MARK: - ComplaintRow Subview
+struct ComplaintRow: View {
+    let complaint: Complaint2
+    
+    var body: some View {
+        NavigationLink(destination: BIComplaintDetailView(complaintId: complaint.id, complaintName: complaint.title)) {
+            ComplaintCard(complaint: complaint)
         }
-        .environment(\.sizeCategory, .medium)
-        
     }
 }
-

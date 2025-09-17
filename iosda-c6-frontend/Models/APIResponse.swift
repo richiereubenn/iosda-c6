@@ -76,11 +76,22 @@ struct CreateUnitRequest: Codable {
     }
 }
 
+struct CreateUnitRequest2: Codable {
+    let name: String
+    let resident_id: String
+    let bsc_id: String?
+    let bi_id: String?
+    let unit_code_id: String
+    let unit_number: String
+    let handover_date: String     // ISO8601 string
+    let renovation_permit: Bool
+}
+
 struct CreateComplaintRequest: Codable {
-    let unitId: Int
+    let unitId: String
     let title: String
     let description: String
-    let classificationId: Int?
+    let classificationId: String?
     let keyHandoverDate: Date?
     let latitude: Double?
     let longitude: Double?
@@ -98,3 +109,55 @@ struct CreateComplaintRequest: Codable {
     }
 }
 
+struct UserDetailData: Codable {
+    let user: User
+}
+
+struct ClassificationRequest: Codable {
+    let complaintDetail: String
+
+    enum CodingKeys: String, CodingKey {
+        case complaintDetail = "complaint_detail"
+    }
+}
+
+struct CreateComplaintRequest2: Codable {
+    let unitId: String
+    let userId: String
+    let statusId: String
+    let classificationId: String?
+    let title: String
+    let description: String
+    let latitude: Double?
+    let longitude: Double?
+    let handoverMethod: HandoverMethod
+    let keyHandoverDate: Date?        // Added
+    let keyHandoverNote: String?      // Added
+    
+    
+    enum CodingKeys: String, CodingKey {
+        case unitId = "unit_id"
+        case userId = "user_id"
+        case statusId = "status_id"
+        case classificationId = "classification_id"
+        case title
+        case description
+        case latitude
+        case longitude
+        case handoverMethod = "handover_method"
+        case keyHandoverDate = "key_handover_date"
+        case keyHandoverNote = "key_handover_note"
+    }
+}
+
+struct UpdateUnitRequest: Codable {
+    let name: String
+    let unit_code_id: String
+    let unit_number: String
+    let resident_id: String
+    let bsc_id: String?
+    let bi_id: String?
+    let handover_date: String?
+    let key_handover_date: String?
+    let key_handover_note: String?
+}

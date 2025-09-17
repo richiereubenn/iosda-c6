@@ -14,41 +14,45 @@ struct BSCContentView: View {
         NavigationSplitView {
             SidebarView(selection: $selection)
         } detail: {
-                if let selection {
-                    switch selection.title {
-                    case "Dashboard":
-                       Text("Dashboard")
-                        
-                    case "Building":
-                        BSCBuildingUnitComplainListView()
-                        
-                    case "Land":
-                        Text("Land")
-                        
-                    case "Other":
-                        Text("Other")
-                        
-                    case "Unit":
-                        BSCUnitListView()
-                        
-                    case "Resident View":
-                        ResidentHomeView(viewModel: ComplaintListViewModel(), unitViewModel: UnitViewModel())
-                        
-                    case "BI View":
-                        BIContentView()
-                        
-                    default:
-                        BSCBuildingUnitComplainListView()
+            if let selection {
+                switch selection.title {
+                case "Dashboard":
+                    Text("Dashboard")
+                    
+                case "Building":
+                    BSCBuildingUnitComplainListView()
+                    
+                case "Land":
+                    Text("Land")
+                    
+                case "Other":
+                    //Text("Other")
+                    LoginView()
+                    
+                case "Unit":
+                    BSCUnitListView()
+                    
+                case "Resident View":
+                    NavigationStack{
+                        ResidentHomeView(viewModel: ResidentComplaintListViewModel(), unitViewModel: ResidentUnitListViewModel())
                     }
-                } else {
+                    
+                case "BI View":
+                    BIContentView()
+                    
+                default:
                     BSCBuildingUnitComplainListView()
                 }
+            } else {
+                BSCBuildingUnitComplainListView()
+            }
             
         }
+        .tint(.primaryBlue)
     }
 }
 
-#Preview {
-    BSCContentView()
-}
+//#Preview {
+//    BSCContentView(complaintId: complaintId)
+//}
 

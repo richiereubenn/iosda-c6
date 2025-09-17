@@ -8,64 +8,116 @@
 import SwiftUI
 
 struct BSCBuildingUnitComplainListView: View {
-    @StateObject private var viewModel = BuildingListViewModel()
+    @StateObject private var viewModel = BSCBuildingUnitComplainListViewModel()
     
     var body: some View {
-        VStack(spacing: 16) {
-            HStack(spacing: 16) {
-                SummaryComplaintCard(
-                    title: "New Complaint",
-                    unitCount: 13,
-                    complaintCount: 20,
-                    backgroundColor: Color.blue
-                )
-                SummaryComplaintCard(
-                    title: "On Progress",
-                    unitCount: 2,
-                    complaintCount: 5,
-                    backgroundColor: Color.green
-                )
-            }
-            
-            ScrollView {
-                LazyVStack(spacing: 12) {
-                    ForEach(viewModel.getFilteredAndSortedUnits(), id: \.unitCode) { unit in
-                        NavigationLink(destination: BSCComplaintListView(viewModel: ComplaintListViewModel())) {
-                            UnitComplainCard(
-                                unitCode: unit.unitCode,
-                                latestComplaintDate: unit.latestComplaintDate,
-                                totalComplaints: unit.totalComplaints,
-                                completedComplaints: unit.completedComplaints
+        NavigationStack {
+            Group {
+                if viewModel.isLoading {
+                    VStack {
+                        ProgressView()
+                            .progressViewStyle(CircularProgressViewStyle())
+                            .scaleEffect(1.5)
+                        Text("Loading...")
+                            .font(.headline)
+                            .padding(.top, 8)
+                    }
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                } else {
+                    // Konten utama
+                    VStack(spacing: 16) {
+                        HStack(spacing: 16) {
+                            SummaryComplaintCard(
+                                title: "Total Units",
+                                count: viewModel.totalActiveUnits,
+                                category: " Units",
+                                backgroundColor: Color(Color.primaryBlue),
+                                icon: "building.2.fill"
+                            )
+                            
+                            SummaryComplaintCard(
+                                title: "Total Complaints",
+                                count: viewModel.totalActiveComplaints,
+                                category: " Complaints",
+                                backgroundColor: Color(red: 10/255, green: 100/255, blue: 80/255),
+                                icon: "exclamationmark.bubble.fill"
                             )
                         }
-                        .buttonStyle(PlainButtonStyle())
+                        
+                        unitListScrollView()
+                    }
+                    .padding(.horizontal)
+                    .padding(.top)
+                    .background(Color(.systemGroupedBackground))
+                    .searchable(text: $viewModel.searchText)
+                    .toolbar {
+                        ToolbarItem(placement: .navigationBarTrailing) {
+                            Image(systemName: "line.3.horizontal.decrease.circle")
+                                .font(.title2)
+                                .foregroundColor(.primaryBlue)
+                        }
                     }
                 }
             }
-        }
-        .padding(.horizontal)
-        .background(Color(.systemGroupedBackground))
-        .padding(.top)
-        .toolbar {
-            ToolbarItem(placement: .navigationBarTrailing) {
-                Menu {
-                    Button(action: { viewModel.sortOption = .latest }) {
-                        Label("Tanggal Terbaru", systemImage: viewModel.sortOption == .latest ? "checkmark" : "")
-                    }
-                    Button(action: { viewModel.sortOption = .oldest }) {
-                        Label("Tanggal Terlama", systemImage: viewModel.sortOption == .oldest ? "checkmark" : "")
-                    }
-                } label: {
-                    Image(systemName: "line.3.horizontal.decrease.circle")
-                        .font(.title2)
-                        .foregroundColor(Color.primaryBlue)
-                }
+            .navigationTitle("Building Complain List")
+            .task {
+                await viewModel.fetchUnits()
+                await viewModel.fetchSummary()
             }
         }
-        .searchable(text: $viewModel.searchText)
-        .navigationTitle("Building Complain List")
+    }
+    
+    @ViewBuilder
+    private func unitListScrollView() -> some View {
+        let units = viewModel.getFilteredAndSortedUnits()
+        
+        ScrollView {
+            LazyVStack(spacing: 12) {
+                ForEach(units) { unit in
+                    let summary = viewModel.getComplaintCounts(for: unit.id)
+                    
+                    NavigationLink(destination: BSCComplaintListView(unitId: unit.id, unitName: unit.name!)) {
+                        UnitComplainCard(
+                            unitCode: unit.name ?? "Unknown",
+                            latestComplaintDate: formatDate(unit.createdAt!, format: "dd MMM yyyy"),
+                            totalComplaints: summary.total,
+                            completedComplaints: summary.completed
+                        )
+                    }
+                    .contentShape(Rectangle())
+                }
+                
+            }
+        }
         
     }
+    
+    
+    
+    //    private var toolbarContent: some ToolbarContent {
+    //        ToolbarItem(placement: .navigationBarTrailing) {
+    //            let menuContent = Menu {
+    //                let latestButton = Button(action: { viewModel.sortOption = .latest }) {
+    //                    let latestLabel = Label("Tanggal Terbaru", systemImage: viewModel.sortOption == .latest ? "checkmark" : "")
+    //                    latestLabel
+    //                }
+    //
+    //                let oldestButton = Button(action: { viewModel.sortOption = .oldest }) {
+    //                    let oldestLabel = Label("Tanggal Terlama", systemImage: viewModel.sortOption == .oldest ? "checkmark" : "")
+    //                    oldestLabel
+    //                }
+    //
+    //                latestButton
+    //                oldestButton
+    //            } label: {
+    //                let menuIcon = Image(systemName: "line.3.horizontal.decrease.circle")
+    //                    .font(.title2)
+    //                    .foregroundColor(Color.primaryBlue)
+    //                menuIcon
+    //            }
+    //            menuContent
+    //        }
+    //    }
 }
 
 #Preview {

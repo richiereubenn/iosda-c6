@@ -8,32 +8,39 @@
 import SwiftUI
 
 struct BSCComplaintListView: View {
-    @ObservedObject var viewModel: ComplaintListViewModel
-    @State private var searchText: String = ""
-    @State private var showingCreateView = false
-
+    let unitId: String
+    let userId: String = "60d177e9-c2dc-46eb-8dd8-ba51091dc87a"
+    let unitName: String
+    @StateObject var viewModel = ComplaintListViewModel2()
+    
     var body: some View {
-        VStack(spacing: 8) {
-            Picker("Complaint Status", selection: $viewModel.selectedFilter) {
-                ForEach(ComplaintListViewModel.ComplaintFilter.allCases, id: \.self) { filter in
-                    Text(filter.rawValue)
-                        .font(.subheadline)
-                        .minimumScaleFactor(0.8)
-                        .lineLimit(1)
-                        .tag(filter)
+        ZStack {
+            VStack {
+                Button {
+                    Task {
+                        await viewModel.handleButtonTap(unitId: unitId, userId: userId)
+                    }
+                } label: {
+                    Text(viewModel.buttonTitle)
+                        .foregroundColor(.white)
+                        .frame(maxWidth: .infinity)
+                        .padding()
+                        .background(viewModel.isButtonEnabled ? Color.primaryBlue : Color.gray)
+                        .cornerRadius(8)
                 }
-            }
-            .pickerStyle(SegmentedPickerStyle())
-            .padding(.horizontal)
-            .onChange(of: viewModel.selectedFilter) { _ in
-                viewModel.filterComplaints()
-            }
-            
-            Group {
+                .disabled(!viewModel.isButtonEnabled)
+                .padding()
+                
+                Picker("Complaint Status", selection: $viewModel.selectedFilter) {
+                    ForEach(ComplaintListViewModel2.ComplaintFilter.allCases, id: \.self) { filter in
+                        Text(filter.rawValue).tag(filter)
+                    }
+                }
+                .pickerStyle(.segmented)
+                .padding()
+                
                 if viewModel.isLoading {
-                    ProgressView()
-                        .scaleEffect(1.2)
-                        .padding(.top, 40)
+                    ProgressView("Loading...")
                     Spacer()
                 } else if viewModel.filteredComplaints.isEmpty {
                     VStack(spacing: 12) {
@@ -50,49 +57,122 @@ struct BSCComplaintListView: View {
                     Spacer()
                 } else {
                     ScrollView {
-                        LazyVStack(spacing: 12) {
+                        VStack(spacing: 12) {
                             ForEach(viewModel.filteredComplaints) { complaint in
-                                NavigationLink(
-                                    destination: BSCComplainDetailView()
-                                ) {
-                                    ResidentComplaintCardView(complaint: complaint)
-                                        .accessibilityElement(children: .combine)
-                                        .accessibilityLabel("\(complaint.title), \(complaint.status)")
-                                }
-                                .buttonStyle(PlainButtonStyle())
+                                ComplaintRows(complaint: complaint)
                             }
                         }
-                        .padding(.horizontal, 20)
-                        .padding(.top, 20)
+                        .padding(.horizontal)
                     }
                 }
             }
-        }
-        .background(Color(.systemGroupedBackground))
-        .navigationTitle("Kode Rumah")
-        .navigationBarTitleDisplayMode(.large)
-        .searchable(text: $searchText, prompt: "Search complaints...")
-        .onAppear {
-            Task {
-                await viewModel.loadComplaints()
+            .searchable(text: $viewModel.searchText, prompt: "Search complaints...")
+            .navigationTitle(unitName)
+            .task {
+                await viewModel.loadComplaints(byUnitId: unitId)
+                await viewModel.evaluateButton(unitId: unitId)
+            }
+            .alert("Error", isPresented: .constant(viewModel.errorMessage != nil)) {
+                Button("OK") { viewModel.errorMessage = nil }
+            } message: {
+                Text(viewModel.errorMessage ?? "")
+            }
+            .background(Color(.systemGroupedBackground))
+            
+            if viewModel.showKeyLogAlert {
+                Color.black.opacity(0.4)
+                    .ignoresSafeArea()
+                    .onTapGesture { viewModel.showKeyLogAlert = false }
+                
+                VStack(spacing: 0) {
+                    Text("Key Handover Evidence")
+                        .font(.headline)
+                        .padding(.top, 16)
+                        .padding(.horizontal, 16)
+                        .multilineTextAlignment(.center)
+                    
+                    if let fileUrl = viewModel.lastKeyLog?.files.first?.url {
+                        AsyncImage(url: URL(string: "https://api.kevinchr.com/property/\(fileUrl)")) { image in
+                            image
+                                .resizable()
+                                .scaledToFill()
+                                .frame(width: 300, height: 300)
+                                .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
+                                .contentShape(RoundedRectangle(cornerRadius: 8))
+                        } placeholder: {
+                            ProgressView()
+                        }
+                        .padding(.vertical, 16)
+                    } else {
+                        Image(systemName: "key.fill")
+                            .resizable()
+                            .scaledToFit()
+                            .frame(width: 200, height: 200)
+                            .foregroundColor(.primaryBlue)
+                            .padding(.vertical, 16)
+                    }
+                    
+                    Rectangle()
+                        .frame(height: 1)
+                        .foregroundColor(Color(.separator))
+                    
+                    HStack(spacing: 0) {
+                        Button {
+                            Task{
+                                await viewModel.rejectKey(unitId: unitId, userId: userId)
+                            }
+                        } label: {
+                            Text("Reject")
+                                .foregroundColor(.red)
+                                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                        }
+                        
+                        Rectangle()
+                            .frame(width: 1, height: 44)
+                            .foregroundColor(Color(.separator))
+                        
+                        Button {
+                            Task {
+                                await viewModel.acceptKey(unitId: unitId, userId: userId)
+                                viewModel.showKeyLogAlert = false
+                            }
+                        } label: {
+                            Text("Accept")
+                                .foregroundColor(.blue)
+                                .fontWeight(.semibold)
+                                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                        }
+                    }
+                    .frame(height: 44)
+                }
+                .frame(width: 350)
+                .background(Color(.systemBackground))
+                .cornerRadius(14)
+                .shadow(radius: 20)
+                .fixedSize(horizontal: false, vertical: true)
             }
         }
-        .alert("Error", isPresented: .constant(viewModel.errorMessage != nil)) {
-            Button("OK") { viewModel.errorMessage = nil }
+        .alert(viewModel.alertTitle, isPresented: $viewModel.showSystemAlert) {
+            Button("Reject", role: .cancel) {}
+            Button("Accept") {
+                Task {
+                    await viewModel.acceptKey(unitId: unitId, userId: userId)
+                }
+            }
         } message: {
-            Text(viewModel.errorMessage ?? "")
-                .font(.body)
+            Text("Do you want to accept the key handover?")
         }
+        .animation(.easeInOut, value: viewModel.showKeyLogAlert)
     }
 }
 
-#Preview {
-    Group {
-        NavigationStack {
-            BSCComplaintListView(viewModel: ComplaintListViewModel())
+struct ComplaintRows: View {
+    let complaint: Complaint2
+    
+    var body: some View {
+        NavigationLink(destination: BSCComplainDetailView(complaintId: complaint.id, complainName: complaint.title)) {
+            ComplaintCard(complaint: complaint)
         }
-        .environment(\.sizeCategory, .medium)
-        
     }
 }
 

@@ -1,28 +1,25 @@
 import Foundation
 
-
 struct KeyLog: Identifiable, Codable {
-    let id: Int?
-    let position: String?
+    let id: String
+    let unitId: String?
+    let userId: String?
+    let detail: String?
     let timestamp: Date?
-    
-    enum KeyStatus: String, Codable, CaseIterable {
-        case resident = "resident"
-        case bsc = "bsc"
-        case bi = "bi"
-        
-        var displayName: String {
-            switch self {
-            case .resident: return "Resident"
-            case .bsc: return "BSC"
-            case .bi: return "BI"
-            }
-        }
-    }
-        
-    private enum CodingKeys: String, CodingKey {
-        case id = "uuid"
-        case position
+    let createdAt: Date?
+    let updatedAt: Date?
+    let deletedAt: Date?
+    let files: [KeyFile]
+
+    enum CodingKeys: String, CodingKey {
+        case id
+        case unitId = "unit_id"
+        case userId = "user_id"
+        case detail
         case timestamp
+        case createdAt = "created_at"
+        case updatedAt = "updated_at"
+        case deletedAt = "deleted_at"
+        case files
     }
 }

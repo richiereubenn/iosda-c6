@@ -7,13 +7,13 @@
 
 
 struct Classification: Identifiable, Codable {
-    let id: Int?
+    let id: String?
     let name: String
     let workDetail: String?
-    let workDuration: String?
+    let workDuration: Int?
     
     private enum CodingKeys: String, CodingKey {
-        case id = "uuid"
+        case id = "id"
         case name
         case workDetail = "work_detail"
         case workDuration = "work_duration"

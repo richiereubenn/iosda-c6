@@ -1,23 +1,23 @@
 import SwiftUI
 
 struct ProgressLogRow: View {
-    let progressLog: ProgressLog
+    let progressLog: ProgressLog2
     let isLast: Bool
-    let isCurrent: Bool
+    let isFirst: Bool
     
     var body: some View {
         HStack(alignment: .top, spacing: 12) {
             // Timeline circle and line
             VStack(spacing: 0) {
                 Circle()
-                    .fill(isCurrent ? Color.blue : Color.gray)
+                    .fill(isFirst ? Color.gray : Color.primaryBlue)
                     .frame(width: 20, height: 20)
                     .overlay(
-                        Image(systemName: isCurrent ? "checkmark" : "circle")
+                        Image(systemName: isFirst ? "circle" : "checkmark")
                             .font(.system(size: 10, weight: .bold))
                             .foregroundColor(.white)
                     )
-                
+
                 
                 if !isLast {
                     Rectangle()
@@ -31,15 +31,13 @@ struct ProgressLogRow: View {
             VStack(alignment: .leading, spacing: 8) {
                 // Date and Time
                 HStack {
-                    Text(formatDate(progressLog.timestamp))
+                    Text(formatDateRow(progressLog.timestamp))
                         .font(.headline)
                         .fontWeight(.semibold)
                     
                     Spacer()
                     
-                    Text(formatTime(progressLog.timestamp))
-                        .font(.caption)
-                        .foregroundColor(.secondary)
+                    Text(formatDate(progressLog.timestamp ?? Date(), format: "HH:mm"))
                 }
                 
                 // Title and Description
@@ -55,17 +53,9 @@ struct ProgressLogRow: View {
                         .foregroundColor(.secondary)
                 }
                 
-                // Attached Images
-                if let progressFiles = progressLog.progressFiles, !progressFiles.isEmpty {
-                    ProgressAttachmentsView(progressFiles: progressFiles)
-                        .padding(.top, 8)
-                }
-                
+                // Attached Files (images or PDFs)
                 if let files = progressLog.files, !files.isEmpty {
-                    let wrappedFiles = files.map { file in
-                        ProgressFile(id: file.id, progressId: progressLog.id, fileId: file.id, progress: nil, file: file)
-                    }
-                    ProgressAttachmentsView(progressFiles: wrappedFiles)
+                    ProgressAttachmentsView(progressFiles: files)
                         .padding(.top, 8)
                 }
             }
@@ -73,59 +63,43 @@ struct ProgressLogRow: View {
         }
     }
     
-    private func formatDate(_ date: Date?) -> String {
+    private func formatDateRow(_ date: Date?) -> String {
         guard let date = date else { return "Unknown Date" }
         
         let formatter = DateFormatter()
-        //        formatter.locale = Locale(identifier: "id_ID") // Indonesian locale
         formatter.dateFormat = "EEEE, dd MMMM yyyy"
-        return formatter.string(from: date)
-    }
-    
-    private func formatTime(_ date: Date?) -> String {
-        guard let date = date else { return "" }
-        
-        let formatter = DateFormatter()
-        formatter.timeStyle = .medium
         return formatter.string(from: date)
     }
 }
 
 #Preview {
-    ProgressLogRow(progressLog: mockProgressLog, isLast: false, isCurrent: true)
+    ProgressLogRow(progressLog: mockProgressLog, isLast: false, isFirst: true)
         .padding()
 }
-private let mockProgressLog = ProgressLog(
-    id: 1,
-    userId: nil,
-    attachmentId: nil,
+
+private let mockProgressLog = ProgressLog2(
+    id: "1",
+    complaintId: "123",
+    userId: "user1",
     title: "Laporan Diterima",
     description: "Laporan telah diterima oleh pihak pengelola dan sedang dalam peninjauan.",
     timestamp: Date(),
+    createdAt: Date(),
+    updatedAt: Date(),
     files: [
-        File(
-            id: 1,
+        ProgressFile2(
+            id: "1",
             name: "foto_lampiran.jpg",
             path: "https://www.example.com/foto_lampiran.jpg",
-            mimeType: "image/jpeg",
-            otherAttributes: nil,
-            progressFiles: nil
-        )
-    ],
-    progressFiles: [
-        ProgressFile(
-            id: 1,
-            progressId: 1,
-            fileId: 2,
-            progress: nil,
-            file: File(
-                id: 2,
-                name: "form_pengaduan.pdf",
-                path: "https://www.example.com/form_pengaduan.pdf",
-                mimeType: "application/pdf",
-                otherAttributes: nil,
-                progressFiles: nil
-            )
+            url: "https://www.example.com/foto_lampiran.jpg",
+            mimeType: "image/jpeg"
+        ),
+        ProgressFile2(
+            id: "2",
+            name: "form_pengaduan.pdf",
+            path: "https://www.example.com/form_pengaduan.pdf",
+            url: "https://www.example.com/form_pengaduan.pdf",
+            mimeType: "application/pdf"
         )
     ]
 )

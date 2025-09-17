@@ -21,13 +21,19 @@ struct UnitComplainCard: View {
         let ratio = Double(completedComplaints) / Double(totalComplaints)
         
         if ratio == 1.0 {
-            return .green
+            // Dark Green
+            return Color(red: 10/255, green: 129/255, blue: 102/255) // #006400
         } else if ratio >= 0.5 {
-            return .yellow
+            // Dark Yellow / Golden
+            return Color(red: 220/255, green: 0/255, blue: 0/255)
+            //Color(red: 184/255, green: 134/255, blue: 11/255) // #B8860B
         } else {
-            return .red
+            // Dark Red
+            return Color(red: 220/255, green: 0/255, blue: 0/255)
+  // #8B0000
         }
     }
+
     
     
     var body: some View {
@@ -39,7 +45,7 @@ struct UnitComplainCard: View {
                     .foregroundColor(.primary)
                 
                 VStack(alignment: .leading, spacing: isCompact ? 1 : 2) {
-                    Text("Latest Complaint Date")
+                    Text("Latest Complaint Date: ")
                         .foregroundColor(.secondary)
                     
                     Text(latestComplaintDate)
@@ -61,12 +67,12 @@ struct UnitComplainCard: View {
                         .fontWeight(.semibold)
                         .foregroundColor(.primary)
                 }
-                Text("Done: \(completedComplaints)")
+                Text("Close: \(completedComplaints)")
                     .font(isCompact ? .callout : .title3)
                     .fontWeight(.medium)
                     .foregroundColor(.white)
-                    .padding(.horizontal, isCompact ? 8 : 12)
-                    .padding(.vertical, isCompact ? 4 : 8)
+                    .padding(.horizontal, isCompact ? 10 : 12)
+                    .padding(.vertical, isCompact ? 6 : 8)
                     .background(statusColor)
                     .cornerRadius(8)
             }

@@ -3,7 +3,7 @@ import Foundation
 protocol UnitServiceProtocol {
     func fetchUnits() async throws -> [Unit]
     func createUnit(_ request: CreateUnitRequest) async throws -> Unit
-    func deleteUnit(id: Int) async throws
+    func deleteUnit(id: String) async throws
 }
 
 class UnitService: UnitServiceProtocol {
@@ -50,8 +50,10 @@ class UnitService: UnitServiceProtocol {
 
         return unit
     }
+    
+    
 
-    func deleteUnit(id: Int) async throws {
-        try await networkManager.requestEmpty(endpoint: "/units/\(id)", method: .DELETE)
-    }
+    func deleteUnit(id: String) async throws {
+           try await networkManager.requestEmpty(endpoint: "/units/\(id)", method: .DELETE)
+       }
 }

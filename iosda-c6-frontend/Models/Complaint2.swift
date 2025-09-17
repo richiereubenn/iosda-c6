@@ -6,6 +6,7 @@
 //
 
 import Foundation
+import SwiftUICore
 
 struct Complaint2: Identifiable, Codable {
     let id: String
@@ -18,12 +19,13 @@ struct Complaint2: Identifiable, Codable {
     let openTimestamp: Date?
     let closeTimestamp: Date?
     let keyHandoverDate: Date?
-    let deadlineDate: String?
+    let deadlineDate: Date?
     let latitude: String?
     let longitude: String?
-    let handoverMethod: String?
+    let handoverMethod: HandoverMethod?
     let workDetail: String?
     let workDuration: String?
+    let duedate : Date?
     let createdAt: Date?
     let updatedAt: Date?
     let statusName: String?
@@ -46,9 +48,21 @@ struct Complaint2: Identifiable, Codable {
         case handoverMethod = "handover_method"
         case workDetail = "work_detail"
         case workDuration = "work_duration"
+        case duedate
         case createdAt = "created_at"
         case updatedAt = "updated_at"
         case statusName = "status_name"
         case classificationName = "classification_name"
     }
 }
+
+extension Complaint2 {
+    var residentStatus: ComplaintStatus {
+        switch ComplaintStatus(raw: statusName) {
+        case .assignToVendor: return .inProgress
+        case .underReviewByBI: return .inProgress
+        default: return ComplaintStatus(raw: statusName)
+        }
+    }
+}
+
